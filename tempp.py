@@ -538,7 +538,7 @@ class GoogleMapsReviewCollector:
 
 if __name__ == "__main__":
     # Google Maps API 키 #보안 유지를 위한 보완 필요
-    API_KEY = "AIzaSyArLKW5z-0cJ3z7bKigcU4ONi6c_6i0Q40"
+    API_KEY = "asdf"
     
     # 리뷰 수집기 초기화    
     collector = GoogleMapsReviewCollector(API_KEY)
