@@ -190,3 +190,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# 설정파일 분리
+.env.dev
+.env.prod
