@@ -65,8 +65,8 @@ jobs:
     - name: Deploy to ECS
       run: |
         aws ecs update-service \
-          --cluster my-cluster \
-          --service my-service \
+          --cluster MAPro \
+          --service mapro-backend \
           --force-new-deployment
 
 
