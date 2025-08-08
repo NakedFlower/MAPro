@@ -1,29 +1,32 @@
-
 spring:
+  application:
+    name: MAPro
+    
+  # AWS RDS MySQL 직접 연결
   datasource:
-    url: jdbc:mysql://keyword-02.cbyqikm2gos5.ap-northeast-2.rds.amazonaws.com:3306/mapro
+    url: jdbc:mysql://keyword-02.cbyqikm2gos5.ap-northeast-2.rds.amazonaws.com:3306/mapro?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
     username: dev
     password: Dev1010**
     driver-class-name: com.mysql.cj.jdbc.Driver
   
   jpa:
     hibernate:
-      ddl-auto: validate  # 기존 테이블 구조 검증
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
+        dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
-  
+        
   security:
     jwt:
-      secret: mySecretKey123456789012345678901234567890  # 32자 이상
-      expiration: 86400000  # 24시간
+      secret: mapro-secret-key-2024-very-long-secret-key-for-jwt-token-generation
+      expiration: 86400000
 
 server:
   port: 8080
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.groom.MAPro: DEBUG
+    root: INFO
