@@ -26,6 +26,11 @@ public class AuthController {
     @Autowired
     private AuthService authService;
     
+    @GetMapping("/")
+    public ResponseEntity<ApiResponse<String>> home() {
+        return ResponseEntity.ok(ApiResponse.success("MAPro API 서버가 실행중입니다.", "API 문서는 /api/auth/test를 참조하세요."));
+    }
+    
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<AuthResponse>> signUp(@Valid @RequestBody SignUpRequest signUpRequest) {
         try {

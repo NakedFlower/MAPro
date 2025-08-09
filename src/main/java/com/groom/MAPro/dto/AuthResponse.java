@@ -1,20 +1,19 @@
 package com.groom.MAPro.dto;
 
-
 public class AuthResponse {
     private String token;
     private String type = "Bearer";
     private Long userId;
-    private String email;
+    private String username;  // email -> username으로 변경
     private String name;
 
     // 생성자
     public AuthResponse() {}
 
-    public AuthResponse(String token, Long userId, String email, String name) {
+    public AuthResponse(String token, Long userId, String username, String name) {
         this.token = token;
         this.userId = userId;
-        this.email = email;
+        this.username = username;
         this.name = name;
     }
 
@@ -28,8 +27,8 @@ public class AuthResponse {
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

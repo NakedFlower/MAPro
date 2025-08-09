@@ -21,11 +21,11 @@ import jakarta.persistence.Table;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
+    @Column(name = "id")  // MySQL 테이블의 컬럼명에 맞춤
     private Long userId;
 
     @Column(nullable = false, unique = true)
-    private String email;
+    private String username;
 
     @Column(nullable = false)
     private String password;
@@ -41,15 +41,26 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "uscrol", length = 45)  // 새로 추가된 필드
+    private String uscrol;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<UserPreference> userPreferences;
 
     // 기본 생성자
     public User() {}
 
-    // 생성자
-    public User(String email, String password, String name) {
-        this.email = email;
+    // 생성자 (uscrol 포함)
+    public User(String username, String password, String name, String uscrol) {
+        this.username = username;
+        this.password = password;
+        this.name = name;
+        this.uscrol = uscrol;
+    }
+
+    // 기존 생성자 (uscrol 없이)
+    public User(String username, String password, String name) {
+        this.username = username;
         this.password = password;
         this.name = name;
     }
@@ -58,8 +69,8 @@ public class User {
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
@@ -72,6 +83,9 @@ public class User {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public String getUscrol() { return uscrol; }
+    public void setUscrol(String uscrol) { this.uscrol = uscrol; }
 
     public Set<UserPreference> getUserPreferences() { return userPreferences; }
     public void setUserPreferences(Set<UserPreference> userPreferences) { this.userPreferences = userPreferences; }
