@@ -25,7 +25,7 @@ jobs:
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v1
       with:
-        credentials_json: ${{secrets.GCP_SA_KEY}}
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
 
     - name: Set up gcloud CLI
       uses: google-github-actions/setup-gcloud@v1
@@ -34,10 +34,10 @@ jobs:
       run: |
         gcloud compute scp target/your-app.jar yjin887@main-instance-20250811-054019:~/app/ --zone=asia-northeast3-a
       env:
-        CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: ${{secrets.GCP_SA_KEY}}
+        CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: ${{ secrets.GCP_SA_KEY }}
 
     - name: Restart Spring Boot app on VM
       run: |
         gcloud compute ssh USERNAME@VM_INSTANCE_NAME --zone=YOUR_ZONE --command="pkill -f target/MAPro-1.0.0.jar || true && nohup java -jar ~/app/your-app.jar > app.log 2>&1 &"
       env:
-        CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: ${{secrets.GCP_SA_KEY}}
+        CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: ${{ secrets.GCP_SA_KEY }}
