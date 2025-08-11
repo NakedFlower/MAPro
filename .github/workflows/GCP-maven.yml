@@ -53,6 +53,11 @@ jobs:
         run: |
           pwd
           ls -l target
+
+      - name: Create app directory on VM
+        run: |
+          gcloud compute ssh yjin887@main-instance-20250811-054019 --zone=asia-northeast3-a --command="mkdir -p ~/app"
+
     
       # 7. JAR 파일 VM으로 복사
       - name: Copy JAR to VM
