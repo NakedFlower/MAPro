@@ -51,7 +51,7 @@ jobs:
       # 7. JAR 파일 VM으로 복사
       - name: Copy JAR to VM
         run: |
-          gcloud compute scp target/MAPro-0.0.1-SNAPSHOT.jar \
+          gcloud compute scp /home/runner/work/MAPro/MAPro/target/MAPro-0.0.1-SNAPSHOT.jar \
             yjin887@main-instance-20250811-054019:~/app/ \
             --zone=asia-northeast3-a
         # run: |
