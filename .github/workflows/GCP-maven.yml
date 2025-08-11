@@ -48,6 +48,12 @@ jobs:
       #     ${{ secrets.GCP_SA_KEY }}
       #     EOF
 
+
+      - name: Check working directory and files
+        run: |
+          pwd
+          ls -l target
+    
       # 7. JAR 파일 VM으로 복사
       - name: Copy JAR to VM
         run: |
