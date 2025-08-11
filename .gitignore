@@ -190,3 +190,8 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# 설정파일 분리 및 환경설정 파일
+*.env
+.env.*
+application.properties
+application-*.properties
