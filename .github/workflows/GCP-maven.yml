@@ -42,24 +42,32 @@ jobs:
           install_components: beta
 
       # 6. JSON 키를 임시 파일로 저장 (scp/ssh 명령에서 필요)
-      - name: Save GCP credentials to file
-        run: |
-          cat <<EOF > ${{ runner.temp }}/gcp-key.json
-          ${{ secrets.GCP_SA_KEY }}
-          EOF
+      # - name: Save GCP credentials to file
+      #   run: |
+      #     cat <<EOF > ${{ runner.temp }}/gcp-key.json
+      #     ${{ secrets.GCP_SA_KEY }}
+      #     EOF
 
       # 7. JAR 파일 VM으로 복사
       - name: Copy JAR to VM
         run: |
-          gcloud auth activate-service-account --key-file=${{ runner.temp }}/gcp-key.json
           gcloud compute scp target/MAPro-1.0.0.jar \
             yjin887@main-instance-20250811-054019:~/app/ \
             --zone=asia-northeast3-a
+        # run: |
+        #   gcloud auth activate-service-account --key-file=${{ runner.temp }}/gcp-key.json
+        #   gcloud compute scp target/MAPro-1.0.0.jar \
+        #     yjin887@main-instance-20250811-054019:~/app/ \
+        #     --zone=asia-northeast3-a
 
       # 8. Spring Boot 앱 재시작
       - name: Restart Spring Boot app on VM
         run: |
-          gcloud auth activate-service-account --key-file=${{ runner.temp }}/gcp-key.json
           gcloud compute ssh yjin887@main-instance-20250811-054019 \
             --zone=asia-northeast3-a \
             --command="pkill -f 'java -jar' || true && nohup java -jar ~/app/MAPro-1.0.0.jar > app.log 2>&1 &"
+        # run: |
+        #   gcloud auth activate-service-account --key-file=${{ runner.temp }}/gcp-key.json
+        #   gcloud compute ssh yjin887@main-instance-20250811-054019 \
+        #     --zone=asia-northeast3-a \
+        #     --command="pkill -f 'java -jar' || true && nohup java -jar ~/app/MAPro-1.0.0.jar > app.log 2>&1 &"
