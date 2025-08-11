@@ -43,8 +43,9 @@ jobs:
 
       # 6. JSON 키를 임시 파일로 저장 (scp/ssh 명령에서 필요)
       - name: Save GCP credentials to file
-        run: |
-          echo "${{ secrets.GCP_SA_KEY }}" > ${{ runner.temp }}/gcp-key.json
+        # run: echo "${{ secrets.GCP_SA_KEY }}" > ${{ runner.temp }}/gcp-key.json
+        run: echo "${{ secrets.GCP_SA_KEY }}" > $HOME/gcp-key.json
+
 
       # 7. JAR 파일 VM으로 복사
       - name: Copy JAR to VM
