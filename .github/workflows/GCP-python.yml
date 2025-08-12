@@ -3,7 +3,7 @@ name: Deploy Python Script to GCP VM (python-branch)
 on:
   push:
     branches:
-      - python-branch
+      - dev/BEreview
 
 jobs:
   deploy-python:
