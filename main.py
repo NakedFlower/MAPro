@@ -39,8 +39,8 @@ KEYWORD_DICT = {
         },
         "데이트": {
             "positive": [
-                "데이트", "연인", "커플", "애인", "무드", "로맨틱",
-                "조명", "캔들", "기념일", "프러포즈",
+                "데이트", "연인", "커플", "애인", "분위기", "무드", "로맨틱",
+                "은은한 조명", "간접조명", "캔들", "기념일", "프러포즈",
                 "힙한", "감성", "갬성", "뷰", "야경", "테라스", "루프탑"
             ],
             "negative": [
@@ -319,49 +319,6 @@ SEARCH_QUERY_TO_CATEGORY = {
     "hospital": "병원"
 }
 
-# Spring Boot 애플리케이션 URL - 실제 IP 주소 및 포트로 변경 필요
-SPRING_BOOT_API_URL = "http://localhost:8080/api/data"
-
- 
-def save_to_springboot(df: pd.DataFrame, api_url: str):
-    """
-    DataFrame의 데이터를 Spring Boot API를 통해 저장합니다.
-    """
-    if df.empty:
-        print("저장할 데이터가 없습니다.")
-        return
-
-    # DataFrame을 Spring Boot API가 예상하는 JSON 형식으로 변환합니다.
-    # 각 row를 {'name': '...', 'address': '...', 'category': '...', 'keyword': '...'} 형태로 만듭니다.
-    data_to_send = []
-    for _, row in df.iterrows():
-        data_to_send.append({
-            'name': row['place_name'],
-            'address': row['place_address'],
-            'category': row['category'],
-            'keyword': row['keywords']
-        })
-
-    headers = {'Content-Type': 'application/json'}
-
-    print(f"Spring Boot API ({api_url})로 데이터 전송 시도 중...")
-    try:
-        response = requests.post(api_url, data=json.dumps(data_to_send), headers=headers)
-        response.raise_for_status()  # HTTP 오류가 발생하면 예외 발생
-
-        if response.status_code == 201: # Created 상태 코드 (성공적으로 생성되었을 때)
-            print(f"데이터가 Spring Boot API를 통해 성공적으로 저장되었습니다. 응답: {response.json()}")
-        else:
-            print(f"데이터 저장 실패: HTTP 상태 코드 {response.status_code}")
-            print(f"응답 내용: {response.text}")
-
-    except requests.exceptions.RequestException as e:
-        print(f"Spring Boot API 호출 중 오류 발생: {e}")
-        print(f"호출 URL: {api_url}")
-        print(f"보내려던 데이터 일부 (첫 3개): {data_to_send[:3]}")
-    except json.JSONDecodeError:
-        print(f"Spring Boot API 응답을 JSON으로 디코딩하는 데 실패했습니다. 응답: {response.text}")
-
 def extract_keywords_from_review_by_category(review_text: str, category: str, keyword_dict: dict) -> dict:
     result = {}
     if category not in keyword_dict:
@@ -397,38 +354,65 @@ def add_keywords_to_reviews_by_category(df: pd.DataFrame, keyword_dict: dict, ca
 
 # 매장별로 positive 키워드만 집계
 def aggregate_keywords(group):
+    # 모든 리뷰의 matched_keywords를 합쳐서 set으로 만듦
     keywords = set()
     for kw_list in group['matched_keywords']:
         if isinstance(kw_list, list):
             keywords.update(kw_list)
+    # 카테고리_키워드 형태이므로 뒤에 키워드만 추출
     keywords = [k.split('_', 1)[1] for k in keywords]
     return ','.join(sorted(set(keywords)))
 
 class GoogleMapsReviewCollector:
     def __init__(self, api_key: str):
+        """
+        Google Maps API를 사용한 리뷰 수집기
+        
+        Args:
+            api_key (str): Google Maps API 키
+        """
         self.api_key = api_key
         self.base_url = "https://maps.googleapis.com/maps/api/place"
     
     def search_places(self, query: str, location: str = None, radius: int = 1000) -> List[Dict]:
+        """
+        장소를 검색하여 place_id 목록을 반환
+        
+        Args:
+            query (str): 검색할 키워드 (예: "카페", "레스토랑")
+            location (str): 위치 좌표 "lat,lng" 형태 (선택사항)
+            radius (int): 검색 반경 (미터)
+            
+        Returns:
+            List[Dict]: place_id와 기본 정보가 포함된 장소 목록
+        """
         url = f"{self.base_url}/textsearch/json"
+
         params = {
             'query': query,
             'key': self.api_key,
             'language': 'ko'
         }
+
         if location:
             params['location'] = location
             params['radius'] = radius
+
         places = []
+
         try:
             response = requests.get(url, params=params)
+
             if response.status_code != 200:
                 print(f"HTTP 오류: {response.status_code}")
                 print(f"응답 내용: {response.text}")
                 return places
+            
             response.raise_for_status()
             data = response.json()
+
             print(f"API 응답 상태: {data.get('status', 'UNKNOWN')}")
+
             if data['status'] == 'OK':
                 for place in data['results']:
                     places.append({
@@ -448,27 +432,44 @@ class GoogleMapsReviewCollector:
                 print(f"검색 오류: {data['status']}")
                 if 'error_message' in data:
                     print(f"오류 메시지: {data['error_message']}")
+
         except requests.exceptions.RequestException as e:
             print(f"API 요청 오류: {e}")
+
         return places
     
     def get_place_reviews(self, place_id: str, years_filter: int = None) -> List[Dict]:
+        """
+        특정 장소의 리뷰를 가져옴
+        
+        Args:
+            place_id (str): Google Places의 place_id
+            years_filter (int): 필터링할 년수 (None이면 모든 리뷰)
+            
+        Returns:
+            List[Dict]: 리뷰 데이터 목록
+        """
         url = f"{self.base_url}/details/json"
+
         params = {
             'place_id': place_id,
             'fields': 'reviews,name,formatted_address',
             'key': self.api_key,
             'language': 'ko'
         }
+
         reviews = []
+
         try:
             response = requests.get(url, params=params)
             response.raise_for_status()
             data = response.json()
+
             if data['status'] == 'OK':
                 place_info = data['result']
                 place_name = place_info.get('name', '')
                 place_address = place_info.get('formatted_address', '')
+
                 if 'reviews' in place_info:
                     for review in place_info['reviews']:
                         if years_filter and not self._is_within_years(review.get('time', 0), years_filter):
@@ -478,15 +479,28 @@ class GoogleMapsReviewCollector:
                             'place_name': place_name,
                             'place_address': place_address,
                             'review_text': review.get('text', ''),
+                            'author_url': review.get('author_url', ''),
+                            'language': review.get('language', '')
                         }
                         reviews.append(review_data)
             else:
                 print(f"장소 상세 정보 오류: {data['status']} - {place_id}")
         except requests.exceptions.RequestException as e:
             print(f"API 요청 오류: {e}")
+
         return reviews
 
     def _is_within_years(self, timestamp: int, years: int = 5) -> bool:
+        """
+        리뷰가 지정된 년수 이내에 작성되었는지 확인
+        
+        Args:
+            timestamp (int): Unix 타임스탬프
+            years (int): 기준 년수
+            
+        Returns:
+            bool: 기준 년수 이내 작성 여부
+        """
         try:
             review_date = datetime.fromtimestamp(timestamp)
             cutoff_date = datetime.now() - timedelta(days=years * 365)
@@ -496,25 +510,49 @@ class GoogleMapsReviewCollector:
     
     def collect_reviews_from_search(self, query: str, location: str = None, 
                                   max_places: int = 10, delay: float = 1.0, years_filter: int = None) -> pd.DataFrame:
+        """
+        검색어로 장소를 찾고 모든 리뷰를 수집
+        
+        Args:
+            query (str): 검색할 키워드
+            location (str): 위치 좌표 "lat,lng" 형태 (선택사항)
+            max_places (int): 수집할 최대 장소 수
+            delay (float): API 호출 간 딜레이 (초)
+            years_filter (int): 필터링할 년수 (None이면 모든 리뷰)
+            
+        Returns:
+            pd.DataFrame: 수집된 리뷰 데이터프레임
+        """
         print(f"'{query}' 검색 중...")
         places = self.search_places(query, location)
+
         if not places:
             print("검색된 장소가 없습니다.")
             return pd.DataFrame()
+        
         print(f"{len(places)}개 장소 발견. 최대 {max_places}개 처리 예정...")
+
         all_reviews = []
+
         for i, place in enumerate(places[:max_places]):
             print(f"[{i+1}/{min(len(places), max_places)}] {place['name']} 리뷰 수집 중...")
+            
             reviews = self.get_place_reviews(place['place_id'], years_filter)
             all_reviews.extend(reviews)
+            
             years_text = f" ({years_filter}년 이내)" if years_filter else ""
             print(f"  -> {len(reviews)}개 리뷰{years_text} 수집됨")
+
+            # API 호출 제한 방지를 위한 딜레이            
             if i < min(len(places), max_places) - 1:
                 time.sleep(delay)
+
         if all_reviews:
             df = pd.DataFrame(all_reviews)
+            # 필요한 컬럼만 선택하고 정렬
             columns = ['place_name', 'place_address', 'review_text']
             df = df[columns]
+
             years_text = f" ({years_filter}년 이내)" if years_filter else ""
             print(f"\n총 {len(df)}개 리뷰{years_text} 수집 완료!")
             return df
@@ -523,12 +561,25 @@ class GoogleMapsReviewCollector:
             return pd.DataFrame()
     
     def collect_reviews_from_place_id(self, place_id: str, years_filter: int = None) -> pd.DataFrame:
+        """
+        특정 place_id의 리뷰만 수집
+        
+        Args:
+            place_id (str): Google Places의 place_id
+            years_filter (int): 필터링할 년수 (None이면 모든 리뷰)
+            
+        Returns:
+            pd.DataFrame: 수집된 리뷰 데이터프레임
+        """        
         print(f"Place ID {place_id} 리뷰 수집 중...")
+
         reviews = self.get_place_reviews(place_id, years_filter)
+
         if reviews:
             df = pd.DataFrame(reviews)
             columns = ['place_name', 'place_address', 'review_text']
             df = df[columns]
+
             years_text = f" ({years_filter}년 이내)" if years_filter else ""
             print(f"{len(df)}개 리뷰{years_text} 수집 완료!")
             return df
@@ -537,13 +588,16 @@ class GoogleMapsReviewCollector:
             return pd.DataFrame()
 
 if __name__ == "__main__":
-    # Google Maps API 키 #보안 유지를 위한 보완 필요
-    API_KEY = "GOOGLE_MAPS_API_KEY"
+    # API 키 설정
+    API_KEY = "AIzaSyArLKW5z-0cJ3z7bKigcU4ONi6c_6i0Q40"
+    
+    # 저장 경로 설정    
+    save_path = r'C:\Users\ATIV\Desktop\reviewdata\reviews.csv'
     
     # 리뷰 수집기 초기화    
     collector = GoogleMapsReviewCollector(API_KEY)
     
-    # 판교디지털센터의 위도와 경도    # 현재 위치 불러오는 거 생각해야 함
+    # 판교디지털센터의 위도와 경도    
     goorm_location = "37.4023,127.1012"
     
     print("=== 구름스퀘어 판교 주변 음식점 리뷰 수집 ===")
@@ -603,18 +657,22 @@ if __name__ == "__main__":
                     all_reviews_df = pd.concat([all_reviews_df, df_new], ignore_index=True)
                     
                     print(f"  -> 발견된 장소: {df_new['place_name'].unique()}")
+        # API 제한 방지를 위한 딜레이        
         if i < len(search_queries) - 1:
             time.sleep(2)
+    
     
     print(f"\n판교디지털센터 주변 음식점 리뷰 {len(all_reviews_df)}개 수집 완료!")    
 
     if not all_reviews_df.empty:
+        all_reviews_df.to_csv(save_path, index=False, encoding='utf-8-sig')
+        print(f"\n키워드 분석 결과가 '{save_path}'에 저장되었습니다.")
+        
         keyword_df = all_reviews_df.groupby(['place_name', 'place_address', 'category']).apply(aggregate_keywords, include_groups=False).reset_index()
         keyword_df.columns = ['place_name', 'place_address', 'category', 'keywords']
-
-        # Spring Boot API 호출 함수
-        save_to_springboot(keyword_df, SPRING_BOOT_API_URL)
-            
+        keyword_df.to_csv('keyword.csv', index=False, encoding='utf-8-sig')
+        print("\n매장별 키워드 요약 파일(keyword.csv) 저장 완료!")  
+              
         # 수집된 데이터 요약
         print(f"\n=== 수집 결과 요약 ===")
         print(f"총 리뷰 개수: {len(all_reviews_df):,}")
