@@ -56,6 +56,18 @@ local.properties
 .loadpath
 .recommenders
 
+# VS Code 설정
+.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# 또는 더 간단하게 모든 VS Code 설정을 제외하려면:
+.vscode/
+
 # External tool builders
 .externalToolBuilders/
 
