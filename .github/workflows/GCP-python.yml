@@ -1,77 +1,30 @@
-name: Build & Deploy tempp (dev/BEreview)
+name: Build and Push to GCR
 
 on:
   push:
     branches:
       - dev/BEreview
 
-env:
-  PROJECT_ID: custom-sun-466702-d5
-  IMAGE: asia.gcr.io/${{ env.PROJECT_ID }}/tempp-script
-
 jobs:
-  build-and-push:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          ref: dev/BEreview
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Authenticate to GCP
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
-      - name: Set up gcloud
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          project_id: ${{ env.PROJECT_ID }}
-          install_components: 'beta'
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Configure Docker for GCR
-        run: |
-          gcloud auth configure-docker --quiet
+    - name: Configure Docker to use gcloud as a credential helper
+      run: gcloud auth configure-docker
 
-      - name: Build Docker image
-        run: |
-          docker build -t $IMAGE:${{ github.sha }} .
-          docker tag $IMAGE:${{ github.sha }} $IMAGE:latest
-
-      - name: Push images to GCR
-        run: |
-          docker push $IMAGE:${{ github.sha }}
-          docker push $IMAGE:latest
-
-  deploy-to-vm:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Authenticate to GCP (for gcloud compute ssh/scp)
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Create .env file (with secrets) on runner
-        run: |
-          cat > tempp.env <<EOF
-          GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
-          SPRING_BOOT_API_URL=${{ secrets.SPRING_BOOT_API_URL }}
-          EOF
-
-      - name: Copy env file to VM
-        run: |
-          # copy tempp.env to home of nakedflower02
-          gcloud compute scp tempp.env nakedflower02@main-instance-20250811-054019:~/tempp.env --zone=asia-northeast3-a
-
-      - name: Pull image on VM and run container
-        run: |
-          gcloud compute ssh nakedflower02@main-instance-20250811-054019 --zone=asia-northeast3-a --command="
-            set -e
-            docker pull ${IMAGE}:latest
-            docker rm -f tempp-container || true
-            # Run detached and ensure auto-restart; use --env-file to avoid leaking secrets to logs
-            docker run -d --name tempp-container --restart=unless-stopped --env-file ~/tempp.env ${IMAGE}:latest
-            # remove env file if you don't want it left on VM
-            rm -f ~/tempp.env
-          "
+    - name: Build and push Docker image
+      run: |
+        docker build -t gcr.io/custom-sun-466702-d5/mapro-image:latest .
+        docker push gcr.io/custom-sun-466702-d5/mapro-image:latest
