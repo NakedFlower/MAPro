@@ -584,7 +584,7 @@ if __name__ == "__main__":
                 df_filtered['unique_key'] = (df_filtered['place_name'] + '_' + 
                                            df_filtered['place_address']).str.strip()
                 
-                # 이미 처리된 장소들은 제외                
+                # 이미 처리된 장소들 제외                
                 new_mask = ~df_filtered['unique_key'].isin(processed_places)
                 df_new = df_filtered[new_mask].copy()
 
