@@ -36,9 +36,8 @@ jobs:
         username: ${{ secrets.GCP_VM_USER }}
         key: ${{ secrets.GCP_SSH_KEY }}
         script: |
-          sudo docker pull gcr.io/custom-sun-466702-d5/mapro-image:latest || echo "FAILED: pull"
-          sudo docker stop mapro-container || true
-          sudo docker rm mapro-container || true
-          sudo docker run -d --name mapro-container gcr.io/custom-sun-466702-d5/mapro-image:latest || echo "FAILED: run"
-          sudo docker ps -a
+          docker pull gcr.io/custom-sun-466702-d5/mapro-image:latest
+          docker stop mapro-container || true
+          docker rm mapro-container || true
+          docker run -d --name mapro-container gcr.io/custom-sun-466702-d5/mapro-image:latest
 
