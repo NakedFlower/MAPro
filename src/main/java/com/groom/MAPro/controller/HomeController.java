@@ -1,5 +1,5 @@
 // src/main/java/com/groom/MAPro/controller/HomeController.java
-package com.groom.MAPro.controller;
+package com.groom.MAPro.Controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

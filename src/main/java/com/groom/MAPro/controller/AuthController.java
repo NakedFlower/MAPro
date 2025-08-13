@@ -1,4 +1,4 @@
-package com.groom.MAPro.controller;
+package com.groom.MAPro.Controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
