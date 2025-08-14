@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 
-function Profile() {
+function Profile({ onOpenMap }) {
   const [active, setActive] = useState(true);
 
-  // 원 크기 토글 함수
-  const toggleCircle = () => setActive(a => !a);
+  const handleClick = () => {
+    setActive(a => !a);
+    if (onOpenMap) onOpenMap();
+  };
 
   return (
     <div style={{
@@ -14,7 +16,7 @@ function Profile() {
       marginTop: '120px'
     }}>
       <div
-        onClick={toggleCircle}
+        onClick={handleClick}
         style={{
           width: active ? '160px' : '60px',
           height: active ? '160px' : '60px',
