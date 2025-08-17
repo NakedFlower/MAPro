@@ -13,16 +13,8 @@ function LoginPanel({ onClose }) {
   const [password, setPassword] = useState('');
 
   useEffect(() => {
-    // 마운트 직후 컨테이너 크기를 기준으로 우측 상단에 배치
-    const panelEl = panelRef.current;
-    if (!panelEl) return;
-    const container = panelEl.parentElement; // App 메인 영역 컨테이너
-    const containerW = container?.clientWidth || window.innerWidth;
-    const containerH = container?.clientHeight || window.innerHeight;
-    const left = Math.max(20, containerW - PANEL_WIDTH - 60);
-    const top = 60;
-    setPos({ left, top });
-
+    // 마운트 직후 컨테이너 크기를 기준으로 좌측 하단에 배치
+    setPos({ left: 300, top: window.innerHeight - PANEL_HEIGHT - 100 });
     // 다음 프레임에 애니메이션 활성화
     const id = requestAnimationFrame(() => setAnimateIn(true));
     return () => cancelAnimationFrame(id);
@@ -100,9 +92,10 @@ function LoginPanel({ onClose }) {
     <div
       ref={panelRef}
       style={{
-        position: 'absolute',
-        top: pos.top,
+        position: 'fixed',
+        zIndex: 2000,
         left: pos.left,
+        top: pos.top,
         width: PANEL_WIDTH,
         height: PANEL_HEIGHT,
         background: '#ffffff',
