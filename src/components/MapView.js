@@ -11,7 +11,7 @@ const center = {
   lng: 126.9780 // 서울 시청 경도
 };
 
-const GOOGLE_MAPS_API_KEY = 'asdf';
+const GOOGLE_MAPS_API_KEY = '${{ secrets.GOOGLE_MAPS_API_KEY }}';
 
 function MapView() {
   const { isLoaded } = useJsApiLoader({
