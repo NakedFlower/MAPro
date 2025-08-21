@@ -11,17 +11,17 @@ const center = {
   lng: 126.9780 // 서울 시청 경도
 };
 
+const GOOGLE_MAPS_API_KEY = 'AIzaSyArLKW5z-0cJ3z7bKigcU4ONi6c_6i0Q40';
+
 function MapView() {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY
   });
 
   const [map, setMap] = useState(null);
 
   const onLoad = useCallback(function callback(map) {
-    const bounds = new window.google.maps.LatLngBounds(center);
-    map.fitBounds(bounds);
     setMap(map);
   }, []);
 
@@ -33,7 +33,7 @@ function MapView() {
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={center}
-        zoom={10}
+        zoom={15}
         onLoad={onLoad}
         onUnmount={onUnmount}
       >

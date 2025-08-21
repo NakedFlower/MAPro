@@ -55,7 +55,7 @@ function PreferenceSetting() {
     <div
       style={{
         minWidth: '540px',
-        height: '650px', 
+        height: '550px', 
         borderRadius: '24px',
         marginTop: '80px',
         background: '#fff',
