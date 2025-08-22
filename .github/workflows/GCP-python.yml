@@ -22,12 +22,13 @@ jobs:
         credentials_json: ${{ secrets.GCP_SA_KEY }}
 
     - name: Configure Docker to use gcloud as a credential helper
-      run: gcloud auth configure-docker
+      run: gcloud auth configure-docker asia-northeast3-docker.pkg.dev
 
     - name: Build and push Docker image
       run: |
-        docker build -t asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-python-review:latest .
-        docker push asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-python-review:latest
+        IMAGE_NAME=asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-python-review:latest
+        docker build -t $IMAGE_NAME .
+        docker push $IMAGE_NAME
 
     - name: Deploy to GCP VM
       uses: appleboy/ssh-action@v0.1.5
@@ -36,7 +37,9 @@ jobs:
         username: ${{ secrets.GCP_VM_USER }}
         key: ${{ secrets.GCP_SSH_KEY }}
         script: |
-          docker pull docker-repo/custom-sun-466702-d5/mapro-python-review:latest
+          IMAGE_NAME=asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-python-review:latest
+          gcloud auth configure-docker asia-northeast3-docker.pkg.dev
+          docker pull $IMAGE_NAME
           docker stop mapro-container || true
           docker rm mapro-container || true
-          docker run -d --name mapro-container docker-repo/custom-sun-466702-d5/mapro-python-review:latest
+          docker run -d --name mapro-container $IMAGE_NAME
