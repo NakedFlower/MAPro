@@ -26,8 +26,8 @@ jobs:
 
     - name: Build and push Docker image
       run: |
-        docker build -t gcr.io/custom-sun-466702-d5/mapro-image:latest .
-        docker push gcr.io/custom-sun-466702-d5/mapro-image:latest
+        docker build -t gcr.io/custom-sun-466702-d5/mapro-python-review:latest .
+        docker push gcr.io/custom-sun-466702-d5/mapro-python-review:latest
 
     - name: Deploy to GCP VM
       uses: appleboy/ssh-action@v0.1.5
@@ -36,7 +36,7 @@ jobs:
         username: ${{ secrets.GCP_VM_USER }}
         key: ${{ secrets.GCP_SSH_KEY }}
         script: |
-          docker pull gcr.io/custom-sun-466702-d5/mapro-image:latest
+          docker pull gcr.io/custom-sun-466702-d5/mapro-python-review:latest
           docker stop mapro-container || true
           docker rm mapro-container || true
-          docker run -d --name mapro-container gcr.io/custom-sun-466702-d5/mapro-image:latest
+          docker run -d --name mapro-container gcr.io/custom-sun-466702-d5/mapro-python-review:latest
