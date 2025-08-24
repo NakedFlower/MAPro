@@ -4,11 +4,11 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public class LoginRequest {
-    @Email(message = "유효한 이메일 형식이 아닙니다.")
-    @NotBlank(message = "사용자명은 필수입니다.")
-    private String username;  // email -> username으로 변경
+    @Email(message = "VALID001") // ErrorCode 참조
+    @NotBlank(message = "VALID004")
+    private String username;
 
-    @NotBlank(message = "비밀번호는 필수입니다.")
+    @NotBlank(message = "VALID004")
     private String password;
 
     // 생성자
