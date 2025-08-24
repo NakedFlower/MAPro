@@ -20,11 +20,8 @@ jobs:
       with:
         credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-    - name: Debug whoami
-      run: gcloud config list account
-      
     - name: Configure Docker to use gcloud as a credential helper
-      run: gcloud auth configure-docker asia-northeast3-docker.pkg.dev --quiet
+      run: gcloud auth configure-docker asia-northeast3-docker.pkg.dev
 
     - name: Build and push Docker image
       run: |
@@ -37,7 +34,7 @@ jobs:
       with:
         host: ${{ secrets.GCP_VM_IP }}
         username: ${{ secrets.GCP_VM_USER }}
-        key: ${{ secrets.GCP_SSH_KEY }}
+        key: ${{ secrets.GCP_ACTIONS_KEY }}
         script: |
           IMAGE_NAME=asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-python-review:latest
           gcloud auth configure-docker asia-northeast3-docker.pkg.dev
