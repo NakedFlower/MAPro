@@ -35,6 +35,7 @@ jobs:
         host: ${{ secrets.GCP_VM_IP }}
         username: ${{ secrets.GCP_VM_USER }}
         key: ${{ secrets.GCP_ACTIONS_KEY }}
+        port: 22
         script: |
           IMAGE_NAME=asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-python-review:latest
           gcloud auth configure-docker asia-northeast3-docker.pkg.dev
