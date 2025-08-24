@@ -2,8 +2,7 @@ name: Build and Push to GCR and Deploy to VM
 
 on:
   push:
-    branches:
-      - dev/BEreview
+    branches: [ "dev/BEreview" ]
 
 jobs:
   build-and-deploy:
