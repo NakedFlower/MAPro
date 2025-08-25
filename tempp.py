@@ -689,7 +689,7 @@ if __name__ == "__main__":
     collector = GoogleMapsReviewCollector(API_KEY)
     
     # 판교디지털센터의 위도와 경도    
-    goorm_location = "37.4023,127.1012"
+    goorm_location = "37.4023,127.1012" 
     
     print("=== 구름스퀘어 판교 주변 음식점 리뷰 수집 ===")
     

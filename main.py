@@ -648,7 +648,7 @@ if __name__ == "__main__":
     API_KEY = "${{ secrets.GOOGLE_MAPS_API_KEY }}"
     
     # 저장 경로 설정    
-    save_path = r'C:\Users\ATIV\Desktop\reviewdata\reviews.csv'
+    save_path = r'C:\Users\ATIV\Desktop\reviewdata\reviews.csv' 
     
     # 리뷰 수집기 초기화    
     collector = GoogleMapsReviewCollector(API_KEY)
