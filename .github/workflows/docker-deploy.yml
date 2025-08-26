@@ -38,16 +38,10 @@ jobs:
           username: ${{ secrets.GCP_VM_USER }}
           key: ${{ secrets.GCP_SSH_KEY }}
           port: 22
-          script: |
+         script: |
             IMAGE_NAME=asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-java-sign_upin:latest
             gcloud auth configure-docker asia-northeast3-docker.pkg.dev
             docker pull $IMAGE_NAME
+            docker stop mapro-container || true
+            docker rm mapro-container || true
             docker run -d --name mapro-container -p 4000:4000 $IMAGE_NAME
-
-         # script: |
-         #    IMAGE_NAME=asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-java-sign_upin:latest
-         #    gcloud auth configure-docker asia-northeast3-docker.pkg.dev
-         #    docker pull $IMAGE_NAME
-         #    docker stop mapro-container || true
-         #    docker rm mapro-container || true
-         #    docker run -d --name mapro-container -p 4000:4000 $IMAGE_NAME
