@@ -6,9 +6,9 @@ services:
     ports:
       - "4000:4000"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://{IP}:3306/mapro
-      SPRING_DATASOURCE_USERNAME: dev
-      SPRING_DATASOURCE_PASSWORD: Dev1010**
+      SPRING_DATASOURCE_URL: jdbc:mysql://${{ secrets.GCP_VM_IP }}:${{ secrets.GCP_SPRING_DATASOURCE_PORT }}/${{ secrets.GCP_SPRING_DATASOURCE_DBNAME }}
+      SPRING_DATASOURCE_USERNAME: ${{ secrets.GCP_SPRING_DATASOURCE_USERNAME }}
+      SPRING_DATASOURCE_PASSWORD: ${{ secrets.GCP_SPRING_DATASOURCE_PASSWORD }}
     depends_on:
       - db
 
@@ -23,8 +23,8 @@ services:
   db:
     image: mysql:8
     environment:
-      MYSQL_ROOT_PASSWORD: dev
-      MYSQL_DATABASE: Dev1010**
+      MYSQL_ROOT_PASSWORD: ${{ secrets.GCP_SPRING_DATASOURCE_USERNAME }}
+      MYSQL_DATABASE: ${{ secrets.GCP_SPRING_DATASOURCE_PASSWORD }}
     ports:
       - "3306:3306"
     command: --default-authentication-plugin=mysql_native_password
