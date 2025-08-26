@@ -6,7 +6,7 @@ services:
     ports:
       - "4000:4000"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://34.22.81.216:3306/mapro
+      SPRING_DATASOURCE_URL: jdbc:mysql://{IP}:3306/mapro
       SPRING_DATASOURCE_USERNAME: dev
       SPRING_DATASOURCE_PASSWORD: Dev1010**
     depends_on:
