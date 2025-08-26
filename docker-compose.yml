@@ -1,0 +1,30 @@
+version: "3.9"
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "4000:4000"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://http://34.22.81.216/:3306/mapro
+      SPRING_DATASOURCE_USERNAME: dev
+      SPRING_DATASOURCE_PASSWORD: Dev1010**
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:80"   # 브라우저 접근용
+    depends_on:
+      - backend
+
+  db:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: dev
+      MYSQL_DATABASE: Dev1010**
+    ports:
+      - "3306:3306"
+    command: --default-authentication-plugin=mysql_native_password
