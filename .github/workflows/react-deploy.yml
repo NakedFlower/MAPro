@@ -42,4 +42,4 @@ jobs:
             docker pull $IMAGE_NAME
             docker stop mapro-container-front || true
             docker rm mapro-container-front || true
-            docker run -d --name mapro-container-front -p 80:3000 $IMAGE_NAME
+            docker run -d --name mapro-container-front -p 3000:80 $IMAGE_NAME
