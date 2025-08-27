@@ -5,7 +5,6 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-
 # nginx:alpine 이미지는 ENTRYPOINT와 CMD가 설정되어있음
 FROM nginx:alpine
 COPY --from=build /app/build /usr/share/nginx/html
