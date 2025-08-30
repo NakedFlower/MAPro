@@ -207,3 +207,4 @@ Temporary Items
 .env.*
 application.properties
 application-*.properties
+node_modules
