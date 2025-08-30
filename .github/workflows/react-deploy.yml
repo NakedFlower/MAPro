@@ -1,8 +1,15 @@
-name: Build and Push Docker Image, Deploy to GCP VM
+name: Build and Push Frontend Docker Image, Deploy to GCP VM
 
 on:
   push:
-    branches: [ "dev/FEmember" ]
+    branches: [ "main" ]  # main 브랜치로 변경
+    paths:
+      - 'front/**'  # 프론트엔드 폴더 변경 시에만 실행
+      - '.github/workflows/react-deploy.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'front/**'
 
 jobs:
   build-and-deploy:
@@ -23,13 +30,14 @@ jobs:
       - name: Configure Docker to use gcloud as a credential helper
         run: gcloud auth configure-docker asia-northeast3-docker.pkg.dev
 
-      - name: Build and push Docker image
+      - name: Build and push Frontend Docker image
         run: |
           IMAGE_NAME=asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-react-frontend:latest
+          cd front  # 프론트엔드 폴더로 이동
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
 
-      - name: Deploy to GCP VM
+      - name: Deploy Frontend to GCP VM
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.GCP_VM_IP }}
@@ -42,4 +50,6 @@ jobs:
             docker pull $IMAGE_NAME
             docker stop mapro-container-front || true
             docker rm mapro-container-front || true
-            docker run -d --name mapro-container-front -p 3000:80 $IMAGE_NAME
+            docker run -d --name mapro-container-front -p 3000:80 \
+              -e REACT_APP_GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }} \
+              --restart unless-stopped $IMAGE_NAME
