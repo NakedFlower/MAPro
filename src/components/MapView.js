@@ -1,3 +1,4 @@
+// MapView.js
 import React, { useState, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
 
@@ -11,7 +12,8 @@ const center = {
   lng: 126.9780 // 서울 시청 경도
 };
 
-const GOOGLE_MAPS_API_KEY = '${{ secrets.GOOGLE_MAPS_API_KEY }}';
+// 환경변수에서 API 키 가져오기
+const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
 function MapView() {
   const { isLoaded } = useJsApiLoader({
@@ -29,6 +31,24 @@ function MapView() {
     setMap(null);
   }, []);
 
+  // API 키가 없을 때 에러 처리
+  if (!GOOGLE_MAPS_API_KEY) {
+    return (
+      <div style={{
+        width: '100%', 
+        height: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        background: '#f3f6fb',
+        color: '#333',
+        fontSize: '18px'
+      }}>
+        Google Maps API 키가 설정되지 않았습니다.
+      </div>
+    );
+  }
+
   return isLoaded ? (
       <GoogleMap
         mapContainerStyle={containerStyle}
@@ -39,9 +59,18 @@ function MapView() {
       >
         { /* 자식 컴포넌트들을 여기에 추가할 수 있습니다. */ }
       </GoogleMap>
-  ) : <div style={{width: '100%', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f3f6fb'}}>
-        로딩 중...
-      </div>;
+  ) : (
+    <div style={{
+      width: '100%', 
+      height: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      background: '#f3f6fb'
+    }}>
+      로딩 중...
+    </div>
+  );
 }
 
-export default MapView; 
+export default MapView;

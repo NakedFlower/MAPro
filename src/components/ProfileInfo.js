@@ -23,7 +23,7 @@ function ProfileInfo() {
         alignSelf: 'flex-start',
         marginLeft: '56px'
       }}>
-        기본 정보
+        내 정보
       </div>
       {/* 안내 문구 */}
       <div style={{
