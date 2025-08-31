@@ -11,118 +11,6 @@ from konlpy.tag import Okt
 import pymysql
 from sqlalchemy import create_engine, text
 
-# MariaDB 연결 설정 (GCP VM 환경에 맞게 수정 필요)
-# TODO: 실제 GCP VM의 MariaDB 정보로 변경
-MARIA_DB_CONFIG = {
-    'host': 'localhost',  # GCP VM의 localhost
-    'port': 3306,         # MariaDB 기본 포트
-    'user': 'YOUR_DB_USERNAME',      # TODO: MariaDB 사용자명 입력
-    'password': 'YOUR_DB_PASSWORD',  # TODO: MariaDB 비밀번호 입력
-    'database': 'YOUR_DB_NAME',      # TODO: 데이터베이스명 입력
-    'charset': 'utf8mb4'
-}
-
-# MariaDB 연결 함수
-def connect_to_mariadb():
-    """MariaDB에 연결하는 함수"""
-    try:
-        connection = pymysql.connect(**MARIA_DB_CONFIG)
-        print("MariaDB 연결 성공!")
-        return connection
-    except Exception as e:
-        print(f"MariaDB 연결 실패: {e}")
-        return None
-
-# 데이터를 MariaDB에 저장하는 함수
-def save_to_mariadb(reviews_df, keyword_df):
-    """수집된 리뷰와 키워드 데이터를 MariaDB에 저장하는 함수"""
-    try:
-        # MariaDB 연결
-        connection = connect_to_mariadb()
-        if connection is None:
-            print("MariaDB 연결 실패로 데이터 저장을 건너뜁니다.")
-            return False
-        
-        cursor = connection.cursor()
-        
-        # 테이블 생성 (없는 경우)
-        create_tables_sql = """
-        CREATE TABLE IF NOT EXISTS place_reviews (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            place_name VARCHAR(255),
-            place_address TEXT,
-            category VARCHAR(100),
-            review_text TEXT,
-            review_rating FLOAT,
-            review_time DATETIME,
-            matched_keywords TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        
-        CREATE TABLE IF NOT EXISTS place_keywords (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            place_name VARCHAR(255),
-            place_address TEXT,
-            category VARCHAR(100),
-            keywords TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        """
-        
-        for sql in create_tables_sql.split(';'):
-            if sql.strip():
-                cursor.execute(sql)
-        
-        # 리뷰 데이터 저장
-        if not reviews_df.empty:
-            for _, row in reviews_df.iterrows():
-                insert_review_sql = """
-                INSERT INTO place_reviews 
-                (place_name, place_address, category, review_text, review_rating, review_time, matched_keywords)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """
-                cursor.execute(insert_review_sql, (
-                    row['place_name'],
-                    row['place_address'],
-                    row.get('category', ''),
-                    row.get('review_text', ''),
-                    row.get('review_rating', 0.0),
-                    row.get('review_time', datetime.now()),
-                    str(row.get('matched_keywords', []))
-                ))
-        
-        # 키워드 요약 데이터 저장
-        if not keyword_df.empty:
-            for _, row in keyword_df.iterrows():
-                insert_keyword_sql = """
-                INSERT INTO place_keywords 
-                (place_name, place_address, category, keywords)
-                VALUES (%s, %s, %s, %s)
-                """
-                cursor.execute(insert_keyword_sql, (
-                    row['place_name'],
-                    row['place_address'],
-                    row['category'],
-                    str(row['keywords'])
-                ))
-        
-        # 변경사항 커밋
-        connection.commit()
-        print(f"MariaDB에 데이터 저장 완료!")
-        print(f"  - 리뷰 데이터: {len(reviews_df)}개")
-        print(f"  - 키워드 요약: {len(keyword_df)}개")
-        
-        cursor.close()
-        connection.close()
-        return True
-        
-    except Exception as e:
-        print(f"MariaDB 데이터 저장 중 오류 발생: {e}")
-        if 'connection' in locals() and connection:
-            connection.rollback()
-            connection.close()
-        return False
-
 # 어간 추출 함수
 okt = Okt()
 def stem_text(text: str) -> str:
@@ -473,6 +361,78 @@ SEARCH_QUERY_TO_CATEGORY = {
     "hospital": "병원"
 }
 
+
+# MariaDB 연결 설정 (GCP VM 환경에 맞게 수정 필요)
+# TODO: 실제 GCP VM의 MariaDB 정보로 변경
+MARIA_DB_CONFIG = {
+    'host': 'localhost',  # GCP VM의 localhost
+    'port': '${{ secrets.GCP_SPRING_DATASOURCE_PORT }}',         # MariaDB 기본 포트
+    'user': 'dev',        # MariaDB 사용자명
+    'password': '${{ secrets.GCP_SPRING_DATASOURCE_PASSWORD }}',  # MariaDB 비밀번호
+    'database': '${{ secrets.GCP_SPRING_DATASOURCE_DBNAME }}',      # 데이터베이스명
+    'charset': 'utf8mb4'
+}
+
+# MariaDB 연결 함수
+def connect_to_mariadb():
+    """MariaDB에 연결하는 함수"""
+    try:
+        connection = pymysql.connect(**MARIA_DB_CONFIG)
+        print("MariaDB 연결 성공!")
+        return connection
+    except Exception as e:
+        print(f"MariaDB 연결 실패: {e}")
+        return None
+
+# 데이터를 MariaDB에 저장하는 함수
+def save_to_mariadb(reviews_df, keyword_df):
+    """수집된 리뷰와 키워드 데이터를 MariaDB place 테이블에 저장하는 함수"""
+    try:
+        # MariaDB 연결
+        connection = connect_to_mariadb()
+        if connection is None:
+            print("MariaDB 연결 실패로 데이터 저장을 건너뜁니다.")
+            return False
+        
+        cursor = connection.cursor()
+        
+        # 매장별 키워드 요약 데이터를 place 테이블에 저장
+        if not keyword_df.empty:
+            for _, row in keyword_df.iterrows():
+                # 현재 시간
+                current_time = datetime.now()
+                
+                # place 테이블에 데이터 삽입
+                insert_place_sql = """
+                INSERT INTO place 
+                (created_at, updated_at, category, name, location, feature)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(insert_place_sql, (
+                    current_time,  # created_at
+                    current_time,  # updated_at
+                    row['category'],  # category
+                    row['place_name'],  # name
+                    row['place_address'],  # location
+                    row['keywords']  # feature
+                ))
+        
+        # 변경사항 커밋
+        connection.commit()
+        print(f"MariaDB place 테이블에 데이터 저장 완료!")
+        print(f"  - 저장된 장소: {len(keyword_df)}개")
+        
+        cursor.close()
+        connection.close()
+        return True
+        
+    except Exception as e:
+        print(f"MariaDB 데이터 저장 중 오류 발생: {e}")
+        if 'connection' in locals() and connection:
+            connection.rollback()
+            connection.close()
+        return False
+
 def extract_keywords_from_review_by_category(review_text: str, category: str, keyword_dict: dict) -> dict:
     # 리뷰 텍스트를 어간 추출하여 전처리
     stemmed_review = stem_text(review_text)
@@ -757,45 +717,6 @@ class GoogleMapsReviewCollector:
             print("수집된 리뷰가 없습니다.")
             return pd.DataFrame()
 
-# Spring Boot API 설정
-SPRING_BOOT_API_URL = "http://localhost:8080/api/data"
-
-def save_to_springboot(df: pd.DataFrame, api_url: str):
-    """
-    DataFrame의 데이터를 Spring Boot API를 통해 저장합니다.
-    
-    Args:
-        df (pd.DataFrame): 저장할 데이터프레임
-        api_url (str): Spring Boot API 엔드포인트 URL
-    """
-    try:
-        # DataFrame을 Spring Boot API가 예상하는 JSON 형식으로 변환합니다.
-        data_to_send = {
-            'data': df.to_dict('records'),
-            'timestamp': datetime.now().isoformat(),
-            'total_records': len(df)
-        }
-        
-        headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        }
-        
-        print(f"Spring Boot API ({api_url})로 데이터 전송 시도 중...")
-        
-        response = requests.post(api_url, data=json.dumps(data_to_send), headers=headers)
-        
-        if response.status_code == 200:
-            print(f"데이터가 Spring Boot API를 통해 성공적으로 저장되었습니다. 응답: {response.json()}")
-        else:
-            print(f"Spring Boot API 호출 실패. 상태 코드: {response.status_code}")
-            
-    except requests.exceptions.RequestException as e:
-        print(f"Spring Boot API 호출 중 오류 발생: {e}")
-        print(f"호출 URL: {api_url}")
-    except json.JSONDecodeError:
-        print(f"Spring Boot API 응답을 JSON으로 디코딩하는 데 실패했습니다. 응답: {response.text}")
-
 if __name__ == "__main__":
     # API 키 설정
     API_KEY = "${{ secrets.GOOGLE_MAPS_API_KEY }}"
@@ -878,8 +799,8 @@ if __name__ == "__main__":
         
         print("\n매장별 키워드 요약 생성 완료!")
         
-        # Spring Boot API 호출 함수
-        save_to_springboot(keyword_df, SPRING_BOOT_API_URL)
+        # MariaDB에 데이터 저장
+        save_to_mariadb(all_reviews_df, keyword_df)
               
         # 수집된 데이터 요약
         print(f"\n=== 수집 결과 요약 ===")
