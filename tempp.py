@@ -7,6 +7,121 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 # 형태소 분석기 임포트
 from konlpy.tag import Okt
+# MariaDB 연결을 위한 라이브러리
+import pymysql
+from sqlalchemy import create_engine, text
+
+# MariaDB 연결 설정 (GCP VM 환경에 맞게 수정 필요)
+# TODO: 실제 GCP VM의 MariaDB 정보로 변경
+MARIA_DB_CONFIG = {
+    'host': 'localhost',  # GCP VM의 localhost
+    'port': 3306,         # MariaDB 기본 포트
+    'user': 'YOUR_DB_USERNAME',      # TODO: MariaDB 사용자명 입력
+    'password': 'YOUR_DB_PASSWORD',  # TODO: MariaDB 비밀번호 입력
+    'database': 'YOUR_DB_NAME',      # TODO: 데이터베이스명 입력
+    'charset': 'utf8mb4'
+}
+
+# MariaDB 연결 함수
+def connect_to_mariadb():
+    """MariaDB에 연결하는 함수"""
+    try:
+        connection = pymysql.connect(**MARIA_DB_CONFIG)
+        print("MariaDB 연결 성공!")
+        return connection
+    except Exception as e:
+        print(f"MariaDB 연결 실패: {e}")
+        return None
+
+# 데이터를 MariaDB에 저장하는 함수
+def save_to_mariadb(reviews_df, keyword_df):
+    """수집된 리뷰와 키워드 데이터를 MariaDB에 저장하는 함수"""
+    try:
+        # MariaDB 연결
+        connection = connect_to_mariadb()
+        if connection is None:
+            print("MariaDB 연결 실패로 데이터 저장을 건너뜁니다.")
+            return False
+        
+        cursor = connection.cursor()
+        
+        # 테이블 생성 (없는 경우)
+        create_tables_sql = """
+        CREATE TABLE IF NOT EXISTS place_reviews (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            place_name VARCHAR(255),
+            place_address TEXT,
+            category VARCHAR(100),
+            review_text TEXT,
+            review_rating FLOAT,
+            review_time DATETIME,
+            matched_keywords TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        
+        CREATE TABLE IF NOT EXISTS place_keywords (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            place_name VARCHAR(255),
+            place_address TEXT,
+            category VARCHAR(100),
+            keywords TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """
+        
+        for sql in create_tables_sql.split(';'):
+            if sql.strip():
+                cursor.execute(sql)
+        
+        # 리뷰 데이터 저장
+        if not reviews_df.empty:
+            for _, row in reviews_df.iterrows():
+                insert_review_sql = """
+                INSERT INTO place_reviews 
+                (place_name, place_address, category, review_text, review_rating, review_time, matched_keywords)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(insert_review_sql, (
+                    row['place_name'],
+                    row['place_address'],
+                    row.get('category', ''),
+                    row.get('review_text', ''),
+                    row.get('review_rating', 0.0),
+                    row.get('review_time', datetime.now()),
+                    str(row.get('matched_keywords', []))
+                ))
+        
+        # 키워드 요약 데이터 저장
+        if not keyword_df.empty:
+            for _, row in keyword_df.iterrows():
+                insert_keyword_sql = """
+                INSERT INTO place_keywords 
+                (place_name, place_address, category, keywords)
+                VALUES (%s, %s, %s, %s)
+                """
+                cursor.execute(insert_keyword_sql, (
+                    row['place_name'],
+                    row['place_address'],
+                    row['category'],
+                    str(row['keywords'])
+                ))
+        
+        # 변경사항 커밋
+        connection.commit()
+        print(f"MariaDB에 데이터 저장 완료!")
+        print(f"  - 리뷰 데이터: {len(reviews_df)}개")
+        print(f"  - 키워드 요약: {len(keyword_df)}개")
+        
+        cursor.close()
+        connection.close()
+        return True
+        
+    except Exception as e:
+        print(f"MariaDB 데이터 저장 중 오류 발생: {e}")
+        if 'connection' in locals() and connection:
+            connection.rollback()
+            connection.close()
+        return False
 
 # 어간 추출 함수
 okt = Okt()
