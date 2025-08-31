@@ -41,7 +41,7 @@ jobs:
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.GCP_VM_IP }}
-          username: ${{ secrets.GCP_VM_USER }}
+          username: ${{ secrets.NF_GCP_VM_USER }}
           key: ${{ secrets.NF_GCP_SSH_KEY }}
           port: 22
           script: |
