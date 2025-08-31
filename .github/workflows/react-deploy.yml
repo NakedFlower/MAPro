@@ -48,8 +48,19 @@ jobs:
             IMAGE_NAME=asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-react-frontend:latest
             gcloud auth configure-docker asia-northeast3-docker.pkg.dev
             docker pull $IMAGE_NAME
+
+            # 🔹 3000번 포트를 점유한 컨테이너가 있으면 중지 & 삭제
+            OLD=$(docker ps -q --filter "publish=3000")
+            if [ -n "$OLD" ]; then
+              docker stop $OLD
+              docker rm $OLD
+            fi
+
+            # 🔹 동일 이름 컨테이너도 제거
             docker stop mapro-container-front || true
             docker rm mapro-container-front || true
+
+            # 🔹 새 컨테이너 실행
             docker run -d --name mapro-container-front -p 3000:80 \
               -e REACT_APP_GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }} \
               --restart unless-stopped $IMAGE_NAME
