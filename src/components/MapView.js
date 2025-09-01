@@ -12,8 +12,8 @@ const center = {
   lng: 126.9780 // 서울 시청 경도
 };
 
-// 환경변수에서 API 키 가져오기
-const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+// window 객체에서 API 키 가져오기 (환경변수 대신)
+const GOOGLE_MAPS_API_KEY = window.REACT_APP_GOOGLE_MAPS_API_KEY || process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
 function MapView() {
   const { isLoaded } = useJsApiLoader({
