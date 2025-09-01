@@ -362,14 +362,13 @@ SEARCH_QUERY_TO_CATEGORY = {
 }
 
 
-# MariaDB 연결 설정 (GCP VM 환경에 맞게 수정 필요)
-# TODO: 실제 GCP VM의 MariaDB 정보로 변경
+# MariaDB 연결 설정
 MARIA_DB_CONFIG = {
-    'host': 'localhost',  # GCP VM의 localhost
-    'port': '${{ secrets.GCP_SPRING_DATASOURCE_PORT }}',         # MariaDB 기본 포트
-    'user': 'dev',        # MariaDB 사용자명
-    'password': '${{ secrets.GCP_SPRING_DATASOURCE_PASSWORD }}',  # MariaDB 비밀번호
-    'database': '${{ secrets.GCP_SPRING_DATASOURCE_DBNAME }}',      # 데이터베이스명
+    'host': '${{ secrets.GCP_VM_IP }}',  
+    'port': ${{ secrets.GCP_SPRING_DATASOURCE_PORT }},         
+    'user': '${{ secrets.GCP_SPRING_DATASOURCE_USERNAME }}',        
+    'password': '${{ secrets.GCP_SPRING_DATASOURCE_PASSWORD }}',  
+    'database': '${{ secrets.GCP_SPRING_DATASOURCE_DBNAME }}',      
     'charset': 'utf8mb4'
 }
 
