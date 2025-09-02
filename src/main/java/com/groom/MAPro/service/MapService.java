@@ -1,40 +1,64 @@
 package com.groom.MAPro.service;
 
+import com.google.cloud.secretmanager.v1.AccessSecretVersionResponse;
+import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
+import com.google.cloud.secretmanager.v1.SecretVersionName;
 import com.groom.MAPro.dto.MapResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class MapService {
-
-    // 올바른 Secret Manager 접근 방식
-    @Value("${sm://GOOGLE_MAPS_API_KEY}")
-    private String googleMapsApiKey;
     
     @Value("${spring.cloud.gcp.project-id}")
     private String projectId;
 
+    private String getGoogleMapsApiKey() {
+        try {
+            // Secret Manager 클라이언트 생성
+            SecretManagerServiceClient client = SecretManagerServiceClient.create();
+            
+            // Secret 버전 이름 생성
+            SecretVersionName secretVersionName = SecretVersionName.of(
+                projectId, 
+                "GOOGLE_MAPS_API_KEY", 
+                "latest"
+            );
+            
+            // Secret 값 가져오기
+            AccessSecretVersionResponse response = client.accessSecretVersion(secretVersionName);
+            String secretValue = response.getPayload().getData().toStringUtf8();
+            
+            client.close();
+            
+            System.out.println("✅ Secret Manager에서 API 키 가져오기 성공!");
+            System.out.println("🔍 API 키 길이: " + secretValue.length());
+            System.out.println("🔍 API 키 시작: " + secretValue.substring(0, Math.min(10, secretValue.length())) + "...");
+            
+            return secretValue;
+            
+        } catch (Exception e) {
+            System.err.println("❌ Secret Manager 접근 실패: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public MapResponse getInitialMapData() {
         try {
-            System.out.println("=== 상세 디버깅 ===");
+            System.out.println("=== Secret Manager 수동 접근 시작 ===");
             System.out.println("🔍 Project ID: " + projectId);
-            System.out.println("🔍 Raw googleMapsApiKey length: " + (googleMapsApiKey != null ? googleMapsApiKey.length() : "null"));
             
-            // API 키가 올바른지 확인 (AIza로 시작하는지)
-            if (googleMapsApiKey != null && googleMapsApiKey.startsWith("AIza")) {
-                System.out.println("✅ API 키가 올바른 형식입니다: " + googleMapsApiKey.substring(0, 10) + "...");
-            } else {
-                System.out.println("❌ API 키 형식이 잘못되었습니다: " + googleMapsApiKey);
+            String googleMapsApiKey = getGoogleMapsApiKey();
+            
+            if (googleMapsApiKey == null || !googleMapsApiKey.startsWith("AIza")) {
+                throw new RuntimeException("유효하지 않은 API 키: " + googleMapsApiKey);
             }
             
+            System.out.println("✅ 유효한 API 키 확인됨");
             System.out.println("=================");
             
-            // API 키 유효성 검사
-            if (googleMapsApiKey == null || googleMapsApiKey.contains("projects/")) {
-                throw new RuntimeException("Secret Manager에서 API 키를 제대로 가져오지 못했습니다");
-            }
-            
-            String mapHtml = generateMapHtml(37.5665, 126.9780, "서울시청");
+            String mapHtml = generateMapHtml(37.5665, 126.9780, "서울시청", googleMapsApiKey);
             
             MapResponse response = new MapResponse();
             response.setLocation("서울시청");
@@ -54,13 +78,13 @@ public class MapService {
             errorResponse.setLocation("서비스 오류: " + e.getClass().getSimpleName());
             errorResponse.setLatitude(0.0);
             errorResponse.setLongitude(0.0);
-            errorResponse.setMapHtml("<div style='padding:20px;text-align:center;'>지도를 불러올 수 없습니다.</div>");
+            errorResponse.setMapHtml("<div style='padding:20px;text-align:center;'>지도를 불러올 수 없습니다: " + e.getMessage() + "</div>");
             
             return errorResponse;
         }
     }
 
-    private String generateMapHtml(double lat, double lng, String title) {
+    private String generateMapHtml(double lat, double lng, String title, String apiKey) {
         return String.format("""
             <div id="map" style="width: 100%%; height: 400px;"></div>
             <script>
@@ -90,6 +114,6 @@ public class MapService {
             <script async defer 
                 src="https://maps.googleapis.com/maps/api/js?key=%s&callback=initMap">
             </script>
-            """, lat, lng, title, title, googleMapsApiKey);
+            """, lat, lng, title, title, apiKey);
     }
 }
