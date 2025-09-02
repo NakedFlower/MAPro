@@ -10,10 +10,29 @@ public class MapService {
 
     @Value("${sm://GOOGLE_MAPS_API_KEY}")
     private String googleMapsApiKey;
+    
+    @Value("${spring.cloud.gcp.project-id}")
+    private String projectId;
 
     public MapResponse getInitialMapData() {
         try {
-            // 지도 HTML 생성
+            System.out.println("=== 상세 디버깅 ===");
+            System.out.println("🔍 Project ID: " + projectId);
+            System.out.println("🔍 Raw googleMapsApiKey: '" + googleMapsApiKey + "'");
+            System.out.println("🔍 API Key length: " + googleMapsApiKey.length());
+            System.out.println("🔍 API Key equals '//GOOGLE_MAPS_API_KEY': " + "//GOOGLE_MAPS_API_KEY".equals(googleMapsApiKey));
+            
+            // 실제 환경변수도 확인
+            String envVar = System.getenv("GOOGLE_MAPS_API_KEY");
+            System.out.println("🔍 환경변수 GOOGLE_MAPS_API_KEY: " + (envVar != null ? envVar.substring(0, Math.min(10, envVar.length())) + "..." : "null"));
+            
+            // 시스템 프로퍼티도 확인
+            String sysProp = System.getProperty("sm://GOOGLE_MAPS_API_KEY");
+            System.out.println("🔍 시스템 프로퍼티 sm://GOOGLE_MAPS_API_KEY: " + sysProp);
+            
+            System.out.println("=================");
+            
+            // 나머지 코드는 그대로...
             String mapHtml = generateMapHtml(37.5665, 126.9780, "서울시청");
             
             MapResponse response = new MapResponse();
@@ -21,16 +40,17 @@ public class MapService {
             response.setLatitude(37.5665);
             response.setLongitude(126.9780);
             response.setStatus("success");
-            response.setMapHtml(mapHtml); // HTML 추가
+            response.setMapHtml(mapHtml);
             
             return response;
             
         } catch (Exception e) {
             System.err.println("❌ Map 서비스 오류: " + e.getMessage());
+            e.printStackTrace();
             
             MapResponse errorResponse = new MapResponse();
             errorResponse.setStatus("error");
-            errorResponse.setLocation("지도 로드 실패");
+            errorResponse.setLocation("서비스 오류: " + e.getClass().getSimpleName());
             errorResponse.setLatitude(0.0);
             errorResponse.setLongitude(0.0);
             errorResponse.setMapHtml("<div style='padding:20px;text-align:center;'>지도를 불러올 수 없습니다.</div>");
@@ -40,16 +60,6 @@ public class MapService {
     }
 
     private String generateMapHtml(double lat, double lng, String title) {
-    // 디버깅: API 키 상태 확인
-        System.out.println("🔍 googleMapsApiKey is null? " + (googleMapsApiKey == null));
-        System.out.println("🔍 googleMapsApiKey is empty? " + (googleMapsApiKey == null ? "null" : googleMapsApiKey.isEmpty()));
-        
-        if (googleMapsApiKey != null && !googleMapsApiKey.isEmpty()) {
-            System.out.println("🔑 API Key 앞 10자리: " + googleMapsApiKey.substring(0, Math.min(10, googleMapsApiKey.length())));
-        } else {
-            System.out.println("❌ API Key가 비어있습니다!");
-        }
-        
         return String.format("""
             <div id="map" style="width: 100%%; height: 400px;"></div>
             <script>
