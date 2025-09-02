@@ -3,7 +3,9 @@ import React, { useState, useEffect } from 'react';
 
 const containerStyle = {
   width: '100%',
-  height: '100vh'
+  height: '100vh',
+  display: 'flex',
+  flexDirection: 'column'
 };
 
 function MapView() {
@@ -14,34 +16,23 @@ function MapView() {
   useEffect(() => {
     const fetchMapData = async () => {
       try {
-        console.log('🚀 API 호출 시작: http://34.22.81.216:4000/api/map/init');
-        
         const response = await fetch('http://34.22.81.216:4000/api/map/init', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
-          mode: 'cors', // CORS 모드 명시
+          mode: 'cors',
         });
 
-        console.log('📡 Response status:', response.status);
-        console.log('📡 Response headers:', response.headers);
-
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('❌ Response error:', errorText);
-          throw new Error(`API 오류 (Status: ${response.status}): ${errorText}`);
+          throw new Error(`API 오류 (Status: ${response.status})`);
         }
 
         const data = await response.json();
-        console.log('✅ 받은 데이터:', data);
-        
         setMapData(data);
         setLoading(false);
       } catch (err) {
-        console.error('❌ Fetch 오류:', err);
-        console.error('❌ 오류 상세:', err.message);
         setError(err.message);
         setLoading(false);
       }
@@ -71,29 +62,35 @@ function MapView() {
         width: '100%', 
         height: '100vh', 
         display: 'flex', 
-        flexDirection: 'column',
         alignItems: 'center', 
         justifyContent: 'center', 
         background: '#f3f6fb',
         color: '#e74c3c',
-        fontSize: '18px',
-        padding: '20px'
+        fontSize: '18px'
       }}>
-        <div>오류: {error}</div>
-        <div style={{marginTop: '10px', fontSize: '14px', color: '#666'}}>
-          브라우저 개발자 도구(F12)에서 더 자세한 정보를 확인하세요.
-        </div>
+        오류: {error}
       </div>
     );
   }
 
   return (
     <div style={containerStyle}>
-      <h2>지도가 여기에 표시됩니다</h2>
-      <p>현재 위치: {mapData?.location || mapData?.위치 || '서울시청'}</p>
-      <div style={{marginTop: '20px', padding: '10px', background: '#f0f0f0', borderRadius: '5px'}}>
-        <h3>백엔드 응답 데이터:</h3>
-        <pre>{JSON.stringify(mapData, null, 2)}</pre>
+      {/* 헤더 */}
+      <div style={{ padding: '20px', background: '#fff', borderBottom: '1px solid #ddd', textAlign: 'center' }}>
+        <h1>🗺️ MAPro - 안전한 지도 서비스</h1>
+        <p>현재 위치: {mapData?.location}</p>
+        <p><small>🔒 API 키가 백엔드에서 안전하게 관리됩니다</small></p>
+      </div>
+
+      {/* 지도 영역 */}
+      <div style={{ flex: 1, padding: '20px' }}>
+        {mapData?.mapHtml ? (
+          <div dangerouslySetInnerHTML={{ __html: mapData.mapHtml }} />
+        ) : (
+          <div style={{ textAlign: 'center', padding: '50px' }}>
+            지도 데이터를 불러오는 중입니다...
+          </div>
+        )}
       </div>
     </div>
   );
