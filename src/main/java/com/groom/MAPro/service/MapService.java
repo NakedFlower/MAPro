@@ -40,6 +40,16 @@ public class MapService {
     }
 
     private String generateMapHtml(double lat, double lng, String title) {
+    // 디버깅: API 키 상태 확인
+        System.out.println("🔍 googleMapsApiKey is null? " + (googleMapsApiKey == null));
+        System.out.println("🔍 googleMapsApiKey is empty? " + (googleMapsApiKey == null ? "null" : googleMapsApiKey.isEmpty()));
+        
+        if (googleMapsApiKey != null && !googleMapsApiKey.isEmpty()) {
+            System.out.println("🔑 API Key 앞 10자리: " + googleMapsApiKey.substring(0, Math.min(10, googleMapsApiKey.length())));
+        } else {
+            System.out.println("❌ API Key가 비어있습니다!");
+        }
+        
         return String.format("""
             <div id="map" style="width: 100%%; height: 400px;"></div>
             <script>
