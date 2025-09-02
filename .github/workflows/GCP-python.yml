@@ -42,10 +42,11 @@ jobs:
           docker pull $IMAGE_NAME
           docker stop mapro-container-review || true
           docker rm mapro-container-review || true
-          docker run -d --name ${{ env.CONTAINER_NAME }} \
+          docker run -d --name mapro-container-review \
             -e GCP_VM_IP="${{ secrets.GCP_VM_IP }}" \
             -e GCP_SPRING_DATASOURCE_USERNAME="${{ secrets.GCP_SPRING_DATASOURCE_USERNAME }}" \
             -e GCP_SPRING_DATASOURCE_PASSWORD="${{ secrets.GCP_SPRING_DATASOURCE_PASSWORD }}" \
             -e GCP_SPRING_DATASOURCE_DBNAME="${{ secrets.GCP_SPRING_DATASOURCE_DBNAME }}" \
             -e GOOGLE_MAPS_API_KEY="${{ secrets.GOOGLE_MAPS_API_KEY }}" \
             $IMAGE_NAME
+
