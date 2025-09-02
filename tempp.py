@@ -741,7 +741,7 @@ class GoogleMapsReviewCollector:
 
 if __name__ == "__main__":
     # API 키 설정: GCP Secret Manager 우선, 실패 시 환경변수 폴백
-    API_KEY = access_secret_from_gcp(secret_id="GOOGLE_MAPS_API_KEY") or os.getenv("GOOGLE_MAPS_API_KEY")
+    API_KEY = access_secret_from_gcp(secret_id="GOOGLE_MAPS_API_KEY", project_id="663791531262") or os.getenv("GOOGLE_MAPS_API_KEY")
     if not API_KEY:
         print("Google Maps API 키를 찾을 수 없습니다. Secret Manager 또는 환경변수를 설정하세요.")
         sys.exit(1)
