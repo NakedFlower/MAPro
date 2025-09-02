@@ -1,38 +1,59 @@
 // MapView.js
-import React, { useState, useCallback } from 'react';
-import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+import React, { useState, useEffect } from 'react';
 
 const containerStyle = {
   width: '100%',
   height: '100vh'
 };
 
-const center = {
-  lat: 37.5665, // 서울 시청 위도
-  lng: 126.9780 // 서울 시청 경도
-};
-
-// window 객체에서 API 키 가져오기 (환경변수 대신)
-const GOOGLE_MAPS_API_KEY = window.REACT_APP_GOOGLE_MAPS_API_KEY || process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
-
 function MapView() {
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY
-  });
+  const [mapData, setMapData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [map, setMap] = useState(null);
+  useEffect(() => {
+    // 백엔드에서 지도 데이터를 가져오는 함수
+    const fetchMapData = async () => {
+      try {
+        const response = await fetch('/api/map/init', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
 
-  const onLoad = useCallback(function callback(map) {
-    setMap(map);
+        if (!response.ok) {
+          throw new Error('지도 데이터를 불러올 수 없습니다.');
+        }
+
+        const data = await response.json();
+        setMapData(data);
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchMapData();
   }, []);
 
-  const onUnmount = useCallback(function callback(map) {
-    setMap(null);
-  }, []);
+  if (loading) {
+    return (
+      <div style={{
+        width: '100%', 
+        height: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        background: '#f3f6fb'
+      }}>
+        지도를 불러오는 중...
+      </div>
+    );
+  }
 
-  // API 키가 없을 때 에러 처리
-  if (!GOOGLE_MAPS_API_KEY) {
+  if (error) {
     return (
       <div style={{
         width: '100%', 
@@ -41,34 +62,19 @@ function MapView() {
         alignItems: 'center', 
         justifyContent: 'center', 
         background: '#f3f6fb',
-        color: '#333',
+        color: '#e74c3c',
         fontSize: '18px'
       }}>
-        Google Maps API 키가 설정되지 않았습니다.
+        오류: {error}
       </div>
     );
   }
 
-  return isLoaded ? (
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={center}
-        zoom={15}
-        onLoad={onLoad}
-        onUnmount={onUnmount}
-      >
-        { /* 자식 컴포넌트들을 여기에 추가할 수 있습니다. */ }
-      </GoogleMap>
-  ) : (
-    <div style={{
-      width: '100%', 
-      height: '100vh', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      background: '#f3f6fb'
-    }}>
-      로딩 중...
+  return (
+    <div style={containerStyle}>
+      <h2>지도가 여기에 표시됩니다</h2>
+      <p>현재 위치: {mapData?.location || '서울시청'}</p>
+      {/* 실제 지도는 다음 단계에서 구현 */}
     </div>
   );
 }
