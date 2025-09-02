@@ -366,11 +366,11 @@ SEARCH_QUERY_TO_CATEGORY = {
 
 # MariaDB 연결 설정
 MARIA_DB_CONFIG = {
-    'host': '${{ secrets.GCP_VM_IP }}',  
+    'host': os.getenv('GCP_VM_IP'),  
     'port': 3306,         
-    'user': '${{ secrets.GCP_SPRING_DATASOURCE_USERNAME }}',        
-    'password': '${{ secrets.GCP_SPRING_DATASOURCE_PASSWORD }}',  
-    'database': '${{ secrets.GCP_SPRING_DATASOURCE_DBNAME }}',      
+    'user': os.getenv('GCP_SPRING_DATASOURCE_USERNAME'),        
+    'password': os.getenv('GCP_SPRING_DATASOURCE_PASSWORD'),  
+    'database': os.getenv('GCP_SPRING_DATASOURCE_DBNAME'),      
     'charset': 'utf8mb4'
 }
 
