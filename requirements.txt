@@ -3,3 +3,4 @@ requests
 konlpy
 pymysql
 sqlalchemy
+google-cloud-secret-manager
