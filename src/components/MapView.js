@@ -1,4 +1,4 @@
-// MapView.js
+// MapView.js - API 키 없는 버전
 import React, { useState, useEffect } from 'react';
 
 const containerStyle = {
@@ -8,15 +8,15 @@ const containerStyle = {
 
 function MapView() {
   const [mapData, setMapData] = useState(null);
+  const [mapHtml, setMapHtml] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // 백엔드에서 지도 데이터를 가져오는 함수
     const fetchMapData = async () => {
       try {
-        // Google Cloud 백엔드 서버 URL로 변경
-        const response = await fetch('http://34.22.81.216:4000/api/map/init', {
+        // 백엔드에서 지도 HTML을 받아옴
+        const response = await fetch('http://34.22.81.216:4000/api/map/render', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -24,15 +24,15 @@ function MapView() {
         });
 
         if (!response.ok) {
-          throw new Error(`지도 데이터를 불러올 수 없습니다. (Status: ${response.status})`);
+          throw new Error(`지도를 불러올 수 없습니다. (Status: ${response.status})`);
         }
 
         const data = await response.json();
-        console.log('✅ 백엔드에서 받은 데이터:', data); // 디버그용 로그
         setMapData(data);
+        setMapHtml(data.mapHtml); // 백엔드에서 렌더링된 지도 HTML
         setLoading(false);
       } catch (err) {
-        console.error('❌ API 호출 오류:', err); // 디버그용 로그
+        console.error('❌ API 호출 오류:', err);
         setError(err.message);
         setLoading(false);
       }
@@ -67,26 +67,33 @@ function MapView() {
         justifyContent: 'center', 
         background: '#f3f6fb',
         color: '#e74c3c',
-        fontSize: '18px',
-        padding: '20px'
+        fontSize: '18px'
       }}>
-        <div>오류: {error}</div>
-        <div style={{marginTop: '10px', fontSize: '14px', color: '#666'}}>
-          백엔드 서버: http://34.22.81.216:4000
-        </div>
+        오류: {error}
       </div>
     );
   }
 
   return (
     <div style={containerStyle}>
-      <h2>지도가 여기에 표시됩니다</h2>
-      <p>현재 위치: {mapData?.location || '서울시청'}</p>
-      <div style={{marginTop: '20px', padding: '10px', background: '#f0f0f0', borderRadius: '5px'}}>
-        <h3>백엔드 응답 데이터:</h3>
-        <pre>{JSON.stringify(mapData, null, 2)}</pre>
-      </div>
-      {/* 실제 지도는 다음 단계에서 구현 */}
+      {mapHtml ? (
+        <div dangerouslySetInnerHTML={{ __html: mapHtml }} />
+      ) : (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          backgroundColor: '#f0f0f0'
+        }}>
+          <div>
+            <h2>지도 서비스</h2>
+            <p>위치: {mapData?.location}</p>
+            <p>위도: {mapData?.latitude}</p>
+            <p>경도: {mapData?.longitude}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
