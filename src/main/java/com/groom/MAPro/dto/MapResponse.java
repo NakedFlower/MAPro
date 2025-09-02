@@ -6,11 +6,12 @@ public class MapResponse {
     private double latitude;
     private double longitude;
     private String status;
+    private String mapHtml; // 새로 추가된 필드
 
     // 기본 생성자
     public MapResponse() {}
 
-    // 전체 생성자
+    // 기존 생성자 (하위 호환성 유지)
     public MapResponse(String location, double latitude, double longitude, String status) {
         this.location = location;
         this.latitude = latitude;
@@ -18,7 +19,16 @@ public class MapResponse {
         this.status = status;
     }
 
-    // Getter, Setter
+    // 전체 생성자 (mapHtml 포함)
+    public MapResponse(String location, double latitude, double longitude, String status, String mapHtml) {
+        this.location = location;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.status = status;
+        this.mapHtml = mapHtml;
+    }
+
+    // 기존 Getter, Setter
     public String getLocation() {
         return location;
     }
@@ -49,5 +59,14 @@ public class MapResponse {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    // 새로 추가된 mapHtml Getter, Setter
+    public String getMapHtml() {
+        return mapHtml;
+    }
+
+    public void setMapHtml(String mapHtml) {
+        this.mapHtml = mapHtml;
     }
 }

@@ -1,34 +1,27 @@
 // service/MapService.java
 package com.groom.MAPro.service;
 
+import com.groom.MAPro.dto.MapResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import com.groom.MAPro.dto.MapResponse;
 
 @Service
 public class MapService {
 
-    // Spring Cloud GCP가 자동으로 시크릿 매니저에서 값을 가져옴
     @Value("${sm://GOOGLE_MAPS_API_KEY}")
     private String googleMapsApiKey;
 
     public MapResponse getInitialMapData() {
         try {
-            System.out.println("✅ Map Service 호출됨");
-            
-            // API 키가 정상적으로 로드되었는지 확인 (보안상 일부만 표시)
-            if (googleMapsApiKey != null && !googleMapsApiKey.isEmpty()) {
-                System.out.println("✅ API Key 로드 성공: " + googleMapsApiKey.substring(0, Math.min(10, googleMapsApiKey.length())) + "...");
-            } else {
-                System.err.println("❌ API Key가 비어있습니다");
-            }
+            // 지도 HTML 생성
+            String mapHtml = generateMapHtml(37.5665, 126.9780, "서울시청");
             
             MapResponse response = new MapResponse();
             response.setLocation("서울시청");
             response.setLatitude(37.5665);
             response.setLongitude(126.9780);
             response.setStatus("success");
+            response.setMapHtml(mapHtml); // HTML 추가
             
             return response;
             
@@ -37,15 +30,45 @@ public class MapService {
             
             MapResponse errorResponse = new MapResponse();
             errorResponse.setStatus("error");
-            errorResponse.setLocation("API 키 로드 실패: " + e.getMessage());
+            errorResponse.setLocation("지도 로드 실패");
             errorResponse.setLatitude(0.0);
             errorResponse.setLongitude(0.0);
+            errorResponse.setMapHtml("<div style='padding:20px;text-align:center;'>지도를 불러올 수 없습니다.</div>");
             
             return errorResponse;
         }
     }
 
-    public String getApiKey() {
-        return googleMapsApiKey;
+    private String generateMapHtml(double lat, double lng, String title) {
+        return String.format("""
+            <div id="map" style="width: 100%%; height: 400px;"></div>
+            <script>
+                function initMap() {
+                    const location = { lat: %f, lng: %f };
+                    const map = new google.maps.Map(document.getElementById("map"), {
+                        zoom: 15,
+                        center: location,
+                        mapTypeId: 'roadmap'
+                    });
+                    
+                    const marker = new google.maps.Marker({
+                        position: location,
+                        map: map,
+                        title: '%s'
+                    });
+                    
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: '<div><h3>%s</h3><p>안전하게 백엔드에서 로드된 지도입니다!</p></div>'
+                    });
+                    
+                    marker.addListener('click', () => {
+                        infoWindow.open(map, marker);
+                    });
+                }
+            </script>
+            <script async defer 
+                src="https://maps.googleapis.com/maps/api/js?key=%s&callback=initMap">
+            </script>
+            """, lat, lng, title, title, googleMapsApiKey);
     }
 }
