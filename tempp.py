@@ -10,6 +10,8 @@ from konlpy.tag import Okt
 # MariaDB 연결을 위한 라이브러리
 import pymysql
 from sqlalchemy import create_engine, text
+from google.cloud import secretmanager
+import sys
 
 # 어간 추출 함수
 okt = Okt()
@@ -492,6 +494,27 @@ def stem_keyword_dict(keyword_dict: dict) -> dict:
 
 KEYWORD_STEM_DICT = stem_keyword_dict(KEYWORD_DICT)
 
+def access_secret_from_gcp(secret_id: str, project_id: Optional[str] = None, version_id: str = "latest") -> Optional[str]:
+    """GCP Secret Manager에서 비밀을 읽어온다.
+
+    우선순위:
+    1) 인자로 받은 project_id
+    2) 환경변수 GOOGLE_CLOUD_PROJECT 또는 GCP_PROJECT_ID
+    3) (미설정 시) None 반환
+    """
+    try:
+        client = secretmanager.SecretManagerServiceClient()
+        if project_id is None:
+            project_id = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("GCP_PROJECT_ID")
+        if not project_id:
+            return None
+        name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
+        response = client.access_secret_version(name=name)
+        return response.payload.data.decode("utf-8")
+    except Exception as e:
+        print(f"Secret Manager에서 '{secret_id}'을(를) 불러오지 못했습니다: {e}")
+        return None
+
 class GoogleMapsReviewCollector:
     def __init__(self, api_key: str):
         """
@@ -717,8 +740,11 @@ class GoogleMapsReviewCollector:
             return pd.DataFrame()
 
 if __name__ == "__main__":
-    # API 키 설정
-    API_KEY = "${{ secrets.GOOGLE_MAPS_API_KEY }}"
+    # API 키 설정: GCP Secret Manager 우선, 실패 시 환경변수 폴백
+    API_KEY = access_secret_from_gcp(secret_id="GOOGLE_MAPS_API_KEY") or os.getenv("GOOGLE_MAPS_API_KEY")
+    if not API_KEY:
+        print("Google Maps API 키를 찾을 수 없습니다. Secret Manager 또는 환경변수를 설정하세요.")
+        sys.exit(1)
     
     # 리뷰 수집기 초기화    
     collector = GoogleMapsReviewCollector(API_KEY)
