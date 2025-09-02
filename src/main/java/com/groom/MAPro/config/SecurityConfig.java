@@ -37,7 +37,9 @@ public class SecurityConfig {
                     "/api/auth/signup",
                     "/api/auth/login",
                     "/api/auth/test",
-                    "/api/auth/"
+                    "/api/auth/",
+                    "/api/map/**"
+                    
                 ).permitAll()
                 
                 // 로그인이 필요한 경로들 (보호되어야 하는 API들)
