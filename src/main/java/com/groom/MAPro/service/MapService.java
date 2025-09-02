@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class MapService {
 
-    @Value("${sm://GOOGLE_MAPS_API_KEY}")
+    @Value("${sm://projects/663791531262/secrets/GOOGLE_MAPS_API_KEY}")
     private String googleMapsApiKey;
     
     @Value("${spring.cloud.gcp.project-id}")
