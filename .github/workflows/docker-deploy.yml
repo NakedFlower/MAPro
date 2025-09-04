@@ -44,4 +44,8 @@ jobs:
             docker pull $IMAGE_NAME
             docker stop mapro-container || true
             docker rm mapro-container || true
-            docker run -d --name mapro-container -p 4000:4000 $IMAGE_NAME
+            docker run -d --name mapro-container -p 4000:4000 \
+              -e SPRING_DATASOURCE_URL="jdbc:mysql://${{ secrets.GCP_VM_IP }}:${{ secrets.GCP_SPRING_DATASOURCE_PORT }}/${{ secrets.GCP_SPRING_DATASOURCE_DBNAME }}" \
+              -e SPRING_DATASOURCE_USERNAME="${{ secrets.GCP_SPRING_DATASOURCE_USERNAME }}" \
+              -e SPRING_DATASOURCE_PASSWORD="${{ secrets.GCP_SPRING_DATASOURCE_PASSWORD }}" \
+              $IMAGE_NAME
