@@ -50,20 +50,46 @@ function ChatbotPanel({ onClose }) {
   }, [messages]);
 
   // 메시지 전송 핸들러
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
+    const userText = input;
     setMessages(prev => [
       ...prev,
-      { role: 'user', text: input, timestamp: getCurrentTime() }
+      { role: 'user', text: userText, timestamp: getCurrentTime() }
     ]);
-    // 임시 챗봇 응답 (실제 서버 연동 시 이 부분 수정)
-    setTimeout(() => {
+    setInput("");
+
+    // 백엔드로 전송
+    try {
+      const response = await fetch('http://localhost:8000/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userText })
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `HTTP ${response.status}`);
+      }
+      const data = await response.json();
+      const replyText = data.reply || '응답이 비어 있어요.';
+      const nextMessages = [
+        { role: 'bot', text: replyText, timestamp: getCurrentTime() }
+      ];
+      if (Array.isArray(data.places) && data.places.length > 0) {
+        const placeNames = data.places.slice(0, 5).map(p => p.name || '');
+        nextMessages.push({ type: 'places', places: placeNames, timestamp: getCurrentTime() });
+      }
       setMessages(prev => [
         ...prev,
-        { role: 'bot', text: '아잇 꼴받게 할래.', timestamp: getCurrentTime() }
+        ...nextMessages
       ]);
-    }, 700);
-    setInput("");
+    } catch (err) {
+      setMessages(prev => [
+        ...prev,
+        { role: 'bot', text: '백엔드와 통신 중 오류가 발생했어요.', timestamp: getCurrentTime() }
+      ]);
+      console.error('Chat API error:', err);
+    }
   };
 
   const handleInputKeyDown = (e) => {
