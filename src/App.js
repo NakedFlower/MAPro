@@ -15,6 +15,7 @@ import PreferenceSetting from './components/PreferenceSetting';
 import MapView from './components/MapView';
 import LoginPanel from './components/LoginPanel';
 import ChatbotPanel from './components/ChatbotPanel';
+import Main from './components/Main';
 
 // 메인 앱 컴포넌트 (라우터 내부)
 function AppContent() {
@@ -36,6 +37,8 @@ function AppContent() {
         return 2;
       case '/map':
         return 3;
+      case '/main':
+        return 4;
       default:
         return 0;
     }
@@ -56,6 +59,9 @@ function AppContent() {
       case 3:
         navigate('/map');
         break;
+      case 4:
+        navigate('/main');
+        break;
       default:
         navigate('/User/MyPage/Home');
     }
@@ -63,7 +69,7 @@ function AppContent() {
 
   // 홈에서 지도로 이동
   const handleOpenMap = () => {
-    navigate('/map');
+    navigate('/');
   };
 
   // 사이드바 토글 함수
@@ -121,6 +127,7 @@ function AppContent() {
               <Route path="/User/MyPage/Private" element={<ProfileInfo />} />
               <Route path="/User/MyPage/Favorite" element={<PreferenceSetting />} />
               <Route path="/map" element={<MapView />} />
+              <Route path="/main" element={<Main />} />
             </Routes>
 
             {/* 로그인 모달 */}
