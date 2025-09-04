@@ -1,119 +1,102 @@
-import React from 'react';
+// ProfileInfo.js
+import React, { useState } from 'react';
+import { Card, Typography, Avatar, Button, Upload, message } from 'antd';
+import { UploadOutlined, UserOutlined } from '@ant-design/icons';
+
+const { Title, Text, Paragraph } = Typography;
 
 function ProfileInfo() {
+  const [imageUrl, setImageUrl] = useState(
+    'https://via.placeholder.com/150/337ab7/FFFFFF?text=DS' // 예: 김동석님 프로필 사진
+  );
+
+  // 업로드 핸들러 (옵션)
+  const handleUpload = (file) => {
+    if (!file.url && !file.preview) {
+      message.error('이미지 업로드에 실패했습니다.');
+      return false;
+    }
+
+    setImageUrl(file.url || file.preview);
+    message.success('프로필 사진이 변경되었습니다.');
+    return false; // prevent auto-upload
+  };
+
   return (
-    <div
-      style={{
-        minWidth: '800px',
-        borderRadius: '24px',
-        marginTop: '80px',
-        background: '#fff',
-        boxShadow: '0 0 16px #eaeaea',
-        padding: '50px 0 50px 0',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center'
-      }}
+    <Card
+      style={{ maxWidth: 800, margin: '80px auto', borderRadius: '24px' }}
+      bodyStyle={{ padding: '50px' }}
+      bordered={false}
     >
-      {/* 상단: 기본 정보 라벨 */}
-      <div style={{
-        fontSize: '22px',
-        fontWeight: 'bold',
-        marginBottom: '5px',
-        alignSelf: 'flex-start',
-        marginLeft: '56px'
-      }}>
+      {/* 제목 */}
+      <Title level={3} style={{ marginBottom: 8, fontWeight: 'bold' }}>
         내 정보
-      </div>
-      {/* 안내 문구 */}
-      <div style={{
-        color: '#bcbcbc',
-        fontSize: '15px',
-        marginBottom: '32px',
-        alignSelf: 'flex-start',
-        marginLeft: '56px'
-      }}>
+      </Title>
+      <Paragraph type="secondary" style={{ marginBottom: 32 }}>
         일부 정보는 다른 사람에게 표시될 수 있습니다.
-      </div>
-      {/* 표 형태 영역 */}
-      <div style={{
-        width: '90%',
-        borderRadius: '20px',
-        border: '1px solid #eee',
-        background: '#fafbfc'
-      }}>
+      </Paragraph>
+
+      {/* 정보 리스트 */}
+      <div style={{ background: '#fafbfc', borderRadius: '20px', border: '1px solid #e8e8e8' }}>
         {/* 프로필 사진 */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            borderBottom: '1px solid #eee',
-            padding: '28px 36px'
-          }}
-        >
-          <span style={{ width: '110px', fontWeight: '500', fontSize: '16px' }}>프로필 사진</span>
-          <div style={{
-            width: '58px',
-            height: '58px',
-            borderRadius: '50%',
-            background: '#fc9090',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginLeft: '34px'
-          }}>
-            {/* 업로드 아이콘 (▲ 형태) */}
-            <span style={{
-              display: 'block',
-              fontSize: '30px',
-              color: '#fff',
-              transform: 'rotate(180deg)'
-            }}>♢</span>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '28px 36px', borderBottom: '1px solid #e8e8e8' }}>
+          <Text strong style={{ width: 110, fontSize: 16 }}>
+            프로필 사진
+          </Text>
+          <div style={{ marginLeft: 34, display: 'flex', alignItems: 'center', gap: 12 }}>
+            {/* 아바타 + 업로드 버튼 */}
+            <Upload
+              accept="image/*"
+              beforeUpload={handleUpload}
+              showUploadList={false}
+            >
+              <Avatar
+                size={58}
+                src={imageUrl}
+                icon={<UserOutlined />}
+                alt="프로필 사진"
+                style={{ border: '2px solid #fff', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}
+              />
+            </Upload>
+            <Button type="default" icon={<UploadOutlined />} size="small">
+              변경
+            </Button>
           </div>
         </div>
+
         {/* 이름 */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          borderBottom: '1px solid #eee',
-          padding: '22px 36px'
-        }}>
-          <span style={{ width: '110px', fontWeight: '500', fontSize: '16px' }}>이름</span>
-          <span style={{ marginLeft: '34px', fontSize: '16px', letterSpacing: '-0.3px' }}>김동석</span>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '22px 36px', borderBottom: '1px solid #e8e8e8' }}>
+          <Text strong style={{ width: 110, fontSize: 16 }}>
+            이름
+          </Text>
+          <Text style={{ marginLeft: 34, fontSize: 16 }}>김동석</Text>
         </div>
+
         {/* 이메일 */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          borderBottom: '1px solid #eee',
-          padding: '22px 36px'
-        }}>
-          <span style={{ width: '110px', fontWeight: '500', fontSize: '16px' }}>이메일</span>
-          <span style={{
-            marginLeft: '34px',
-            fontSize: '16px',
-            color: '#257dcc',
-            textDecoration: 'underline',
-            cursor: 'pointer'
-          }}>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '22px 36px', borderBottom: '1px solid #e8e8e8' }}>
+          <Text strong style={{ width: 110, fontSize: 16 }}>
+            이메일
+          </Text>
+          <Button
+            type="link"
+            style={{ padding: 0, height: 'auto', fontSize: 16 }}
+            href="mailto:kim.dong@naver.com"
+          >
             kim.dong@naver.com
-          </span>
+          </Button>
         </div>
+
         {/* 비밀번호 */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          padding: '22px 36px'
-        }}>
-          <span style={{ width: '110px', fontWeight: '500', fontSize: '16px' }}>비밀번호</span>
-          <span style={{ marginLeft: '34px' }}>
-            <span style={{ color: '#257dcc', fontSize: '15px', cursor: 'pointer' }}>
-              비밀번호 변경하기
-            </span>
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '22px 36px' }}>
+          <Text strong style={{ width: 110, fontSize: 16 }}>
+            비밀번호
+          </Text>
+          <Button type="link" style={{ padding: 0, height: 'auto', color: '#257dcc', fontSize: 15 }}>
+            비밀번호 변경하기
+          </Button>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
 
