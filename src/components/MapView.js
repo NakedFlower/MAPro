@@ -16,7 +16,7 @@ function MapView() {
   useEffect(() => {
     const fetchMapData = async () => {
       try {
-        const response = await fetch('http://34.22.81.216:4000/api/map/init', {
+        const response = await fetch('http://34.64.120.99:4000/api/map/init', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
