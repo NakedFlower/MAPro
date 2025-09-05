@@ -2,7 +2,7 @@ name: Build and Deploy Chat API to GCP VM
 
 on:
   push:
-    branches: [ "dev/chat" ]
+    branches: [ "dev/BEchat" ]
 
 jobs:
   build-and-deploy:
