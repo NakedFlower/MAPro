@@ -22,8 +22,9 @@ COPY app.py .
 # 포트 8000 노출
 EXPOSE 8000
 
-# 환경변수 설정
-ENV PYTHONUNBUFFERED=1
+# 환경변수 설정 (기본적으로 Kiwi 비활성화)
+ENV PYTHONUNBUFFERED=1 \
+    DISABLE_KIWI=1
 
 # 컨테이너 시작 시 실행할 명령어
 # uvicorn을 프로덕션 모드로 실행 (멀티 워커, 자동 리로드 비활성화)

@@ -9,11 +9,23 @@ from sqlalchemy.engine import Engine
 from dotenv import load_dotenv
 
 # 간단한 형태소 분석기: kiwipiepy (가벼운 한국어 형태소 분석)
-try:
-    from kiwipiepy import Kiwi  # type: ignore
-    kiwi: Optional[Kiwi] = Kiwi()
-except Exception:
-    kiwi = None
+# 컨테이너 기동 시 메모리 피크를 피하기 위해 지연 로딩
+KIWI_INSTANCE = None
+
+def get_kiwi():
+    global KIWI_INSTANCE
+    if KIWI_INSTANCE is not None:
+        return KIWI_INSTANCE
+
+    # 영구 비활성화 옵션(운영에서 완전히 끄고 싶을 때만 사용)
+    if os.getenv("KIWI_PERMANENT_DISABLE", "0") in ("1", "true", "True"):  # type: ignore
+        return None
+    try:
+        from kiwipiepy import Kiwi  # type: ignore
+        KIWI_INSTANCE = Kiwi()
+        return KIWI_INSTANCE
+    except Exception:
+        return None
 
 
 class ChatRequest(BaseModel):
@@ -125,8 +137,12 @@ def extract_query(text: str) -> dict:
 
     # 형태소 분석으로 명사/형용사 후보 확보 (실패 시 단순 분리)
     tokens: List[str]
+    kiwi = get_kiwi()
     if kiwi:
-        tokens = [lemma for lemma, tag, _, _ in kiwi.analyze(t)[0][0] if tag.startswith("N") or tag.startswith("VA")]
+        try:
+            tokens = [lemma for lemma, tag, _, _ in kiwi.analyze(t)[0][0] if tag.startswith("N") or tag.startswith("VA")]
+        except Exception:
+            tokens = t.replace(",", " ").replace("/", " ").split()
     else:
         tokens = t.replace(",", " ").replace("/", " ").split()
 
