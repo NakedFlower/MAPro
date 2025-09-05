@@ -31,13 +31,9 @@ function ChatbotPanel({ onClose }) {
     placeBackground: isDarkMode ? '#2c2c2e' : '#fff'
   };
 
-  // 대화 메시지 상태 관리 (timestamp 추가)
+  // 대화 메시지 상태 관리 (초기 예시 제거)
   const [messages, setMessages] = useState([
-    { role: 'bot', text: '"운정점의 약국 알려줘" 처럼 채팅창에 입력해 주세요.', timestamp: getCurrentTime() },
-    { role: 'bot', text: '현재 김동석님께서 취향 중 <b style="color:#fc9090">공부카페</b>를(을) 선호해요.', timestamp: getCurrentTime() },
-    { role: 'user', text: '25일에 관련한 강남구 근처 공부카페 찾아줘', timestamp: getCurrentTime() },
-    { role: 'bot', text: '김동석님께서 <b style="color:#2357dd">7월 25일</b>에 관련한 강남구 근처 공부카페를 찾는군요!', timestamp: getCurrentTime() },
-    { role: 'bot', type: 'places', places: ['패스트파이브 강남점', '어라운드랩', '트라이브드'], timestamp: getCurrentTime() },
+    { role: 'bot', text: '원하시는 매장을 입력해 주세요. (예: 강남구 노키즈존 카페)', timestamp: getCurrentTime() }
   ]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef(null);
@@ -61,7 +57,7 @@ function ChatbotPanel({ onClose }) {
 
     // 백엔드로 전송
     try {
-      const response = await fetch('http://localhost:8000/chat', {
+      const response = await fetch('http://34.64.120.99:8000/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userText })
