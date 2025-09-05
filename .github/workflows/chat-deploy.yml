@@ -3,8 +3,6 @@ name: Build and Deploy Chat API to GCP VM
 on:
   push:
     branches: [ "dev/chat" ]
-  pull_request:
-    branches: [ "dev/chat" ]
 
 jobs:
   build-and-deploy:
