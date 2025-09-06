@@ -21,10 +21,55 @@ def get_kiwi():
     if os.getenv("KIWI_PERMANENT_DISABLE", "0") in ("1", "true", "True"):  # type: ignore
         return None
     try:
+        print("[DEBUG] Attempting to import Kiwi...")
         from kiwipiepy import Kiwi  # type: ignore
-        KIWI_INSTANCE = Kiwi()
-        return KIWI_INSTANCE
-    except Exception:
+        print("[DEBUG] Kiwi imported successfully, creating instance...")
+        
+        # 타임아웃 설정 (5초)
+        import signal
+        import threading
+        import time
+        
+        def create_kiwi_with_timeout():
+            try:
+                KIWI_INSTANCE = Kiwi()
+                return KIWI_INSTANCE
+            except Exception as e:
+                print(f"[DEBUG] Kiwi creation failed: {e}")
+                return None
+        
+        # 별도 스레드에서 Kiwi 생성
+        result = [None]
+        exception = [None]
+        
+        def target():
+            try:
+                result[0] = create_kiwi_with_timeout()
+            except Exception as e:
+                exception[0] = e
+        
+        thread = threading.Thread(target=target)
+        thread.daemon = True
+        thread.start()
+        thread.join(timeout=5)  # 5초 타임아웃
+        
+        if thread.is_alive():
+            print("[DEBUG] Kiwi loading timeout, falling back to simple tokenization")
+            return None
+        
+        if exception[0]:
+            print(f"[DEBUG] Kiwi creation exception: {exception[0]}")
+            return None
+            
+        if result[0]:
+            print("[DEBUG] Kiwi instance created successfully")
+            return result[0]
+        else:
+            print("[DEBUG] Kiwi creation returned None")
+            return None
+            
+    except Exception as e:
+        print(f"[DEBUG] Kiwi import/creation failed: {e}")
         return None
 
 
