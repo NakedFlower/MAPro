@@ -51,7 +51,7 @@ def get_kiwi():
         thread = threading.Thread(target=target)
         thread.daemon = True
         thread.start()
-        thread.join(timeout=5)  # 5초 타임아웃
+        thread.join(timeout=30)  # 30초 타임아웃
         
         if thread.is_alive():
             print("[DEBUG] Kiwi loading timeout, falling back to simple tokenization")
