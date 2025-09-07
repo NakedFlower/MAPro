@@ -31,13 +31,9 @@ function ChatbotPanel({ onClose }) {
     placeBackground: isDarkMode ? '#2c2c2e' : '#fff'
   };
 
-  // 대화 메시지 상태 관리 (timestamp 추가)
+  // 대화 메시지 상태 관리 (초기 예시 제거)
   const [messages, setMessages] = useState([
-    { role: 'bot', text: '"운정점의 약국 알려줘" 처럼 채팅창에 입력해 주세요.', timestamp: getCurrentTime() },
-    { role: 'bot', text: '현재 김동석님께서 취향 중 <b style="color:#fc9090">공부카페</b>를(을) 선호해요.', timestamp: getCurrentTime() },
-    { role: 'user', text: '25일에 관련한 강남구 근처 공부카페 찾아줘', timestamp: getCurrentTime() },
-    { role: 'bot', text: '김동석님께서 <b style="color:#2357dd">7월 25일</b>에 관련한 강남구 근처 공부카페를 찾는군요!', timestamp: getCurrentTime() },
-    { role: 'bot', type: 'places', places: ['패스트파이브 강남점', '어라운드랩', '트라이브드'], timestamp: getCurrentTime() },
+    { role: 'bot', text: '원하시는 매장을 입력해 주세요. (예: 강남구 노키즈존 카페)', timestamp: getCurrentTime() }
   ]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef(null);
@@ -50,20 +46,46 @@ function ChatbotPanel({ onClose }) {
   }, [messages]);
 
   // 메시지 전송 핸들러
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
+    const userText = input;
     setMessages(prev => [
       ...prev,
-      { role: 'user', text: input, timestamp: getCurrentTime() }
+      { role: 'user', text: userText, timestamp: getCurrentTime() }
     ]);
-    // 임시 챗봇 응답 (실제 서버 연동 시 이 부분 수정)
-    setTimeout(() => {
+    setInput("");
+
+    // 백엔드로 전송
+    try {
+      const response = await fetch('http://34.64.120.99:8000/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userText })
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `HTTP ${response.status}`);
+      }
+      const data = await response.json();
+      const replyText = data.reply || '응답이 비어 있어요.';
+      const nextMessages = [
+        { role: 'bot', text: replyText, timestamp: getCurrentTime() }
+      ];
+      if (Array.isArray(data.places) && data.places.length > 0) {
+        const placeNames = data.places.slice(0, 5).map(p => p.name || '');
+        nextMessages.push({ type: 'places', places: placeNames, timestamp: getCurrentTime() });
+      }
       setMessages(prev => [
         ...prev,
-        { role: 'bot', text: '아잇 꼴받게 할래.', timestamp: getCurrentTime() }
+        ...nextMessages
       ]);
-    }, 700);
-    setInput("");
+    } catch (err) {
+      setMessages(prev => [
+        ...prev,
+        { role: 'bot', text: '백엔드와 통신 중 오류가 발생했어요.', timestamp: getCurrentTime() }
+      ]);
+      console.error('Chat API error:', err);
+    }
   };
 
   const handleInputKeyDown = (e) => {
