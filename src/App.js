@@ -26,6 +26,9 @@ function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // 메인 페이지 여부 확인
+  const isMainPage = location.pathname === '/main' || location.pathname === '/';
+
   // 현재 경로에 따라 selected 상태 결정
   const getSelectedIndex = () => {
     switch (location.pathname) {
@@ -37,8 +40,6 @@ function AppContent() {
         return 2;
       case '/map':
         return 3;
-      case '/main':
-        return 4;
       default:
         return 0;
     }
@@ -59,9 +60,6 @@ function AppContent() {
       case 3:
         navigate('/map');
         break;
-      case 4:
-        navigate('/main');
-        break;
       default:
         navigate('/User/MyPage/Home');
     }
@@ -69,7 +67,7 @@ function AppContent() {
 
   // 홈에서 지도로 이동
   const handleOpenMap = () => {
-    navigate('/');
+    navigate('/map');
   };
 
   // 사이드바 토글 함수
@@ -77,15 +75,35 @@ function AppContent() {
     setIsSidebarCollapsed((prev) => !prev);
   };
 
+  // 메인 페이지면 Main 컴포넌트만 렌더링
+  if (isMainPage) {
+    return (
+      <ConfigProvider
+        theme={{
+          token: {
+            colorPrimary: '#1890ff',
+          },
+        }}
+      >
+        <AntdApp>
+          <Routes>
+            <Route path="/main" element={<Main />} />
+            <Route path="/" element={<Main />} />
+          </Routes>
+        </AntdApp>
+      </ConfigProvider>
+    );
+  }
+
   return (
     <ConfigProvider
       theme={{
         token: {
-          colorPrimary: '#1890ff', // 기본 색상
+          colorPrimary: '#1890ff',
         },
         components: {
           Modal: {
-            zIndexPopup: 1100, // Modal이 Sidebar(zIndex: 9~100) 위에 오도록
+            zIndexPopup: 1100,
           },
         },
       }}
@@ -122,12 +140,10 @@ function AppContent() {
             }}
           >
             <Routes>
-              <Route path="/" element={<Home onOpenMap={handleOpenMap} />} />
               <Route path="/User/MyPage/Home" element={<Home onOpenMap={handleOpenMap} />} />
               <Route path="/User/MyPage/Private" element={<ProfileInfo />} />
               <Route path="/User/MyPage/Favorite" element={<PreferenceSetting />} />
               <Route path="/map" element={<MapView />} />
-              <Route path="/main" element={<Main />} />
             </Routes>
 
             {/* 로그인 모달 */}
@@ -138,7 +154,7 @@ function AppContent() {
                 width={480}
                 footer={null}
                 centered
-                style={{ zIndex: 1200 }} // Modal보다 위에
+                style={{ zIndex: 1200 }}
               />
             )}
 

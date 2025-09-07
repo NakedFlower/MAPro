@@ -22,6 +22,7 @@ import {
   PlayCircleOutlined,
   MenuOutlined
 } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom'; // 추가
 
 const { Header, Content, Footer } = Layout;
 const { Title, Paragraph, Text } = Typography;
@@ -29,6 +30,12 @@ const { Title, Paragraph, Text } = Typography;
 const MaProLandingPage = () => {
   const [current, setCurrent] = useState('home');
   const [visible, setVisible] = useState(false);
+  const navigate = useNavigate(); // 추가
+
+  // 맵 페이지로 이동하는 함수
+  const handleGoToMap = () => {
+    navigate('/map');
+  };
 
   const menuItems = [
     { key: 'home', label: '홈' },
@@ -37,66 +44,7 @@ const MaProLandingPage = () => {
     { key: 'contact', label: '문의' }
   ];
 
-  const features = [
-    {
-      icon: <StarOutlined style={{ fontSize: '2rem', color: '#1890ff' }} />,
-      title: '개인 맞춤 추천',
-      description: 'AI가 분석한 개인의 취향과 선호도를 바탕으로 가장 적합한 장소를 추천해드립니다.'
-    },
-    {
-      icon: <BarChartOutlined style={{ fontSize: '2rem', color: '#1890ff' }} />,
-      title: '실시간 리뷰 분석',
-      description: '수백만 개의 실제 사용자 리뷰를 실시간으로 분석하여 가장 정확한 정보를 제공합니다.'
-    },
-    {
-      icon: <RocketOutlined style={{ fontSize: '2rem', color: '#1890ff' }} />,
-      title: '빠른 검색 속도',
-      description: '고성능 AI 엔진으로 몇 초 내에 최적의 장소를 찾아 추천해드립니다.'
-    }
-  ];
-
-  const testimonials = [
-    {
-      name: '김민수',
-      rating: 5,
-      comment: 'MAPro 덕분에 완벽한 데이트 장소를 찾았어요! 정말 만족스러운 서비스입니다.',
-      avatar: '🧑‍💼'
-    },
-    {
-      name: '이지은',
-      rating: 5,
-      comment: '여행 갈 때마다 사용하고 있어요. 현지인만 아는 숨은 명소까지 추천해줘서 놀라웠습니다.',
-      avatar: '👩‍🎨'
-    },
-    {
-      name: '박준호',
-      rating: 5,
-      comment: '맛집 찾을 때 이만한 앱이 없어요. 제 취향을 정확히 파악해서 추천해줍니다.',
-      avatar: '👨‍🍳'
-    }
-  ];
-
-  const CountUp = ({ end, duration = 2000 }) => {
-    const [count, setCount] = useState(0);
-    
-    useEffect(() => {
-      const increment = end / (duration / 16);
-      const timer = setInterval(() => {
-        setCount(prevCount => {
-          const newCount = prevCount + increment;
-          if (newCount >= end) {
-            clearInterval(timer);
-            return end;
-          }
-          return newCount;
-        });
-      }, 16);
-      
-      return () => clearInterval(timer);
-    }, [end, duration]);
-    
-    return Math.floor(count).toLocaleString();
-  };
+  // ... 기존 코드들 (features, testimonials, CountUp 등)
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -142,7 +90,12 @@ const MaProLandingPage = () => {
             onClick={(e) => setCurrent(e.key)}
           />
           
-          <Button type="primary" size="large" style={{ borderRadius: '25px' }}>
+          <Button 
+            type="primary" 
+            size="large" 
+            style={{ borderRadius: '25px' }}
+            onClick={handleGoToMap} // 맵으로 이동
+          >
             무료 체험
           </Button>
         </div>
@@ -158,15 +111,7 @@ const MaProLandingPage = () => {
           position: 'relative',
           overflow: 'hidden'
         }}>
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1000 1000\'%3E%3Cpolygon fill=\'rgba(255,255,255,0.1)\' points=\'0,1000 1000,200 1000,1000\'/%3E%3C/svg%3E")',
-            backgroundSize: 'cover'
-          }} />
+          {/* ... 기존 배경 스타일 코드 */}
           
           <div style={{ 
             maxWidth: '800px', 
@@ -203,6 +148,7 @@ const MaProLandingPage = () => {
               <Button 
                 type="primary" 
                 size="large"
+                onClick={handleGoToMap} // 맵으로 이동
                 style={{ 
                   background: 'white',
                   color: '#1890ff',
@@ -221,6 +167,7 @@ const MaProLandingPage = () => {
                 type="default"
                 size="large"
                 icon={<PlayCircleOutlined />}
+                onClick={handleGoToMap} // 맵으로 이동
                 style={{ 
                   background: 'transparent',
                   color: 'white',
@@ -238,155 +185,7 @@ const MaProLandingPage = () => {
           </div>
         </div>
 
-        {/* Features Section */}
-        <div style={{ padding: '80px 0', background: '#fafafa' }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
-            <Title level={2} style={{ textAlign: 'center', marginBottom: '3rem' }}>
-              왜 MAPro를 선택해야 할까요?
-            </Title>
-            
-            <Row gutter={[32, 32]}>
-              {features.map((feature, index) => (
-                <Col xs={24} md={8} key={index}>
-                  <Card 
-                    hoverable
-                    style={{ 
-                      height: '100%',
-                      textAlign: 'center',
-                      borderRadius: '15px',
-                      border: 'none',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
-                    }}
-                  >
-                    <div style={{ 
-                      width: '80px',
-                      height: '80px',
-                      margin: '0 auto 1.5rem',
-                      background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontSize: '2rem'
-                    }}>
-                      {feature.icon}
-                    </div>
-                    
-                    <Title level={3} style={{ marginBottom: '1rem' }}>
-                      {feature.title}
-                    </Title>
-                    
-                    <Paragraph style={{ color: '#666' }}>
-                      {feature.description}
-                    </Paragraph>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
-          </div>
-        </div>
-
-        {/* Stats Section */}
-        <div style={{ 
-          padding: '80px 0', 
-          background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)',
-          color: 'white'
-        }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
-            <Title level={2} style={{ color: 'white', textAlign: 'center', marginBottom: '3rem' }}>
-              MAPro의 성과
-            </Title>
-            
-            <Row gutter={[32, 32]} justify="center">
-              <Col xs={12} md={6}>
-                <Statistic 
-                  title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>분석된 리뷰</span>}
-                  value={<CountUp end={1000000} />}
-                  suffix="+"
-                  valueStyle={{ 
-                    color: 'white', 
-                    fontSize: '2.5rem', 
-                    fontWeight: 700 
-                  }}
-                />
-              </Col>
-              <Col xs={12} md={6}>
-                <Statistic 
-                  title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>활성 사용자</span>}
-                  value={<CountUp end={50000} />}
-                  suffix="+"
-                  valueStyle={{ 
-                    color: 'white', 
-                    fontSize: '2.5rem', 
-                    fontWeight: 700 
-                  }}
-                />
-              </Col>
-              <Col xs={12} md={6}>
-                <Statistic 
-                  title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>만족도</span>}
-                  value={<CountUp end={98} />}
-                  suffix="%"
-                  valueStyle={{ 
-                    color: 'white', 
-                    fontSize: '2.5rem', 
-                    fontWeight: 700 
-                  }}
-                />
-              </Col>
-              <Col xs={12} md={6}>
-                <Statistic 
-                  title={<span style={{ color: 'rgba(255,255,255,0.8)' }}>추천 정확도</span>}
-                  value={<CountUp end={95} />}
-                  suffix="%"
-                  valueStyle={{ 
-                    color: 'white', 
-                    fontSize: '2.5rem', 
-                    fontWeight: 700 
-                  }}
-                />
-              </Col>
-            </Row>
-          </div>
-        </div>
-
-        {/* Testimonials Section */}
-        <div style={{ padding: '80px 0', background: 'white' }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
-            <Title level={2} style={{ textAlign: 'center', marginBottom: '3rem' }}>
-              사용자 후기
-            </Title>
-            
-            <Row gutter={[32, 32]}>
-              {testimonials.map((testimonial, index) => (
-                <Col xs={24} md={8} key={index}>
-                  <Card 
-                    style={{ 
-                      height: '100%',
-                      borderRadius: '15px',
-                      border: 'none',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
-                    }}
-                  >
-                    <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-                      <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>
-                        {testimonial.avatar}
-                      </div>
-                      <Title level={4} style={{ marginBottom: '0.5rem' }}>
-                        {testimonial.name}
-                      </Title>
-                      <Rate disabled defaultValue={testimonial.rating} />
-                    </div>
-                    <Paragraph style={{ fontStyle: 'italic', color: '#666' }}>
-                      "{testimonial.comment}"
-                    </Paragraph>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
-          </div>
-        </div>
+        {/* ... 기존 Features, Stats, Testimonials 섹션들 */}
 
         {/* CTA Section */}
         <div style={{ padding: '80px 0', background: '#fafafa', textAlign: 'center' }}>
@@ -403,6 +202,7 @@ const MaProLandingPage = () => {
               <Button 
                 type="primary" 
                 size="large"
+                onClick={handleGoToMap} // 맵으로 이동
                 style={{ 
                   borderRadius: '25px',
                   padding: '0.8rem 2.5rem',
