@@ -1,6 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 function ChatbotPanel({ onClose }) {
+  const PANEL_WIDTH = 500;
+  const PANEL_HEIGHT = 600;
+
+  // 드래그 관련 상태
+  const panelRef = useRef(null);
+  const [pos, setPos] = useState({ right: 100, bottom: 112 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStateRef = useRef({ startX: 0, startY: 0, startRight: 0, startBottom: 0, containerW: 0, containerH: 0 });
+  const [animateIn, setAnimateIn] = useState(false);
+
   // 다크모드 상태 관리
   const [isDarkMode, setIsDarkMode] = useState(false);
   
@@ -31,12 +41,19 @@ function ChatbotPanel({ onClose }) {
     placeBackground: isDarkMode ? '#2c2c2e' : '#fff'
   };
 
-  // 대화 메시지 상태 관리 (초기 예시 제거)
+  // 대화 메시지 상태 관리
   const [messages, setMessages] = useState([
     { role: 'bot', text: '원하시는 매장을 입력해 주세요. (예: 강남구 노키즈존 카페)', timestamp: getCurrentTime() }
   ]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef(null);
+
+  // 드래그 초기화
+  useEffect(() => {
+    setPos({ right: 100, bottom: 112 });
+    const id = requestAnimationFrame(() => setAnimateIn(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   // 스크롤 하단 고정
   useEffect(() => {
@@ -44,6 +61,71 @@ function ChatbotPanel({ onClose }) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+
+  // 드래그 시작
+  const beginDrag = (clientX, clientY) => {
+    const panelEl = panelRef.current;
+    if (!panelEl) return;
+    const containerW = window.innerWidth;
+    const containerH = window.innerHeight;
+    dragStateRef.current = {
+      startX: clientX,
+      startY: clientY,
+      startRight: pos.right,
+      startBottom: pos.bottom,
+      containerW,
+      containerH
+    };
+    setIsDragging(true);
+  };
+
+  const onMouseDown = (e) => {
+    e.preventDefault();
+    beginDrag(e.clientX, e.clientY);
+  };
+
+  const onTouchStart = (e) => {
+    const t = e.touches[0];
+    beginDrag(t.clientX, t.clientY);
+  };
+
+  // 드래그 이벤트 처리
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMove = (clientX, clientY) => {
+      const { startX, startY, startRight, startBottom, containerW, containerH } = dragStateRef.current;
+      const dx = startX - clientX; // right는 반대 방향
+      const dy = startY - clientY; // bottom도 반대 방향
+      let nextRight = startRight + dx;
+      let nextBottom = startBottom + dy;
+      
+      // 경계 제한
+      const maxRight = Math.max(0, containerW - PANEL_WIDTH);
+      const maxBottom = Math.max(0, containerH - PANEL_HEIGHT);
+      nextRight = Math.min(Math.max(0, nextRight), maxRight);
+      nextBottom = Math.min(Math.max(0, nextBottom), maxBottom);
+      
+      setPos({ right: nextRight, bottom: nextBottom });
+    };
+
+    const onMouseMove = (e) => handleMove(e.clientX, e.clientY);
+    const onMouseUp = () => setIsDragging(false);
+    const onTouchMove = (e) => handleMove(e.touches[0].clientX, e.touches[0].clientY);
+    const onTouchEnd = () => setIsDragging(false);
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd);
+
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [isDragging]);
 
   // 메시지 전송 핸들러
   const handleSend = async () => {
@@ -94,9 +176,10 @@ function ChatbotPanel({ onClose }) {
 
   return (
     <div
+      ref={panelRef}
       style={{
-        width: 500,
-        height: 600,
+        width: PANEL_WIDTH,
+        height: PANEL_HEIGHT,
         background: theme.background,
         borderRadius: '28px',
         boxShadow: '0 8px 30px rgba(0,0,0,0.18)',
@@ -104,13 +187,28 @@ function ChatbotPanel({ onClose }) {
         flexDirection: 'column',
         overflow: 'hidden',
         position: 'fixed',
-        right: 100,
-        bottom: 112,
-        zIndex: 1100
+        right: pos.right,
+        bottom: pos.bottom,
+        zIndex: 1100,
+        userSelect: isDragging ? 'none' : 'auto',
+        transition: isDragging ? 'none' : 'opacity .22s ease, transform .22s cubic-bezier(.2,.8,.2,1)',
+        transform: animateIn ? 'translateY(0) scale(1)' : 'translateY(-8px) scale(0.98)',
+        opacity: animateIn ? 1 : 0,
+        cursor: isDragging ? 'grabbing' : 'default'
       }}
     >
-      {/* 상단 프로필/로고 */}
-      <div style={{display:'flex', alignItems:'center', padding:'22px 22px 10px 22px', borderBottom:`1px solid ${theme.headerBorder}`}}>
+      {/* 드래그 가능한 상단 프로필/로고 */}
+      <div 
+        onMouseDown={onMouseDown}
+        onTouchStart={onTouchStart}
+        style={{
+          display:'flex', 
+          alignItems:'center', 
+          padding:'22px 22px 10px 22px', 
+          borderBottom:`1px solid ${theme.headerBorder}`,
+          cursor: isDragging ? 'grabbing' : 'grab'
+        }}
+      >
         <div style={{width:44, height:44, borderRadius:'50%', background: theme.headerBorder, marginRight:14}}></div>
         <div style={{flex:1}}>
           <div style={{fontWeight:800, color: theme.textPrimary, fontSize:'18px', letterSpacing:'.2px'}}>MAPro</div>
@@ -118,6 +216,7 @@ function ChatbotPanel({ onClose }) {
         </div>
         <button onClick={onClose} style={{background:'none', border:'none', fontSize:22, color: theme.textSecondary, cursor:'pointer', marginLeft:8}} aria-label="챗봇 닫기">✕</button>
       </div>
+
       {/* 본문: 대화 메시지 */}
       <div style={{flex:1, padding:'22px 22px 0 22px', overflowY:'auto', display:'flex', flexDirection:'column'}}>
         {messages.map((msg, idx) => (
@@ -145,7 +244,6 @@ function ChatbotPanel({ onClose }) {
                   <div style={{fontSize:'13px', color:'#2357dd', fontWeight:600, marginBottom:0, cursor:'pointer', textDecoration:'underline'}}>{msg.places[2]}</div>
                 </div>
               </div>
-              {/* 장소 리스트 시간 표시 */}
               <div style={{
                 fontSize:'11px', 
                 color: theme.textTertiary, 
@@ -182,7 +280,6 @@ function ChatbotPanel({ onClose }) {
                   dangerouslySetInnerHTML={{ __html: msg.text }}
                 />
               </div>
-              {/* 시간 표시 */}
               <div style={{
                 fontSize:'11px', 
                 color: theme.textTertiary, 
@@ -199,6 +296,7 @@ function ChatbotPanel({ onClose }) {
         <div ref={messagesEndRef} />
         <div style={{fontSize:'12px', color: theme.textSecondary, margin:'8px 0 0 2px'}}>장소명을 입력해보세요.</div>
       </div>
+
       {/* 하단 입력창 및 아이콘 */}
       <div style={{padding:'14px 18px', borderTop:`1px solid ${theme.inputBorder}`, background: theme.inputBackground, display:'flex', alignItems:'center'}}>
         <input
@@ -224,10 +322,10 @@ function ChatbotPanel({ onClose }) {
           onClick={handleSend}
         >전송</button>
       </div>
+
       {/* 하단 아이콘 영역 */}
       <div style={{display:'flex', justifyContent:'center', alignItems:'center', gap:32, padding:'10px 0 12px 0', background: theme.inputBackground}}>
         <div style={{display:'flex', flexDirection:'column', alignItems:'center', fontSize:'11px', color: theme.textSecondary, cursor:'pointer'}}>
-          {/* 집 아이콘 */}
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
             <path d="M3 10.5L11 4L19 10.5" stroke={theme.textSecondary} strokeWidth="2"/>
             <rect x="6.5" y="12" width="9" height="6" rx="2" stroke={theme.textSecondary} strokeWidth="2"/>
@@ -238,7 +336,6 @@ function ChatbotPanel({ onClose }) {
           style={{display:'flex', flexDirection:'column', alignItems:'center', fontSize:'11px', color: theme.textSecondary, cursor:'pointer'}}
           onClick={() => setIsDarkMode(!isDarkMode)}
         >
-          {/* 다크모드 토글 아이콘 - 달 모양 고정, fill로 온오프 표현 */}
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
             <path 
               d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" 
