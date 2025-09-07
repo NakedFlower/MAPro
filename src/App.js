@@ -1,13 +1,13 @@
-// App.js
 import React, { useState } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
   Route,
+  Navigate,
   useNavigate,
   useLocation,
 } from 'react-router-dom';
-import { App as AntdApp, ConfigProvider, Button, FloatButton } from 'antd';
+import { App as AntdApp, ConfigProvider, FloatButton } from 'antd';
 import Sidebar from './components/Sidebar';
 import Home from './components/Home';
 import ProfileInfo from './components/ProfileInfo';
@@ -27,7 +27,7 @@ function AppContent() {
   const location = useLocation();
 
   // 메인 페이지 여부 확인
-  const isMainPage = location.pathname === '/main' || location.pathname === '/';
+  const isMainPage = location.pathname === '/main';
 
   // 현재 경로에 따라 selected 상태 결정
   const getSelectedIndex = () => {
@@ -86,10 +86,7 @@ function AppContent() {
         }}
       >
         <AntdApp>
-          <Routes>
-            <Route path="/main" element={<Main />} />
-            <Route path="/" element={<Main />} />
-          </Routes>
+          <Main />
         </AntdApp>
       </ConfigProvider>
     );
@@ -217,7 +214,12 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <AppContent />
+      <Routes>
+        {/* 루트 경로(/)를 /main으로 리다이렉트 */}
+        <Route path="/" element={<Navigate to="/main" replace />} />
+        {/* 나머지 모든 경로는 AppContent에서 처리 */}
+        <Route path="/*" element={<AppContent />} />
+      </Routes>
     </Router>
   );
 }
