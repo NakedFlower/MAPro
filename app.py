@@ -73,7 +73,7 @@ load_dotenv()
 
 def get_engine() -> Engine:
     # GCP MySQL Database Configuration
-    host = os.getenv("DB_HOST", "34.22.81.216")
+    host = os.getenv("DB_HOST", "mapro.cloud")
     port = os.getenv("DB_PORT", "3306")
     user = os.getenv("DB_USER", "dev")
     password = os.getenv("DB_PASSWORD", "Dev1010**")
