@@ -139,7 +139,7 @@ function ChatbotPanel({ onClose }) {
 
     // 백엔드로 전송
     try {
-      const response = await fetch('http://34.64.120.99:8000/chat', {
+      const response = await fetch('http://34.64.120.99:4000/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userText })
