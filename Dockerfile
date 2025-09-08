@@ -5,7 +5,7 @@ WORKDIR /app
 
 # 시스템 패키지 업데이트 및 Java(Konlpy용), C++ 빌드 도구 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    openjdk-11-jre-headless \
+    default-jre-headless \
     gcc \
     g++ \
     && rm -rf /var/lib/apt/lists/*
