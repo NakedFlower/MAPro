@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List
 import os
-
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from dotenv import load_dotenv
@@ -26,7 +25,7 @@ app = FastAPI(title="MAPro Chat API", version="0.1.0")
 # CORS 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # 모든 origin 허용 (필요시 특정 주소로 변경)
+    allow_origins=["*"], # 모든 origin 허용
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -183,8 +182,8 @@ def query_places(query: dict) -> list:
         if where:
             base_sql += " WHERE " + " AND ".join(where)
 
-        # 우선 후보 100개 조회
-        sql = text(base_sql + " ORDER BY updated_at DESC, created_at DESC LIMIT 100")
+        # 우선 후보 30개 조회
+        sql = text(base_sql + " ORDER BY updated_at DESC, created_at DESC LIMIT 30")
         
         with engine.connect() as conn:
             rows = [dict(r._mapping) for r in conn.execute(sql, params)]
@@ -199,7 +198,7 @@ def query_places(query: dict) -> list:
             return sum(1 for f in features if f in row_features)
 
         rows.sort(key=score, reverse=True)
-        return rows[:10]
+        return rows[:5]
         
     except Exception:
         return []  # DB 오류 시 빈 리스트 반환
