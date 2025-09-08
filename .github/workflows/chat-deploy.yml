@@ -43,7 +43,7 @@ jobs:
           docker stop mapro-chat-api || true
           docker rm mapro-chat-api || true
           docker run -d --name mapro-chat-api \
-            -p 4000:4000 \
+            -p 8000:8000 \
             -e GCP_VM_IP="${{ secrets.GCP_VM_IP }}" \
             -e GCP_SPRING_DATASOURCE_USERNAME="${{ secrets.GCP_SPRING_DATASOURCE_USERNAME }}" \
             -e GCP_SPRING_DATASOURCE_PASSWORD="${{ secrets.GCP_SPRING_DATASOURCE_PASSWORD }}" \
