@@ -78,7 +78,7 @@ def get_engine() -> Engine:
     user = os.getenv("DB_USER", "dev")
     password = os.getenv("DB_PASSWORD", "Dev1010**")
     name = os.getenv("DB_NAME", "mapro")
-    url = f"mysql+pymysql://{user}:{password}@{host}:{port}/{name}?charset=utf8mb4"
+    url = f"mariadb+mariadbconnector://{user}:{password}@{host}:{port}/{name}?charset=utf8mb4"
     return create_engine(url, pool_pre_ping=True)
 
 ENGINE: Optional[Engine] = None
