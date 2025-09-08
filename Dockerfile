@@ -4,9 +4,8 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # 시스템 패키지 업데이트 및 Java(Konlpy용), C++ 빌드 도구 설치
-# openjdk-17-jre-headless를 openjdk-21-jre-headless로 변경
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    openjdk-21-jre-headless \
+    openjdk-11-jre-headless \
     gcc \
     g++ \
     && rm -rf /var/lib/apt/lists/*
