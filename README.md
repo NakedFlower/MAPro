@@ -14,7 +14,7 @@ Google Maps API를 사용하여 특정 지역의 장소 리뷰를 수집하고 �
 ### 1. MariaDB 설치 및 설정
 ```bash
 # MariaDB 설치
-sudo apt update 
+sudo apt update  
 sudo apt install mariadb-server
 
 # MariaDB 보안 설정
