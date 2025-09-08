@@ -44,7 +44,7 @@ jobs:
           docker rm mapro-chat-api || true
           docker run -d --name mapro-chat-api \
             -p 8000:8000 \
-            -e DB_HOST="${{ secrets.GCP_SPRING_DATASOURCE_HOST }}" \
+            -e DB_HOST="${{ secrets.GCP_VM_IP }}" \
             -e DB_PORT="${{ secrets.GCP_SPRING_DATASOURCE_PORT }}" \
             -e DB_NAME="${{ secrets.GCP_SPRING_DATASOURCE_DBNAME }}" \
             -e DB_USER="${{ secrets.GCP_SPRING_DATASOURCE_USERNAME }}" \
