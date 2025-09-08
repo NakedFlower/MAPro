@@ -5,4 +5,4 @@ StackUp 팀 Project
 
 고경환 : [NakedFlower](https://github.com/)  
 김동석 :   
-유진 :  
+유진 :   
