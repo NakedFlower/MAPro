@@ -6,6 +6,7 @@ import os
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from dotenv import load_dotenv
+import re
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 
@@ -25,6 +26,35 @@ class ChatResponse(BaseModel):
 
 
 app = FastAPI(title="MAPro Chat API", version="0.1.0")
+# 공용 도움말 메시지
+HELP_MESSAGE = (
+    "입력이 너무 간단해요! 😅\n\n"
+    "💡 올바른 입력 예시:\n"
+    "• \"강남구 분위기좋은 카페\"\n"
+    "• \"판교 24시간 편의점\"\n"
+    "• \"노키즈존 음식점\"\n"
+    "• \"주차가능 호텔\"\n\n"
+    "📋 사용 가능한 매장 종류:\n"
+    "음식점, 카페, 편의점, 약국, 호텔, 헤어샵, 병원\n\n"
+    "🔍 특성 키워드 예시:\n"
+    "분위기좋은, 24시간, 노키즈존, 주차가능, 인기많은 등"
+)
+
+
+def is_low_quality_input(text: str) -> bool:
+    """의미 없는 입력(기호만, 너무 짧음 등)을 판별."""
+    if not text:
+        return True
+    # 공백 제거 후 영숫자/한글만 남김
+    cleaned = re.sub(r"[^0-9A-Za-z가-힣]", "", text)
+    # 전부 기호이거나 유효 글자 수가 2 미만
+    if len(cleaned) < 2:
+        return True
+    # 한글/영문/숫자 중 하나도 없으면 무의미
+    if not re.search(r"[0-9A-Za-z가-힣]", text):
+        return True
+    return False
+
 
 # CORS 설정
 app.add_middleware(
@@ -43,27 +73,16 @@ def chat_endpoint(req: ChatRequest):
         return ChatResponse(reply="메시지가 비어 있어요.")
 
     try:
+        # 0) 입력 유효성 1차 필터
+        if is_low_quality_input(user_message):
+            return ChatResponse(reply=HELP_MESSAGE, places=None)
+
         # 1) NLP: 카테고리/특성/지역 추출
         extracted = extract_query(user_message)
         
         # 입력 검증 및 도움말 제공
         if not extracted.get("category") and not extracted.get("location"):
-            help_message = """
-            입력이 너무 간단해요! 😅
-
-            💡 올바른 입력 예시:
-            • "강남구 분위기좋은 카페"
-            • "판교 24시간 편의점"
-            • "노키즈존 음식점"
-            • "주차가능 호텔"
-
-            📋 사용 가능한 매장 종류:
-            음식점, 카페, 편의점, 약국, 호텔, 헤어샵, 병원
-
-            🔍 특성 키워드 예시:
-            분위기좋은, 24시간, 노키즈존, 주차가능, 인기많은 등
-"""
-            return ChatResponse(reply=help_message, places=None)
+            return ChatResponse(reply=HELP_MESSAGE, places=None)
         
         # 2) DB 조회
         matched_places = query_places(extracted)
@@ -146,7 +165,6 @@ def classify_category_with_ai(text: str) -> str:
 
 
 def extract_features_with_ai(text: str, category: str) -> list:
-    """AI를 사용하여 특성 추출"""
     try:
         # 간단한 규칙 기반 특성 추출 (AI 모델이 없으므로)
         features = []
