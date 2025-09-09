@@ -239,9 +239,21 @@ function ChatbotPanel({ onClose }) {
                     minWidth: 180
                   }}
                 >
-                  <div style={{fontSize:'13px', color:'#2357dd', fontWeight:600, marginBottom:4, cursor:'pointer', textDecoration:'underline'}}>{msg.places[0]}</div>
-                  <div style={{fontSize:'13px', color:'#2357dd', fontWeight:600, marginBottom:4, cursor:'pointer', textDecoration:'underline'}}>{msg.places[1]}</div>
-                  <div style={{fontSize:'13px', color:'#2357dd', fontWeight:600, marginBottom:0, cursor:'pointer', textDecoration:'underline'}}>{msg.places[2]}</div>
+                  {msg.places.map((place, index) => (
+                    <div 
+                      key={index}
+                      style={{
+                        fontSize:'13px', 
+                        color:'#2357dd', 
+                        fontWeight:600, 
+                        marginBottom: index === msg.places.length - 1 ? 0 : 4, 
+                        cursor:'pointer', 
+                        textDecoration:'underline'
+                      }}
+                    >
+                      {place}
+                    </div>
+                  ))}
                 </div>
               </div>
               <div style={{
