@@ -17,6 +17,12 @@ import LoginPanel from './components/LoginPanel';
 import ChatbotPanel from './components/ChatbotPanel';
 import Main from './components/Main';
 
+import LoginPage from './components/LoginPage';
+import ProfileSettingsPage from './components/ProfileSettingsPage';
+import FindAccountPage from './components/FindAccountPage';
+
+
+
 // 메인 앱 컴포넌트 (라우터 내부)
 function AppContent() {
   const [showLogin, setShowLogin] = useState(false);
@@ -236,6 +242,9 @@ function App() {
         <Route path="/" element={<Navigate to="/main" replace />} />
         {/* 나머지 모든 경로는 AppContent에서 처리 */}
         <Route path="/*" element={<AppContent />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/profile/edit" element={<ProfileSettingsPage />} />
+        <Route path="/find/account" element={<FindAccountPage/>}/>
       </Routes>
     </Router>
   );
