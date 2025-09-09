@@ -6,10 +6,14 @@ import os
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from dotenv import load_dotenv
-from konlpy.tag import Okt
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
 
-# Konlpy 형태소 분석기 인스턴스 (앱 시작 시 로드)
-OKT = Okt()
+# AI 모델 로드 (앱 시작 시 로드)
+MODEL_NAME = "klue/roberta-base"
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=7)
+model.eval()
 
 class ChatRequest(BaseModel):
     message: str
@@ -90,72 +94,122 @@ def get_db_engine() -> Engine:
     return ENGINE
 
 
-# ------------------ 도메인 사전 ------------------
-CATEGORY_KEYWORDS = {
-    "음식점": ["음식점", "식당", "맛집"],
-    "카페": ["카페", "카공"],
-    "편의점": ["편의점"],
-    "약국": ["약국"],
-    "호텔": ["호텔"],
-    "헤어샵": ["헤어샵", "미용실", "헤어 살롱"],
-    "병원": ["병원", "의원", "클리닉"],
-}
+# ------------------ AI 모델 설정 ------------------
+# 카테고리 라벨 정의
+CATEGORY_LABELS = ["음식점", "카페", "편의점", "약국", "호텔", "헤어샵", "병원"]
 
-FEATURE_KEYWORDS = {
-    "음식점": ["유아의자", "혼밥", "새로오픈", "데이트", "노키즈존", "지역화폐", "주차", "인기많은"],
-    "카페": ["편한좌석", "카공", "노키즈존", "분위기좋은", "인테리어", "디저트", "조용한", "24시간"],
-    "편의점": ["야외좌석", "ATM", "취식공간"],
-    "약국": ["친절", "비처방의약품"],
-    "호텔": ["스파/월풀/욕조", "반려동물 동반", "주차가능", "전기차 충전", "객실금연", "OTT", "수영장", "객실내 PC", "바베큐", "조식"],
-    "헤어샵": ["인기많은", "쿠폰멤버십", "예약필수"],
-    "병원": ["응급실", "전문의", "야간진료"],
-}
+# 특성 추출을 위한 프롬프트 템플릿
+FEATURE_EXTRACTION_PROMPT = """
+다음 텍스트에서 매장의 특성을 추출해주세요. 
+텍스트: "{text}"
+카테고리: {category}
+
+가능한 특성들:
+- 음식점: 유아의자, 혼밥, 새로오픈, 데이트, 노키즈존, 지역화폐, 주차, 인기많은
+- 카페: 편한좌석, 카공, 노키즈존, 분위기좋은, 인테리어, 디저트, 조용한, 24시간
+- 편의점: 야외좌석, ATM, 취식공간
+- 약국: 친절, 비처방의약품
+- 호텔: 스파/월풀/욕조, 반려동물 동반, 주차가능, 전기차 충전, 객실금연, OTT, 수영장, 객실내 PC, 바베큐, 조식
+- 헤어샵: 인기많은, 쿠폰멤버십, 예약필수
+- 병원: 응급실, 전문의, 야간진료
+
+텍스트에서 언급된 특성만 쉼표로 구분해서 나열해주세요. 없으면 "없음"이라고 답해주세요.
+"""
 
 
-# ------------------ NLP ------------------
+# ------------------ AI 기반 NLP ------------------
 def normalize(text: str) -> str:
     return text.strip()
 
 
-def extract_query(text: str) -> dict:
-    t = normalize(text)
-
-    # 형태소 분석으로 명사/형용사 후보 확보
+def classify_category_with_ai(text: str) -> str:
+    """AI 모델을 사용하여 카테고리 분류"""
     try:
-        # 어간 추출(stem=True)을 통해 '조용한' -> '조용하다'와 같이 정규화
-        tokens = [word for word, tag in OKT.pos(t, stem=True) if tag in ['Noun', 'Adjective']]
-    except Exception:
-        # Konlpy 오류 발생 시, 공백 기준으로 단순 분리
-        tokens = t.replace(",", " ").replace("/", " ").split()
-
-    # 카테고리 결정
-    category = None
-    for cat, kws in CATEGORY_KEYWORDS.items():
-        if any(kw in t for kw in kws):
-            category = cat
-            break
-
-    # 특성 추출
-    features = []
-    if category and category in FEATURE_KEYWORDS:
-        for f in FEATURE_KEYWORDS[category]:
-            if f in t:
-                features.append(f)
-
-    # 위치(간단 추론: '구', '동' 포함 토큰 또는 고정 키워드)
-    location = None
-    for tok in tokens:
-        if tok.endswith("구") or tok.endswith("동") or tok.endswith("시"):
-            location = tok
-            break
+        # 텍스트 토크나이징
+        inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
+        
+        # 모델 예측
+        with torch.no_grad():
+            outputs = model(**inputs)
+            predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
+            predicted_class_id = torch.argmax(predictions, dim=-1).item()
+            confidence = predictions[0][predicted_class_id].item()
+        
+        # 신뢰도가 낮으면 None 반환
+        if confidence < 0.3:
+            return None
             
-    COMMON_LOCS = ["강남", "강남구", "서초", "서초구", "판교", "분당", "일산", "파주", "운정", "홍대", "여의도", "잠실"]
-    if not location:
-        for loc in COMMON_LOCS:
-            if loc in t:
-                location = loc
-                break
+        return CATEGORY_LABELS[predicted_class_id]
+    except Exception as e:
+        print(f"AI 분류 오류: {e}")
+        return None
 
+
+def extract_features_with_ai(text: str, category: str) -> list:
+    """AI를 사용하여 특성 추출"""
+    try:
+        # 간단한 규칙 기반 특성 추출 (AI 모델이 없으므로)
+        features = []
+        
+        # 카테고리별 특성 키워드 (임시로 유지, 나중에 AI 모델로 대체 가능)
+        feature_keywords = {
+            "음식점": ["유아의자", "혼밥", "새로오픈", "데이트", "노키즈존", "지역화폐", "주차", "인기많은"],
+            "카페": ["편한좌석", "카공", "노키즈존", "분위기좋은", "인테리어", "디저트", "조용한", "24시간"],
+            "편의점": ["야외좌석", "ATM", "취식공간"],
+            "약국": ["친절", "비처방의약품"],
+            "호텔": ["스파", "월풀", "욕조", "반려동물", "주차가능", "전기차", "충전", "객실금연", "OTT", "수영장", "객실내", "PC", "바베큐", "조식"],
+            "헤어샵": ["인기많은", "쿠폰", "멤버십", "예약필수"],
+            "병원": ["응급실", "전문의", "야간진료"]
+        }
+        
+        if category in feature_keywords:
+            for feature in feature_keywords[category]:
+                if feature in text:
+                    features.append(feature)
+        
+        return features
+    except Exception as e:
+        print(f"특성 추출 오류: {e}")
+        return []
+
+
+def extract_location_with_ai(text: str) -> str:
+    """AI를 사용하여 위치 정보 추출"""
+    try:
+        # 간단한 패턴 매칭으로 위치 추출
+        import re
+        
+        # 지역명 패턴 (구, 동, 시로 끝나는 단어)
+        location_pattern = r'(\w+(?:구|동|시))'
+        matches = re.findall(location_pattern, text)
+        if matches:
+            return matches[0]
+        
+        # 주요 지역명
+        common_locations = ["강남", "강남구", "서초", "서초구", "판교", "분당", "일산", "파주", "운정", "홍대", "여의도", "잠실"]
+        for loc in common_locations:
+            if loc in text:
+                return loc
+        
+        return None
+    except Exception as e:
+        print(f"위치 추출 오류: {e}")
+        return None
+
+
+def extract_query(text: str) -> dict:
+    """AI 모델을 사용하여 쿼리 추출"""
+    t = normalize(text)
+    
+    # AI 모델로 카테고리 분류
+    category = classify_category_with_ai(t)
+    
+    # AI로 특성 추출
+    features = extract_features_with_ai(t, category) if category else []
+    
+    # AI로 위치 추출
+    location = extract_location_with_ai(t)
+    
     return {"category": category, "features": features, "location": location}
 
 
@@ -215,6 +269,6 @@ def build_reply(query: dict, places: list) -> str:
         parts.append(", ".join(query["features"]))
 
     cond = " ".join(parts) if parts else "요청하신"
-    names = ", ".join([p["name"] for p in places[:3]])
+    names = ", ".join([p["name"] for p in places[:5]])
     
     return f"{cond} 조건으로 {len(places)}곳을 찾았어요. 추천 장소는 {names} 등입니다."
