@@ -55,7 +55,8 @@ function ChatbotPanel({ onClose }) {
 • "노키즈존 음식점"
 • "주차가능 호텔"
 
-💡 팁: 지역 + 특성 + 매장종류 순으로 입력하시면 더 정확한 결과를 얻을 수 있어요!`, 
+💡 팁: 지역 + 특성 + 매장종류 순으로 입력하시면 
+        더 정확한 결과를 얻을 수 있어요!`, 
       timestamp: getCurrentTime() 
     }
   ]);
@@ -320,7 +321,6 @@ function ChatbotPanel({ onClose }) {
           )
         ))}
         <div ref={messagesEndRef} />
-        <div style={{fontSize:'12px', color: theme.textSecondary, margin:'8px 0 0 2px'}}>지역 + 특성 + 매장종류로 입력해보세요</div>
       </div>
 
       {/* 하단 입력창 및 아이콘 */}
