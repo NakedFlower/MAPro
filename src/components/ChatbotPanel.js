@@ -43,7 +43,21 @@ function ChatbotPanel({ onClose }) {
 
   // 대화 메시지 상태 관리
   const [messages, setMessages] = useState([
-    { role: 'bot', text: '원하시는 매장을 입력해 주세요. (예: 강남구 노키즈존 카페)', timestamp: getCurrentTime() }
+    { 
+      role: 'bot', 
+      text: `안녕하세요! MAPro 챗봇입니다. 🏪
+
+원하시는 매장을 찾아드릴게요!
+
+📝 입력 예시:
+• "강남구 분위기좋은 카페"
+• "판교 24시간 편의점" 
+• "노키즈존 음식점"
+• "주차가능 호텔"
+
+💡 팁: 지역 + 특성 + 매장종류 순으로 입력하시면 더 정확한 결과를 얻을 수 있어요!`, 
+      timestamp: getCurrentTime() 
+    }
   ]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef(null);
@@ -306,14 +320,14 @@ function ChatbotPanel({ onClose }) {
           )
         ))}
         <div ref={messagesEndRef} />
-        <div style={{fontSize:'12px', color: theme.textSecondary, margin:'8px 0 0 2px'}}>장소명을 입력해보세요.</div>
+        <div style={{fontSize:'12px', color: theme.textSecondary, margin:'8px 0 0 2px'}}>지역 + 특성 + 매장종류로 입력해보세요</div>
       </div>
 
       {/* 하단 입력창 및 아이콘 */}
       <div style={{padding:'14px 18px', borderTop:`1px solid ${theme.inputBorder}`, background: theme.inputBackground, display:'flex', alignItems:'center'}}>
         <input
           type="text"
-          placeholder="장소명을 입력하세요..."
+          placeholder="예: 강남구 분위기좋은 카페"
           style={{
             flex:1, 
             height:'38px', 
