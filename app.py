@@ -29,20 +29,30 @@ except Exception as e:
     print(f"⚠️ Zero-shot 분류 모델 로드 실패: {e}")
     zero_shot_classifier = None
 
-# 2. 한국어 NER 모델 (위치 추출용)
+# 2. NER 모델 (위치 추출용) - 앙상블 로딩 (규칙/하드코딩 없이 모델 병행)
 try:
-    # 한국어 NER에 특화된 파인튜닝 체크포인트 사용
-    # 참고: monologg/koelectra-base-v3-finetuned-ner 는 LOC/LC 등 위치 라벨을 제공합니다.
-    ner_pipeline = pipeline(
+    ner_pipeline_primary = pipeline(
         "ner",
         model="Davlan/bert-base-multilingual-cased-ner-hrl",
         aggregation_strategy="simple",
         device=0 if torch.cuda.is_available() else -1,
     )
-    print("✅ 한국어 NER 모델 로드 완료")
+    print("✅ NER 모델 로드 완료 (primary): Davlan/bert-base-multilingual-cased-ner-hrl")
 except Exception as e:
-    print(f"⚠️ 한국어 NER 모델 로드 실패: {e}")
-    ner_pipeline = None
+    print(f"⚠️ NER primary 모델 로드 실패: {e}")
+    ner_pipeline_primary = None
+
+try:
+    ner_pipeline_secondary = pipeline(
+        "ner",
+        model="Babelscape/wikineural-multilingual-ner",
+        aggregation_strategy="simple",
+        device=0 if torch.cuda.is_available() else -1,
+    )
+    print("✅ NER 모델 로드 완료 (secondary): Babelscape/wikineural-multilingual-ner")
+except Exception as e:
+    print(f"⚠️ NER secondary 모델 로드 실패: {e}")
+    ner_pipeline_secondary = None
 
 # 3. 한국어 Sentence Transformer (특성 추출용)
 try:
@@ -281,33 +291,30 @@ def extract_features_with_ai(text: str, category: str) -> list:
 
 def extract_location_with_ai(text: str) -> str:
     """개선된 NER을 사용하여 위치 정보 추출"""
-    if ner_pipeline is None:
+    if (globals().get('ner_pipeline_primary') is None) and (globals().get('ner_pipeline_secondary') is None):
         return None
     
     try:
-        # NER 파이프라인으로 엔티티 추출
-        entities = ner_pipeline(text)
-        
-        # 위치 관련 엔티티 필터링 및 정리
-        location_entities = []
-        for entity in entities:
-            # 다양한 위치 라벨 수용 (다국어/영어/한국어 모델 호환)
-            if entity['entity_group'] in ['LOC', 'LC', 'GPE', 'LOCATION', 'B-LOC', 'I-LOC']:
-                entity_text = entity['word'].strip()
-                # 기본적인 길이 필터링만 적용
-                if len(entity_text) >= 2:
-                    location_entities.append({
-                        'text': entity_text,
-                        'score': entity['score'],
-                        'label': entity['entity_group']
-                    })
-        
-        if not location_entities:
+        def run_and_collect(pipeline_fn):
+            if pipeline_fn is None:
+                return []
+            ents = pipeline_fn(text)
+            locs = []
+            for entity in ents:
+                if entity.get('entity_group') in ['LOC', 'LC', 'GPE', 'LOCATION', 'B-LOC', 'I-LOC']:
+                    token = (entity.get('word') or '').strip()
+                    if len(token) >= 2:
+                        locs.append({'text': token, 'score': float(entity.get('score', 0.0))})
+            return locs
+
+        candidates = run_and_collect(globals().get('ner_pipeline_primary')) + \
+                     run_and_collect(globals().get('ner_pipeline_secondary'))
+
+        if not candidates:
             return None
-        
-        # 신뢰도 순으로 정렬하여 가장 높은 신뢰도의 위치 반환
-        location_entities.sort(key=lambda x: x['score'], reverse=True)
-        return location_entities[0]['text']
+
+        candidates.sort(key=lambda x: x['score'], reverse=True)
+        return candidates[0]['text']
         
     except Exception:
         return None
