@@ -39,9 +39,16 @@ jobs:
         script: |
           IMAGE_NAME=asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-chat-api:latest
           gcloud auth configure-docker asia-northeast3-docker.pkg.dev
-          docker pull --quiet --disable-content-trust=false $IMAGE_NAME
           docker stop mapro-chat-api || true
           docker rm mapro-chat-api || true
+
+          # 로컬 캐시 이미지 삭제
+          docker rmi -f $IMAGE_NAME || true
+
+          # 최신 이미지 다시 Pull
+          docker pull $IMAGE_NAME
+
+          # 새 컨테이너 실행
           docker run -d --name mapro-chat-api \
             -p 8000:8000 \
             -e GCP_VM_IP="${{ secrets.GCP_VM_IP }}" \
