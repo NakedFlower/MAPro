@@ -23,10 +23,10 @@ jobs:
     - name: Configure Docker to use gcloud as a credential helper
       run: gcloud auth configure-docker asia-northeast3-docker.pkg.dev
 
-    - name: Build and push Docker image
+    - name: Build and push Docker image (no cache)
       run: |
         IMAGE_NAME=asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-chat-api:latest
-        docker build -t $IMAGE_NAME .
+        docker build --no-cache -t $IMAGE_NAME .
         docker push $IMAGE_NAME
 
     - name: Deploy to GCP VM
@@ -39,7 +39,7 @@ jobs:
         script: |
           IMAGE_NAME=asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-chat-api:latest
           gcloud auth configure-docker asia-northeast3-docker.pkg.dev
-          docker pull $IMAGE_NAME
+          docker pull --quiet --disable-content-trust=false $IMAGE_NAME
           docker stop mapro-chat-api || true
           docker rm mapro-chat-api || true
           docker run -d --name mapro-chat-api \
