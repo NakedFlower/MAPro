@@ -7,26 +7,42 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from dotenv import load_dotenv
 import re
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline, AutoModel
 import torch
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 # AI 모델 로드 (앱 시작 시 로드)
-MODEL_NAME = "klue/roberta-base"
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=7)
-model.eval()
+print("AI 모델들을 로딩 중...")
 
-# NER 파이프라인 로드 (지역명 추출용)A
+# 1. Zero-shot 분류 모델 (카테고리 분류용)
 try:
-    # 한국어 NER 모델 시도
-    ner_pipeline = pipeline("ner", model="klue/roberta-base", aggregation_strategy="simple")
-except:
-    try:
-        # 영어 NER 모델로 폴백
-        ner_pipeline = pipeline("ner", model="dbmdz/bert-large-cased-finetuned-conll03-english", aggregation_strategy="simple")
-    except:
-        # 최종 폴백: 기본 BERT 모델
-        ner_pipeline = pipeline("ner", aggregation_strategy="simple")
+    zero_shot_classifier = pipeline("zero-shot-classification", 
+                                   model="facebook/bart-large-mnli", 
+                                   device=0 if torch.cuda.is_available() else -1)
+    print("✅ Zero-shot 분류 모델 로드 완료")
+except Exception:
+    zero_shot_classifier = None
+
+# 2. 한국어 NER 모델 (위치 추출용)
+try:
+    ner_pipeline = pipeline("ner", 
+                           model="klue/roberta-large", 
+                           aggregation_strategy="simple",
+                           device=0 if torch.cuda.is_available() else -1)
+    print("✅ 한국어 NER 모델 로드 완료")
+except Exception:
+    ner_pipeline = None
+
+# 3. 한국어 Sentence Transformer (특성 추출용)
+try:
+    sentence_model = SentenceTransformer('jhgan/ko-sroberta-multitask')
+    print("✅ 한국어 Sentence Transformer 로드 완료")
+except Exception:
+    sentence_model = None
+
+print("AI 모델 로딩 완료!")
 
 class ChatRequest(BaseModel):
     message: str
@@ -166,34 +182,38 @@ def normalize(text: str) -> str:
 
 
 def classify_category_with_ai(text: str) -> str:
-    """AI 모델을 사용하여 카테고리 분류"""
+    """Zero-shot 분류를 사용하여 카테고리 분류"""
+    if zero_shot_classifier is None:
+        return None
+    
     try:
-        # 텍스트 토크나이징
-        inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
+        # 카테고리 라벨을 영어로 변환 (Zero-shot 모델이 영어 기반이므로)
+        category_labels_en = [
+            "restaurant", "cafe", "convenience store", "pharmacy", 
+            "hotel", "hair salon", "hospital"
+        ]
         
-        # 모델 예측
-        with torch.no_grad():
-            outputs = model(**inputs)
-            predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
-            predicted_class_id = torch.argmax(predictions, dim=-1).item()
-            confidence = predictions[0][predicted_class_id].item()
+        # Zero-shot 분류 수행
+        result = zero_shot_classifier(text, category_labels_en)
         
-        # 신뢰도가 낮으면 None 반환
-        if confidence < 0.3:
+        # 신뢰도가 높은 경우에만 반환
+        if result['scores'][0] > 0.3:
+            predicted_idx = result['labels'].index(result['labels'][0])
+            return CATEGORY_LABELS[predicted_idx]
+        else:
             return None
             
-        return CATEGORY_LABELS[predicted_class_id]
-    except Exception as e:
-        print(f"AI 분류 오류: {e}")
+    except Exception:
         return None
 
 
 def extract_features_with_ai(text: str, category: str) -> list:
+    """Sentence Transformer를 사용하여 특성 추출"""
+    if sentence_model is None:
+        return []
+    
     try:
-        # 간단한 규칙 기반 특성 추출 (AI 모델이 없으므로)
-        features = []
-        
-        # 카테고리별 특성 키워드 (정확한 feature 목록)
+        # 카테고리별 특성 키워드
         feature_keywords = {
             "음식점": ["유아의자", "혼밥", "새로오픈", "데이트", "노키즈존", "지역화폐", "주차", "인기많은"],
             "카페": ["편한좌석", "카공", "노키즈존", "분위기좋은", "인테리어", "디저트", "조용한", "24시간"],
@@ -204,19 +224,35 @@ def extract_features_with_ai(text: str, category: str) -> list:
             "병원": ["응급실", "전문의", "야간진료"]
         }
         
-        if category in feature_keywords:
-            for feature in feature_keywords[category]:
-                if feature in text:
-                    features.append(feature)
+        if category not in feature_keywords:
+            return []
+        
+        # 입력 텍스트와 특성 키워드들을 벡터화
+        text_embedding = sentence_model.encode([text])
+        feature_embeddings = sentence_model.encode(feature_keywords[category])
+        
+        # 코사인 유사도 계산
+        similarities = cosine_similarity(text_embedding, feature_embeddings)[0]
+        
+        # 유사도가 0.3 이상인 특성들만 반환
+        features = []
+        for i, similarity in enumerate(similarities):
+            if similarity > 0.3:
+                features.append(feature_keywords[category][i])
         
         return features
-    except Exception as e:
-        print(f"특성 추출 오류: {e}")
+        
+    except Exception:
         return []
 
 
+
+
 def extract_location_with_ai(text: str) -> str:
-    """순수 Transformers NER을 사용하여 위치 정보 추출"""
+    """개선된 NER을 사용하여 위치 정보 추출"""
+    if ner_pipeline is None:
+        return None
+    
     try:
         # NER 파이프라인으로 엔티티 추출
         entities = ner_pipeline(text)
@@ -242,10 +278,8 @@ def extract_location_with_ai(text: str) -> str:
         location_entities.sort(key=lambda x: x['score'], reverse=True)
         return location_entities[0]['text']
         
-    except Exception as e:
-        print(f"위치 추출 오류: {e}")
+    except Exception:
         return None
-
 
 def extract_query(text: str) -> dict:
     """AI 모델을 사용하여 쿼리 추출"""
