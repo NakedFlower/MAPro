@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from dotenv import load_dotenv
 import re
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 import torch
 
 # AI 모델 로드 (앱 시작 시 로드)
@@ -15,6 +15,18 @@ MODEL_NAME = "klue/roberta-base"
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=7)
 model.eval()
+
+# NER 파이프라인 로드 (지역명 추출용)
+try:
+    # 한국어 NER 모델 시도
+    ner_pipeline = pipeline("ner", model="klue/roberta-base", aggregation_strategy="simple")
+except:
+    try:
+        # 영어 NER 모델로 폴백
+        ner_pipeline = pipeline("ner", model="dbmdz/bert-large-cased-finetuned-conll03-english", aggregation_strategy="simple")
+    except:
+        # 최종 폴백: 기본 BERT 모델
+        ner_pipeline = pipeline("ner", aggregation_strategy="simple")
 
 class ChatRequest(BaseModel):
     message: str
@@ -32,12 +44,9 @@ HELP_MESSAGE = (
     "💡 올바른 입력 예시:\n"
     "• \"강남구 분위기좋은 카페\"\n"
     "• \"판교 24시간 편의점\"\n"
-    "• \"노키즈존 음식점\"\n"
-    "• \"주차가능 호텔\"\n\n"
+
     "📋 사용 가능한 매장 종류:\n"
     "음식점, 카페, 편의점, 약국, 호텔, 헤어샵, 병원\n\n"
-    "🔍 특성 키워드 예시:\n"
-    "분위기좋은, 24시간, 노키즈존, 주차가능, 인기많은 등"
 )
 
 
@@ -65,7 +74,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+# chat_endpoint
 @app.post("/chat", response_model=ChatResponse)
 def chat_endpoint(req: ChatRequest):
     user_message = (req.message or "").strip()
@@ -80,21 +89,36 @@ def chat_endpoint(req: ChatRequest):
         # 1) NLP: 카테고리/특성/지역 추출
         extracted = extract_query(user_message)
         
-        # 입력 검증 및 도움말 제공
-        if not extracted.get("category") and not extracted.get("location"):
-            return ChatResponse(reply=HELP_MESSAGE, places=None)
+        # 2) 필수 정보(지역, 카테고리) 검증 강화
+        location = extracted.get("location")
+        category = extracted.get("category")
+
+        if not location or not category:
+            # 지역이나 카테고리 중 하나라도 없으면 더 구체적인 질문으로 응답
+            if not location and not category:
+                # 둘 다 없는 경우: 기존 도움말
+                return ChatResponse(reply=HELP_MESSAGE, places=None)
+            elif not location:
+                # 지역이 없는 경우
+                return ChatResponse(reply=f"어느 지역에서 {category}을(를) 찾으시나요? 🤔\n예: \"강남 {category}\"", places=None)
+            else: # not category
+                # 카테고리가 없는 경우
+                return ChatResponse(reply=f"'{location}'에서 어떤 장소를 찾으세요? 👀\n(예: 음식점, 카페, 약국 등)", places=None)
         
-        # 2) DB 조회
+
+        # 3) DB 조회 
         matched_places = query_places(extracted)
         
-        # 3) 응답 생성
+        # 4) 응답 생성
         if matched_places:
             reply_text = build_reply(extracted, matched_places)
-            return ChatResponse(reply=reply_text, places=[{"name": p["name"]} for p in matched_places[:5]])
+            # places 리스트에는 DB에서 받은 모든 정보를 포함하여 프론트에서 활용할 수 있도록 개선
+            return ChatResponse(reply=reply_text, places=matched_places[:5])
         else:
             return ChatResponse(reply="조건에 맞는 매장을 찾지 못했어요. 다른 키워드로 시도해 보시겠어요?", places=None)
             
-    except Exception:
+    except Exception as e:
+        print(f"채팅 엔드포인트 오류: {e}") # 디버깅을 위한 로그 추가
         return ChatResponse(reply="서버에서 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", places=None)
 
 
@@ -192,24 +216,32 @@ def extract_features_with_ai(text: str, category: str) -> list:
 
 
 def extract_location_with_ai(text: str) -> str:
-    """AI를 사용하여 위치 정보 추출"""
+    """순수 Transformers NER을 사용하여 위치 정보 추출"""
     try:
-        # 간단한 패턴 매칭으로 위치 추출
-        import re
+        # NER 파이프라인으로 엔티티 추출
+        entities = ner_pipeline(text)
         
-        # 지역명 패턴 (구, 동, 시로 끝나는 단어)
-        location_pattern = r'(\w+(?:구|동|시))'
-        matches = re.findall(location_pattern, text)
-        if matches:
-            return matches[0]
+        # 위치 관련 엔티티 필터링 및 정리
+        location_entities = []
+        for entity in entities:
+            # LOC, GPE 라벨을 위치로 간주 (ORG 제외)
+            if entity['entity_group'] in ['LOC', 'GPE']:
+                entity_text = entity['word'].strip()
+                # 기본적인 길이 필터링만 적용
+                if len(entity_text) >= 2:
+                    location_entities.append({
+                        'text': entity_text,
+                        'score': entity['score'],
+                        'label': entity['entity_group']
+                    })
         
-        # 주요 지역명
-        common_locations = ["강남", "강남구", "서초", "서초구", "판교", "분당", "일산", "파주", "운정", "홍대", "여의도", "잠실"]
-        for loc in common_locations:
-            if loc in text:
-                return loc
+        if not location_entities:
+            return None
         
-        return None
+        # 신뢰도 순으로 정렬하여 가장 높은 신뢰도의 위치 반환
+        location_entities.sort(key=lambda x: x['score'], reverse=True)
+        return location_entities[0]['text']
+        
     except Exception as e:
         print(f"위치 추출 오류: {e}")
         return None
@@ -236,26 +268,27 @@ def query_places(query: dict) -> list:
     try:
         engine = get_db_engine()
         
-        category = query.get("category")
+        # chat_endpoint에서 검증을 거쳤으므로 category와 location은 항상 존재
+        category = query["category"]
+        location = query["location"]
         features = query.get("features") or []
-        location = query.get("location")
 
-        # 기본 WHERE 절 구성
-        where = []
-        params = {}
-        if category:
-            where.append("category = :category")
-            params["category"] = category
-        if location:
-            where.append("location LIKE :location")
-            params["location"] = f"%{location}%"
+        # WHERE 절을 명시적으로 구성
+        where_clauses = [
+            "category = :category",
+            "location LIKE :location"
+        ]
+        params = {
+            "category": category,
+            "location": f"%{location}%"
+        }
 
-        base_sql = "SELECT place_id, category, name, location, feature FROM place"
-        if where:
-            base_sql += " WHERE " + " AND ".join(where)
-
-        # 우선 후보 30개 조회
-        sql = text(base_sql + " ORDER BY updated_at DESC, created_at DESC LIMIT 30")
+        # SQL 쿼리 생성
+        base_sql = "SELECT place_id, category, name, location, feature FROM place WHERE "
+        sql_query = base_sql + " AND ".join(where_clauses)
+        sql_query += " ORDER BY updated_at DESC, created_at DESC LIMIT 30"
+        
+        sql = text(sql_query)
         
         with engine.connect() as conn:
             rows = [dict(r._mapping) for r in conn.execute(sql, params)]
@@ -263,17 +296,21 @@ def query_places(query: dict) -> list:
         if not rows:
             return []
 
-        # 특성 점수 기반 정렬
-        def score(row):
-            row_features = (row.get("feature") or "").split(",")
-            row_features = [rf.strip() for rf in row_features if rf.strip()]
-            return sum(1 for f in features if f in row_features)
+        # 특성(feature) 점수 기반으로 Python에서 재정렬
+        def score(place):
+            place_features = (place.get("feature") or "").split(",")
+            place_features = [f.strip() for f in place_features if f.strip()]
+            
+            # 검색어에 포함된 feature가 매장의 feature에 얼마나 있는지 계산
+            match_count = sum(1 for f in features if f in place_features)
+            return match_count
 
         rows.sort(key=score, reverse=True)
         return rows[:5]
         
-    except Exception:
-        return []  # DB 오류 시 빈 리스트 반환
+    except Exception as e:
+        print(f"DB 조회 오류: {e}") # 디버깅을 위한 로그 추가
+        return []
 
 
 # ------------------ 응답 생성 ------------------
