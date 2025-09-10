@@ -18,28 +18,38 @@ print("AI 모델들을 로딩 중...")
 
 # 1. Zero-shot 분류 모델 (카테고리 분류용)
 try:
-    zero_shot_classifier = pipeline("zero-shot-classification", 
-                                   model="facebook/bart-large-mnli", 
-                                   device=0 if torch.cuda.is_available() else -1)
+    # 한국어 입력 대응을 위해 다국어 NLI 모델 사용
+    zero_shot_classifier = pipeline(
+        "zero-shot-classification",
+        model="joeddav/xlm-roberta-large-xnli",
+        device=0 if torch.cuda.is_available() else -1,
+    )
     print("✅ Zero-shot 분류 모델 로드 완료")
-except Exception:
+except Exception as e:
+    print(f"⚠️ Zero-shot 분류 모델 로드 실패: {e}")
     zero_shot_classifier = None
 
 # 2. 한국어 NER 모델 (위치 추출용)
 try:
-    ner_pipeline = pipeline("ner", 
-                           model="klue/roberta-large", 
-                           aggregation_strategy="simple",
-                           device=0 if torch.cuda.is_available() else -1)
+    # 한국어 NER에 특화된 파인튜닝 체크포인트 사용
+    # 참고: monologg/koelectra-base-v3-finetuned-ner 는 LOC/LC 등 위치 라벨을 제공합니다.
+    ner_pipeline = pipeline(
+        "ner",
+        model="monologg/koelectra-base-v3-finetuned-ner",
+        aggregation_strategy="simple",
+        device=0 if torch.cuda.is_available() else -1,
+    )
     print("✅ 한국어 NER 모델 로드 완료")
-except Exception:
+except Exception as e:
+    print(f"⚠️ 한국어 NER 모델 로드 실패: {e}")
     ner_pipeline = None
 
 # 3. 한국어 Sentence Transformer (특성 추출용)
 try:
     sentence_model = SentenceTransformer('jhgan/ko-sroberta-multitask')
     print("✅ 한국어 Sentence Transformer 로드 완료")
-except Exception:
+except Exception as e:
+    print(f"⚠️ Sentence Transformer 로드 실패: {e}")
     sentence_model = None
 
 print("AI 모델 로딩 완료!")
@@ -187,21 +197,12 @@ def classify_category_with_ai(text: str) -> str:
         return None
     
     try:
-        # 카테고리 라벨을 영어로 변환 (Zero-shot 모델이 영어 기반이므로)
-        category_labels_en = [
-            "restaurant", "cafe", "convenience store", "pharmacy", 
-            "hotel", "hair salon", "hospital"
-        ]
-        
-        # Zero-shot 분류 수행
-        result = zero_shot_classifier(text, category_labels_en)
-        
-        # 신뢰도가 높은 경우에만 반환
-        if result['scores'][0] > 0.3:
-            predicted_idx = result['labels'].index(result['labels'][0])
-            return CATEGORY_LABELS[predicted_idx]
-        else:
-            return None
+        # 한국어 라벨을 그대로 후보로 사용
+        result = zero_shot_classifier(text, candidate_labels=CATEGORY_LABELS)
+        # 한국어 입력 대비 임계값 소폭 완화
+        if result['scores'][0] > 0.2:
+            return result['labels'][0]
+        return None
             
     except Exception:
         return None
@@ -260,8 +261,8 @@ def extract_location_with_ai(text: str) -> str:
         # 위치 관련 엔티티 필터링 및 정리
         location_entities = []
         for entity in entities:
-            # LOC, GPE 라벨을 위치로 간주 (ORG 제외)
-            if entity['entity_group'] in ['LOC', 'GPE']:
+            # 한국어 NER 모델에 따라 'LOC' 또는 'LC'가 사용될 수 있음
+            if entity['entity_group'] in ['LOC', 'LC', 'GPE']:
                 entity_text = entity['word'].strip()
                 # 기본적인 길이 필터링만 적용
                 if len(entity_text) >= 2:
@@ -294,7 +295,13 @@ def extract_query(text: str) -> dict:
     # AI로 위치 추출
     location = extract_location_with_ai(t)
     
-    return {"category": category, "features": features, "location": location}
+    extracted = {"category": category, "features": features, "location": location}
+    # 진단 로그 (배포 환경에서도 유용하도록 간단 출력)
+    try:
+        print(f"[extract_query] parsed -> {extracted}")
+    except Exception:
+        pass
+    return extracted
 
 
 # ------------------ DB 조회 ------------------
