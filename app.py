@@ -261,8 +261,8 @@ def extract_location_with_ai(text: str) -> str:
         # 위치 관련 엔티티 필터링 및 정리
         location_entities = []
         for entity in entities:
-            # 한국어 NER 모델에 따라 'LOC' 또는 'LC'가 사용될 수 있음
-            if entity['entity_group'] in ['LOC', 'LC', 'GPE']:
+            # 다양한 위치 라벨 수용 (다국어/영어/한국어 모델 호환)
+            if entity['entity_group'] in ['LOC', 'LC', 'GPE', 'LOCATION', 'B-LOC', 'I-LOC']:
                 entity_text = entity['word'].strip()
                 # 기본적인 길이 필터링만 적용
                 if len(entity_text) >= 2:
