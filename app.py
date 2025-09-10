@@ -35,7 +35,7 @@ try:
     # 참고: monologg/koelectra-base-v3-finetuned-ner 는 LOC/LC 등 위치 라벨을 제공합니다.
     ner_pipeline = pipeline(
         "ner",
-        model="monologg/koelectra-base-v3-finetuned-ner",
+        model="Davlan/bert-base-multilingual-cased-ner-hrl",
         aggregation_strategy="simple",
         device=0 if torch.cuda.is_available() else -1,
     )
