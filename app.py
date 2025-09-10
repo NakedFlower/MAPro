@@ -197,8 +197,13 @@ def classify_category_with_ai(text: str) -> str:
         return None
     
     try:
-        # 한국어 라벨을 그대로 후보로 사용
-        result = zero_shot_classifier(text, candidate_labels=CATEGORY_LABELS)
+        # 한국어 라벨을 그대로 후보로 사용 + 한국어 가설 템플릿 적용
+        result = zero_shot_classifier(
+            text,
+            candidate_labels=CATEGORY_LABELS,
+            hypothesis_template="이 문장은 {}와 관련이 있다.",
+            multi_label=False,
+        )
         # 한국어 입력 대비 임계값 소폭 완화
         if result['scores'][0] > 0.2:
             return result['labels'][0]
@@ -227,21 +232,46 @@ def extract_features_with_ai(text: str, category: str) -> list:
         
         if category not in feature_keywords:
             return []
-        
-        # 입력 텍스트와 특성 키워드들을 벡터화
-        text_embedding = sentence_model.encode([text])
-        feature_embeddings = sentence_model.encode(feature_keywords[category])
+        # 공백 무시 변형을 자동 생성하여 유사 의미 표현 간 편차 감소
+        def normalize_space(s: str) -> str:
+            return re.sub(r"\s+", "", s)
+
+        text_variants = [text, normalize_space(text)]
+        keywords = feature_keywords[category]
+        keyword_variants = []
+        variant_to_canonical = {}
+        for kw in keywords:
+            kw_var = normalize_space(kw)
+            keyword_variants.append(kw)
+            variant_to_canonical[kw] = kw
+            if kw_var != kw:
+                keyword_variants.append(kw_var)
+                variant_to_canonical[kw_var] = kw
+
+        # 임베딩 계산
+        text_embedding = sentence_model.encode(text_variants)
+        feature_embeddings = sentence_model.encode(keyword_variants)
         
         # 코사인 유사도 계산
-        similarities = cosine_similarity(text_embedding, feature_embeddings)[0]
-        
-        # 유사도가 0.3 이상인 특성들만 반환
-        features = []
-        for i, similarity in enumerate(similarities):
-            if similarity > 0.3:
-                features.append(feature_keywords[category][i])
-        
-        return features
+        similarities = cosine_similarity(text_embedding, feature_embeddings)
+
+        # 두 텍스트 변형 중 최대 유사도를 사용하고, 변형을 원래 표준 키워드로 매핑
+        max_sim_by_variant = np.max(similarities, axis=0)
+
+        selected_canonicals = []
+        for idx, sim in enumerate(max_sim_by_variant):
+            if sim > 0.3:
+                canon = variant_to_canonical[keyword_variants[idx]]
+                selected_canonicals.append(canon)
+
+        # 중복 제거, 원래 정의된 키워드 순서 유지
+        seen = set()
+        ordered = []
+        for kw in keywords:
+            if kw in selected_canonicals and kw not in seen:
+                seen.add(kw)
+                ordered.append(kw)
+        return ordered
         
     except Exception:
         return []
