@@ -162,13 +162,14 @@ function ChatbotPanel({ onClose }) {
         throw new Error(errorText || `HTTP ${response.status}`);
       }
       const data = await response.json();
-      const replyText = data.reply || '응답이 비어 있어요.';
       const nextMessages = [
-        { role: 'bot', text: replyText, timestamp: getCurrentTime() }
+        { role: 'bot', text: data.reply, timestamp: getCurrentTime() }
       ];
       if (Array.isArray(data.places) && data.places.length > 0) {
-        const placeNames = data.places.slice(0, 5).map(p => p.name || '');
-        nextMessages.push({ type: 'places', places: placeNames, timestamp: getCurrentTime() });
+        const placeNames = data.places.slice(0, 5).map(p => p.name).filter(Boolean);
+        if (placeNames.length > 0) {
+          nextMessages.push({ type: 'places', places: placeNames, timestamp: getCurrentTime() });
+        }
       }
       setMessages(prev => [
         ...prev,
@@ -302,8 +303,9 @@ function ChatbotPanel({ onClose }) {
                     textAlign: 'left',
                     lineHeight: 1.6
                   }}
-                  dangerouslySetInnerHTML={{ __html: msg.text }}
-                />
+                >
+                  {msg.text}
+                </div>
               </div>
               <div style={{
                 fontSize:'11px', 
