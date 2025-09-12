@@ -7,13 +7,20 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from dotenv import load_dotenv
 import re
-from transformers import pipeline
-import torch
+import requests
 
 
-# ------------------ AI 모델 설정 ------------------
-# 카테고리 라벨 정의
-CATEGORY_LABELS = ["음식점", "카페", "편의점", "약국", "호텔", "헤어샵", "병원"]
+# ------------------ 분류/키워드 사전 ------------------
+# 카테고리 매핑(단일 구조): {카테고리: [라벨 자체 + 동의어들]}
+CATEGORY_PHRASES = {
+    "음식점": ["음식점", "식당", "레스토랑", "먹을데", "먹을 곳", "밥집", "맛집", "food", "restaurant"],
+    "카페": ["카페", "커피숍", "커피 숍", "다방", "카페테리아", "카페라운지", "coffee", "cafe"],
+    "편의점": ["편의점", "CVS", "convenience store", "편의 마트", "편의 소매", "편의 상점"],
+    "약국": ["약국", "파머시", "pharmacy", "drugstore", "드럭스토어"],
+    "호텔": ["호텔", "숙소", "숙박", "레지던스", "리조트", "hotel", "resort"],
+    "헤어샵": ["헤어샵", "미용실", "헤어 살롱", "헤어살롱", "살롱", "hair salon", "barber", "이발소"],
+    "병원": ["병원", "의원", "클리닉", "메디컬", "hospital", "clinic"]
+}
 
 # 1. 키워드-표현 사전 정의 (확장판)
 KEYWORD_DICT = {
@@ -569,35 +576,8 @@ KEYWORD_DICT = {
 }
 
 
-# AI 모델 로드 (앱 시작 시 로드)
-print("AI 모델들을 로딩 중...")
-
-# 2. NER 모델 (위치 추출용) - 앙상블 로딩 (규칙/하드코딩 없이 모델 병행)
-try:
-    ner_pipeline_primary = pipeline(
-        "ner",
-        model="Davlan/bert-base-multilingual-cased-ner-hrl",
-        aggregation_strategy="simple",
-        device=0 if torch.cuda.is_available() else -1,
-    )
-    print("✅ NER 모델 로드 완료 (primary): Davlan/bert-base-multilingual-cased-ner-hrl")
-except Exception as e:
-    print(f"⚠️ NER primary 모델 로드 실패: {e}")
-    ner_pipeline_primary = None
-
-try:
-    ner_pipeline_secondary = pipeline(
-        "ner",
-        model="Babelscape/wikineural-multilingual-ner",
-        aggregation_strategy="simple",
-        device=0 if torch.cuda.is_available() else -1,
-    )
-    print("✅ NER 모델 로드 완료 (secondary): Babelscape/wikineural-multilingual-ner")
-except Exception as e:
-    print(f"⚠️ NER secondary 모델 로드 실패: {e}")
-    ner_pipeline_secondary = None
-
-print("AI 모델 로딩 완료!")
+# 규칙/사전 기반 설정 로딩 완료 로그
+print("규칙 기반 파서 로딩 완료!")
 
 class ChatRequest(BaseModel):
     message: str
@@ -620,6 +600,105 @@ HELP_MESSAGE = (
     "음식점, 카페, 편의점, 약국, 호텔, 헤어샵, 병원\n\n"
 )
 
+
+# ------------------ 외부 API 설정 (행안부 주소 API) ------------------
+# 실제 배포 시 환경변수 MOIS_API_KEY로 주입. 미설정 시 아래 기본값 사용
+MOIS_API_KEY = os.getenv("MOIS_API_KEY", "devU01TX0FVVEgyMDI1MDkxMjExMzczMjExNjE3ODE=")
+MOIS_ADDR_API_URL = "https://business.juso.go.kr/addrlink/addrLinkApi.do"
+
+def _parse_region_from_address(addr: str) -> Optional[str]:
+    """주소 문자열에서 시/군/구 등의 지역명만 간략히 추출.
+    예) "서울특별시 강남구 역삼동 ..." -> "서울 강남구"
+    """
+    if not addr:
+        return None
+    tokens = (addr or "").strip().split()
+    if not tokens:
+        return None
+    def is_region_token(tok: str) -> bool:
+        return tok.endswith(("시", "군", "구"))
+
+    region_tokens = [t for t in tokens[:5] if is_region_token(t)]
+    if not region_tokens:
+        # 동/읍/면이라도 잡아본다
+        sub_tokens = [t for t in tokens[:5] if t.endswith(("동", "읍", "면"))]
+        if sub_tokens:
+            return sub_tokens[0]
+        return None
+
+    # 광역시/특별시 표기를 간략화
+    def simplify(tok: str) -> str:
+        return tok.replace("특별시", "").replace("광역시", "").replace("자치구", "").strip()
+
+    simplified = [simplify(t) for t in region_tokens[:2]]
+    # 최소 1개, 최대 2개 조합 (예: 서울 강남구 / 성남시 분당구)
+    return " ".join([t for t in simplified if t]) or None
+
+def resolve_location_with_mois(keyword_text: str, timeout_sec: float = 0.7) -> Optional[str]:
+    """행안부(도로명주소) API를 호출해 입력 텍스트에서 지역명을 표준화하여 추출.
+    - 성공 시 간략 지역명(예: "서울 강남구") 반환
+    - 실패/없음 시 None
+    """
+    if not MOIS_API_KEY:
+        raise ValueError("MOIS_API_KEY가 설정되지 않았습니다.")
+    
+    if not keyword_text:
+        return None
+    params = {
+        "confmKey": MOIS_API_KEY,
+        "resultType": "json",
+        "currentPage": "1",
+        "countPerPage": "5",
+        "keyword": keyword_text,
+    }
+    resp = requests.get(MOIS_ADDR_API_URL, params=params, timeout=timeout_sec)
+    if resp.status_code != 200:
+        raise ValueError(f"행안부 API 호출 실패: {resp.status_code}")
+    data = resp.json() if resp.content else None
+    juso_list = ((data or {}).get("results") or {}).get("juso") or []
+    if not juso_list:
+        return None
+    # 우선 roadAddr, 없으면 jibunAddr 사용
+    top = juso_list[0]
+    addr = top.get("roadAddr") or top.get("jibunAddr") or ""
+    region = _parse_region_from_address(addr)
+    return region
+
+def _generate_location_keyword_candidates(text: str) -> list:
+    """입력에서 행정구역 접미사(구/시/군) 보완 후보들을 생성한다.
+    - 원문 그대로 1순위
+    - 공백 기준 토큰 중 접미사가 없는 것에는 구/시/군을 덧붙인 버전도 생성
+    - 중복 제거, 원본 순서 최대한 유지
+    """
+    if not text:
+        return []
+    candidates: list = []
+    seen = set()
+
+    def push(s: str):
+        key = s.strip()
+        if key and key not in seen:
+            seen.add(key)
+            candidates.append(key)
+
+    push(text)
+    tokens = (text or "").split()
+    admin_suffixes = ("시", "군", "구", "동", "읍", "면")
+    trial_suffixes = ("구", "시", "군")
+
+    for tok in tokens:
+        if not tok:
+            continue
+        if tok.endswith(admin_suffixes):
+            # 이미 접미사가 있으면 그대로도 한 번 더 강조해서 후보에 추가
+            push(tok)
+            continue
+        for suf in trial_suffixes:
+            push(f"{tok}{suf}")
+            # 문장 내 해당 토큰을 1회 치환한 전체 문장 후보도 추가
+            push(text.replace(tok, f"{tok}{suf}", 1))
+
+    return candidates
 
 def is_low_quality_input(text: str) -> bool:
     """의미 없는 입력(기호만, 너무 짧음 등)을 판별."""
@@ -726,25 +805,39 @@ def get_db_engine() -> Engine:
         ENGINE = get_engine()
     return ENGINE
 
-# ------------------ AI 기반 NLP ------------------
+# ------------------ 텍스트 파싱 ------------------
 def normalize(text: str) -> str:
     return text.strip()
 
 
-def classify_category_with_ai(text: str) -> str:
-    """보수적 분류: 입력에 카테고리 키워드가 '명시적으로' 포함될 때만 인정."""
+def classify_category_with_rules(text: str) -> str:
+    """규칙 기반 분류: 카테고리 매핑(CATEGORY_PHRASES)에서 1개만 매칭될 때 인정.
+    - 공백/대소문자 무시 간단 정규화 지원
+    - 다중 매칭 시 모호 판정(None)
+    """
     if not text:
         return None
 
-    # 카테고리 키워드가 여러 개 나타나면 모호하므로 추정을 하지 않음
-    matches = [label for label in CATEGORY_LABELS if label in text]
-    if len(matches) == 1:
-        return matches[0]
-    else:
-        return None
+    def norm(s: str) -> str:
+        return re.sub(r"\s+", "", (s or "").lower())
+
+    t = norm(text)
+
+    matched_labels = []
+    for label, phrases_raw in CATEGORY_PHRASES.items():
+        phrases = [norm(p) for p in phrases_raw if p]
+        for p in phrases:
+            if p and p in t:
+                matched_labels.append(label)
+                break
+
+    matched_labels = list(dict.fromkeys(matched_labels))
+    if len(matched_labels) == 1:
+        return matched_labels[0]
+    return None
 
 
-def extract_features_with_ai(text: str, category: str) -> list:
+def extract_features_with_rules(text: str, category: str) -> list:
     """사전에 정의된 positive/negative 표현으로만 특성을 추출한다.
     - 카테고리가 주어지면 해당 카테고리만 검사
     - 카테고리가 없으면 모든 카테고리의 특성을 검사하되, 부정 표현이 하나라도 있으면 제외
@@ -786,48 +879,27 @@ def extract_features_with_ai(text: str, category: str) -> list:
 
 
 
-def extract_location_with_ai(text: str) -> str:
-    """개선된 NER을 사용하여 위치 정보 추출"""
-    if (globals().get('ner_pipeline_primary') is None) and (globals().get('ner_pipeline_secondary') is None):
-        return None
-    
-    try:
-        def run_and_collect(pipeline_fn):
-            if pipeline_fn is None:
-                return []
-            ents = pipeline_fn(text)
-            locs = []
-            for entity in ents:
-                if entity.get('entity_group') in ['LOC', 'LC', 'GPE', 'LOCATION', 'B-LOC', 'I-LOC']:
-                    token = (entity.get('word') or '').strip()
-                    if len(token) >= 2:
-                        locs.append({'text': token, 'score': float(entity.get('score', 0.0))})
-            return locs
+## NER 기반 위치 추출은 더 이상 사용하지 않음
 
-        candidates = run_and_collect(globals().get('ner_pipeline_primary')) + \
-                     run_and_collect(globals().get('ner_pipeline_secondary'))
-
-        if not candidates:
-            return None
-
-        candidates.sort(key=lambda x: x['score'], reverse=True)
-        return candidates[0]['text']
-        
-    except Exception:
-        return None
+def extract_location(text: str) -> Optional[str]:
+    """행안부 주소 API만 사용하여 지역을 인식한다. (NER 폴백 없음)
+    - 원문과 접미사 보완 후보들을 순차 조회하여 최초 성공값을 반환
+    """
+    for kw in _generate_location_keyword_candidates(text):
+        region = resolve_location_with_mois(kw, timeout_sec=0.5)
+        if region:
+            return region
+    return None
 
 def extract_query(text: str) -> dict:
-    """AI 모델을 사용하여 쿼리 추출"""
+    """규칙/사전 기반으로 쿼리 성분을 추출한다."""
     t = normalize(text)
     
-    # AI 모델로 카테고리 분류
-    category = classify_category_with_ai(t)
+    category = classify_category_with_rules(t)
     
-    # AI로 특성 추출
-    features = extract_features_with_ai(t, category) if category else []
+    features = extract_features_with_rules(t, category) if category else []
     
-    # AI로 위치 추출
-    location = extract_location_with_ai(t)
+    location = extract_location(t)
     
     extracted = {"category": category, "features": features, "location": location}
     # 진단 로그 (배포 환경에서도 유용하도록 간단 출력)
