@@ -1038,17 +1038,24 @@ def query_places(query: dict) -> list:
         if not rows:
             return []
 
-        # 1) 동일 매장(place_id) 중복 제거
-        unique_rows = []
-        seen_place_ids = set()
-        for row in rows:
-            place_id = row.get("place_id")
-            if place_id in seen_place_ids:
-                continue
-            seen_place_ids.add(place_id)
-            unique_rows.append(row)
+        # 1) 중복 제거: 매장 이름 기준(정규화)으로만 단일화
+        def normalize_name(name: str) -> str:
+            if not name:
+                return ""
+            base = re.sub(r"\s+", "", name)
+            base = re.sub(r"[^0-9A-Za-z가-힣]", "", base)
+            return base.lower()
 
-        if not unique_rows:
+        name_deduped_rows = []
+        seen_names = set()
+        for row in rows:
+            norm = normalize_name(row.get("name"))
+            if not norm or norm in seen_names:
+                continue
+            seen_names.add(norm)
+            name_deduped_rows.append(row)
+
+        if not name_deduped_rows:
             return []
 
         # 2) 특성(feature) 점수 기반으로 Python에서 재정렬
@@ -1060,9 +1067,9 @@ def query_places(query: dict) -> list:
             match_count = sum(1 for f in features if f in place_features)
             return match_count
 
-        unique_rows.sort(key=score, reverse=True)
+        name_deduped_rows.sort(key=score, reverse=True)
         # 최대 5개까지 반환(중복 제거로 5개 미만이 될 수 있음)
-        return unique_rows[:5]
+        return name_deduped_rows[:5]
         
     except Exception as e:
         print(f"DB 조회 오류: {e}") # 디버깅을 위한 로그 추가
