@@ -329,16 +329,52 @@ function ChatbotPanel({ onClose }) {
             </div>
           ) : msg.type === 'location_candidates' ? (
             <div key={idx} style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                 {msg.candidates.map((cand, index) => (
                   <button
                     key={index}
                     onClick={() => handleChooseLocation(cand)}
                     style={{
-                      background:'#2357dd', color:'#fff', border:'none', borderRadius:14,
-                      padding:'8px 12px', fontSize:13, cursor:'pointer'
+                      display:'inline-flex', alignItems:'center', gap:8,
+                      background: isDarkMode 
+                        ? 'linear-gradient(180deg, #3a57e8 0%, #2747d8 100%)' 
+                        : 'linear-gradient(180deg, #3b6fff 0%, #2357dd 100%)',
+                      color:'#fff',
+                      border:'1px solid rgba(255,255,255,0.15)',
+                      borderRadius:999,
+                      padding:'10px 14px',
+                      fontSize:13,
+                      fontWeight:700,
+                      letterSpacing:'.2px',
+                      cursor:'pointer',
+                      boxShadow: '0 6px 18px rgba(35,87,221,0.25)',
+                      transform:'translateZ(0)',
+                      transition:'transform .15s ease, box-shadow .15s ease, filter .2s ease',
+                      WebkitTapHighlightColor:'transparent'
                     }}
-                  >{cand}</button>
+                    onMouseEnter={e => {
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.boxShadow = '0 10px 24px rgba(35,87,221,0.32)';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 6px 18px rgba(35,87,221,0.25)';
+                    }}
+                    onMouseDown={e => {
+                      e.currentTarget.style.transform = 'translateY(0) scale(0.99)';
+                      e.currentTarget.style.filter = 'brightness(0.98)';
+                    }}
+                    onMouseUp={e => {
+                      e.currentTarget.style.transform = 'translateY(-1px) scale(1)';
+                      e.currentTarget.style.filter = 'none';
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{filter:'drop-shadow(0 1px 0 rgba(0,0,0,0.15))'}}>
+                      <path d="M12 21s-7-7.582-7-12a7 7 0 1 1 14 0c0 4.418-7 12-7 12z" fill="rgba(255,255,255,0.9)"/>
+                      <circle cx="12" cy="9" r="3" fill={isDarkMode ? '#1c1c1e' : '#2357dd'} />
+                    </svg>
+                    <span>{cand}</span>
+                  </button>
                 ))}
               </div>
               <div style={{
