@@ -810,6 +810,24 @@ def chat_endpoint(req: ChatRequest):
         location = extracted.get("location")
         category = extracted.get("category")
 
+        # 2.1) 원문 기반 지역 후보를 우선 계산해 표준화/모호성 처리
+        try:
+            cand_from_text = resolve_location_candidates(user_message)
+        except Exception:
+            cand_from_text = []
+        if cand_from_text:
+            if len(cand_from_text) == 1:
+                extracted["location"] = cand_from_text[0]
+                location = cand_from_text[0]
+            elif len(cand_from_text) > 1 and category:
+                return ChatResponse(
+                    reply="여러 지역이 검색되었어요. 원하시는 지역을 선택해 주세요.",
+                    places=None,
+                    action="choose_location",
+                    candidates=cand_from_text,
+                    pending={"category": category, "features": extracted.get("features") or []}
+                )
+
         if not location or not category:
             # 지역이나 카테고리 중 하나라도 없으면 더 구체적인 질문으로 응답
             if not location and not category:
