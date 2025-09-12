@@ -60,6 +60,7 @@ function ChatbotPanel({ onClose }) {
   ]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef(null);
+  const pendingRef = useRef(null);
 
   // 드래그 초기화
   useEffect(() => {
@@ -162,6 +163,18 @@ function ChatbotPanel({ onClose }) {
         throw new Error(errorText || `HTTP ${response.status}`);
       }
       const data = await response.json();
+
+      // 지역 선택 플로우
+      if (data.action === 'choose_location' && Array.isArray(data.candidates) && data.candidates.length > 1) {
+        pendingRef.current = data.pending || null;
+        setMessages(prev => [
+          ...prev,
+          { role: 'bot', text: data.reply, timestamp: getCurrentTime() },
+          { type: 'location_candidates', candidates: data.candidates, timestamp: getCurrentTime() }
+        ]);
+        return;
+      }
+
       const nextMessages = [
         { role: 'bot', text: data.reply, timestamp: getCurrentTime() }
       ];
@@ -181,6 +194,42 @@ function ChatbotPanel({ onClose }) {
         { role: 'bot', text: '백엔드와 통신 중 오류가 발생했어요.', timestamp: getCurrentTime() }
       ]);
       console.error('Chat API error:', err);
+    }
+  };
+
+  const handleChooseLocation = async (selected) => {
+    try {
+      const response = await fetch('http://34.64.120.99:8000/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: input || ' ', selected_location: selected, pending: pendingRef.current })
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `HTTP ${response.status}`);
+      }
+      const data = await response.json();
+
+      const nextMessages = [
+        { role: 'bot', text: data.reply, timestamp: getCurrentTime() }
+      ];
+      if (Array.isArray(data.places) && data.places.length > 0) {
+        const placeNames = data.places.slice(0, 5).map(p => p.name).filter(Boolean);
+        if (placeNames.length > 0) {
+          nextMessages.push({ type: 'places', places: placeNames, timestamp: getCurrentTime() });
+        }
+      }
+      setMessages(prev => [
+        ...prev,
+        ...nextMessages
+      ]);
+      pendingRef.current = null;
+    } catch (err) {
+      setMessages(prev => [
+        ...prev,
+        { role: 'bot', text: '백엔드와 통신 중 오류가 발생했어요.', timestamp: getCurrentTime() }
+      ]);
+      console.error('Chat API error (choose_location):', err);
     }
   };
 
@@ -275,6 +324,29 @@ function ChatbotPanel({ onClose }) {
                 color: theme.textTertiary, 
                 marginLeft: '4px',
                 marginTop: '2px'
+              }}>
+                {msg.timestamp}
+              </div>
+            </div>
+          ) : msg.type === 'location_candidates' ? (
+            <div key={idx} style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {msg.candidates.map((cand, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleChooseLocation(cand)}
+                    style={{
+                      background:'#2357dd', color:'#fff', border:'none', borderRadius:14,
+                      padding:'8px 12px', fontSize:13, cursor:'pointer'
+                    }}
+                  >{cand}</button>
+                ))}
+              </div>
+              <div style={{
+                fontSize:'11px', 
+                color: theme.textTertiary, 
+                marginLeft: '4px',
+                marginTop: '6px'
               }}>
                 {msg.timestamp}
               </div>
