@@ -713,6 +713,29 @@ def resolve_location_candidates(keyword_text: str, timeout_sec: float = 0.7) -> 
     # 너무 많으면 상위 5개만
     return candidates[:5]
 
+def find_location_candidates_from_text(text: str, timeout_sec: float = 0.7) -> List[str]:
+    """문장 전체가 아닌 토큰/접미사 보완 후보들을 대상으로 지역 후보를 종합 수집한다.
+    - 예: "시흥 카페" → ["경기 시흥시", "서울 금천구 시흥동", ...]
+    - 중복 제거 후 최대 5개 반환
+    """
+    if not text:
+        return []
+    aggregated: List[str] = []
+    seen = set()
+    for kw in _generate_location_keyword_candidates(text):
+        try:
+            cands = resolve_location_candidates(kw, timeout_sec=timeout_sec)
+        except Exception:
+            cands = []
+        for c in cands:
+            key = (c or "").strip()
+            if key and key not in seen:
+                seen.add(key)
+                aggregated.append(key)
+            if len(aggregated) >= 5:
+                return aggregated[:5]
+    return aggregated[:5]
+
 def _generate_location_keyword_candidates(text: str) -> list:
     """입력에서 행정구역 접미사(구/시/군) 보완 후보들을 생성한다.
     - 원문 그대로 1순위
@@ -812,7 +835,8 @@ def chat_endpoint(req: ChatRequest):
 
         # 2.1) 원문 기반 지역 후보를 우선 계산해 표준화/모호성 처리
         try:
-            cand_from_text = resolve_location_candidates(user_message)
+            # 문장 전체가 아닌 토큰 기반 후보들을 합산하여 모호성 판단 강화
+            cand_from_text = find_location_candidates_from_text(user_message)
         except Exception:
             cand_from_text = []
         if cand_from_text:
@@ -835,7 +859,7 @@ def chat_endpoint(req: ChatRequest):
                 return ChatResponse(reply=HELP_MESSAGE, places=None)
             elif not location:
                 # 지역이 없는 경우: 먼저 후보를 시도적으로 제안
-                cand = resolve_location_candidates(user_message)
+                cand = find_location_candidates_from_text(user_message)
                 if cand and len(cand) > 1:
                     return ChatResponse(
                         reply="여러 지역이 검색되었어요. 원하시는 지역을 선택해 주세요.",
@@ -989,13 +1013,10 @@ def extract_features_with_rules(text: str, category: str) -> list:
 
     return selected_features
 
-
-
-
 ## NER 기반 위치 추출은 더 이상 사용하지 않음
 
 def extract_location(text: str) -> Optional[str]:
-    """행안부 주소 API만 사용하여 지역을 인식한다. (NER 폴백 없음)
+    """행안부 주소 API만 사용하여 지역을 인식한다.
     - 원문과 접미사 보완 후보들을 순차 조회하여 최초 성공값을 반환
     """
     for kw in _generate_location_keyword_candidates(text):
