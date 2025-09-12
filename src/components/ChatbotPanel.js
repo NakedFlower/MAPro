@@ -164,12 +164,11 @@ function ChatbotPanel({ onClose }) {
       }
       const data = await response.json();
 
-      // 지역 선택 플로우
+      // 지역 선택 플로우: 안내 말풍선 없이 후보 버튼만 표시
       if (data.action === 'choose_location' && Array.isArray(data.candidates) && data.candidates.length > 1) {
         pendingRef.current = data.pending || null;
         setMessages(prev => [
           ...prev,
-          { role: 'bot', text: data.reply, timestamp: getCurrentTime() },
           { type: 'location_candidates', candidates: data.candidates, timestamp: getCurrentTime() }
         ]);
         return;
