@@ -831,7 +831,19 @@ def chat_endpoint(req: ChatRequest):
             else: # not category
                 # 카테고리가 없는 경우
                 return ChatResponse(reply=f"'{location}'에서 어떤 장소를 찾으세요? 👀\n(예: 음식점, 카페, 약국 등)", places=None)
-        
+        # 2.5) 지역 모호성 추가 확인: 위치가 1개 추출되었더라도 후보가 2개 이상이면 선택 요청
+        try:
+            cand_all = resolve_location_candidates(user_message)
+        except Exception:
+            cand_all = []
+        if category and cand_all and len(cand_all) > 1:
+            return ChatResponse(
+                reply="여러 지역이 검색되었어요. 원하시는 지역을 선택해 주세요.",
+                places=None,
+                action="choose_location",
+                candidates=cand_all,
+                pending={"category": category, "features": extracted.get("features") or []}
+            )
 
         # 3) DB 조회 
         matched_places = query_places(extracted)
