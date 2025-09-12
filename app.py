@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List, Dict, Any
 import os
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
@@ -11,18 +11,18 @@ import requests
 
 
 # ------------------ 분류/키워드 사전 ------------------
-# 카테고리 매핑(단일 구조): {카테고리: [라벨 자체 + 동의어들]}
+# 카테고리 매핑
 CATEGORY_PHRASES = {
-    "음식점": ["음식점", "식당", "레스토랑", "먹을데", "먹을 곳", "밥집", "맛집", "food", "restaurant"],
-    "카페": ["카페", "커피숍", "커피 숍", "다방", "카페테리아", "카페라운지", "coffee", "cafe"],
-    "편의점": ["편의점", "CVS", "convenience store", "편의 마트", "편의 소매", "편의 상점"],
-    "약국": ["약국", "파머시", "pharmacy", "drugstore", "드럭스토어"],
-    "호텔": ["호텔", "숙소", "숙박", "레지던스", "리조트", "hotel", "resort"],
-    "헤어샵": ["헤어샵", "미용실", "헤어 살롱", "헤어살롱", "살롱", "hair salon", "barber", "이발소"],
-    "병원": ["병원", "의원", "클리닉", "메디컬", "hospital", "clinic"]
+    "음식점": ["음식점", "식당", "레스토랑", "먹을데", "먹을 곳", "밥집", "맛집"],
+    "카페": ["카페", "커피숍", "커피 숍", "다방", "카페테리아", "카페라운지"],
+    "편의점": ["편의점", "편의 마트", "편의 소매", "편의 상점"],
+    "약국": ["약국"],
+    "호텔": ["호텔", "숙소", "숙박", "레지던스", "리조트"],
+    "헤어샵": ["헤어샵", "미용실", "헤어 살롱", "헤어살롱", "살롱","바버샵", "이발소"],
+    "병원": ["병원", "의원", "클리닉", "메디컬"]
 }
 
-# 1. 키워드-표현 사전 정의 (확장판)
+# 1. 키워드-표현 사전 정의
 KEYWORD_DICT = {
     "음식점": {
         "유아의자": {
@@ -581,11 +581,16 @@ print("규칙 기반 파서 로딩 완료!")
 
 class ChatRequest(BaseModel):
     message: str
+    selected_location: Optional[str] = None
+    pending: Optional[Dict[str, Any]] = None
 
 
 class ChatResponse(BaseModel):
     reply: str
     places: list | None = None
+    action: Optional[str] = None
+    candidates: Optional[List[str]] = None
+    pending: Optional[Dict[str, Any]] = None
 
 
 app = FastAPI(title="MAPro Chat API", version="0.1.0")
@@ -664,6 +669,50 @@ def resolve_location_with_mois(keyword_text: str, timeout_sec: float = 0.7) -> O
     region = _parse_region_from_address(addr)
     return region
 
+def resolve_location_candidates(keyword_text: str, timeout_sec: float = 0.7) -> List[str]:
+    """행안부 주소 API에서 복수의 지역 후보를 수집하여 반환한다.
+    - 예: "시흥" → ["경기 시흥시", "서울 금천구 시흥동"] 등의 형태
+    - 중복 제거 및 최대 5개까지만 반환
+    """
+    if not MOIS_API_KEY:
+        raise ValueError("MOIS_API_KEY가 설정되지 않았습니다.")
+    if not keyword_text:
+        return []
+    params = {
+        "confmKey": MOIS_API_KEY,
+        "resultType": "json",
+        "currentPage": "1",
+        "countPerPage": "20",
+        "keyword": keyword_text,
+    }
+    resp = requests.get(MOIS_ADDR_API_URL, params=params, timeout=timeout_sec)
+    if resp.status_code != 200:
+        return []
+    data = resp.json() if resp.content else None
+    juso_list = ((data or {}).get("results") or {}).get("juso") or []
+    if not juso_list:
+        return []
+
+    candidates: List[str] = []
+    seen = set()
+
+    for j in juso_list:
+        addr = j.get("roadAddr") or j.get("jibunAddr") or ""
+        # 가능한 한 상세 행정구역까지 포함되도록 구성 (도/시 + 구/군 + 동)
+        # 기존 파서로 상위 레벨을 우선 추출
+        region_hi = _parse_region_from_address(addr)  # 예: "서울 금천구" 혹은 "경기 시흥시"
+        # 세부 동 단위도 보조로 붙인다
+        tokens = (addr or "").split()
+        dong = next((t for t in tokens if t.endswith(("동", "읍", "면"))), None)
+        label = f"{region_hi} {dong}".strip() if dong and region_hi and dong not in region_hi else (region_hi or dong or addr)
+        key = label.strip()
+        if key and key not in seen:
+            seen.add(key)
+            candidates.append(key)
+
+    # 너무 많으면 상위 5개만
+    return candidates[:5]
+
 def _generate_location_keyword_candidates(text: str) -> list:
     """입력에서 행정구역 접미사(구/시/군) 보완 후보들을 생성한다.
     - 원문 그대로 1순위
@@ -728,6 +777,24 @@ app.add_middleware(
 @app.post("/chat", response_model=ChatResponse)
 def chat_endpoint(req: ChatRequest):
     user_message = (req.message or "").strip()
+    # 후속 요청(지역 선택) 처리
+    if req.selected_location and req.pending:
+        try:
+            category = (req.pending or {}).get("category")
+            features = (req.pending or {}).get("features") or []
+            if not category:
+                return ChatResponse(reply=HELP_MESSAGE, places=None)
+            extracted = {"category": category, "features": features, "location": req.selected_location}
+            matched_places = query_places(extracted)
+            if matched_places:
+                reply_text = build_reply(extracted, matched_places)
+                return ChatResponse(reply=reply_text, places=matched_places[:5])
+            else:
+                return ChatResponse(reply="조건에 맞는 매장을 찾지 못했어요. 다른 키워드로 시도해 보시겠어요?", places=None)
+        except Exception as e:
+            print(f"후속 선택 처리 오류: {e}")
+            return ChatResponse(reply="서버에서 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", places=None)
+
     if not user_message:
         return ChatResponse(reply="메시지가 비어 있어요.")
 
@@ -749,7 +816,17 @@ def chat_endpoint(req: ChatRequest):
                 # 둘 다 없는 경우: 기존 도움말
                 return ChatResponse(reply=HELP_MESSAGE, places=None)
             elif not location:
-                # 지역이 없는 경우
+                # 지역이 없는 경우: 먼저 후보를 시도적으로 제안
+                cand = resolve_location_candidates(user_message)
+                if cand and len(cand) > 1:
+                    return ChatResponse(
+                        reply="여러 지역이 검색되었어요. 원하시는 지역을 선택해 주세요.",
+                        places=None,
+                        action="choose_location",
+                        candidates=cand,
+                        pending={"category": category, "features": extracted.get("features") or []}
+                    )
+                # 후보가 없거나 1개뿐이면 기존 안내
                 return ChatResponse(reply=f"어느 지역에서 {category}을(를) 찾으시나요? 🤔\n예: \"강남 {category}\"", places=None)
             else: # not category
                 # 카테고리가 없는 경우
@@ -943,7 +1020,20 @@ def query_places(query: dict) -> list:
         if not rows:
             return []
 
-        # 특성(feature) 점수 기반으로 Python에서 재정렬
+        # 1) 동일 매장(place_id) 중복 제거
+        unique_rows = []
+        seen_place_ids = set()
+        for row in rows:
+            place_id = row.get("place_id")
+            if place_id in seen_place_ids:
+                continue
+            seen_place_ids.add(place_id)
+            unique_rows.append(row)
+
+        if not unique_rows:
+            return []
+
+        # 2) 특성(feature) 점수 기반으로 Python에서 재정렬
         def score(place):
             place_features = (place.get("feature") or "").split(",")
             place_features = [f.strip() for f in place_features if f.strip()]
@@ -952,8 +1042,9 @@ def query_places(query: dict) -> list:
             match_count = sum(1 for f in features if f in place_features)
             return match_count
 
-        rows.sort(key=score, reverse=True)
-        return rows[:5]
+        unique_rows.sort(key=score, reverse=True)
+        # 최대 5개까지 반환(중복 제거로 5개 미만이 될 수 있음)
+        return unique_rows[:5]
         
     except Exception as e:
         print(f"DB 조회 오류: {e}") # 디버깅을 위한 로그 추가
