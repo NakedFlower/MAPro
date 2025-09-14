@@ -1,3 +1,4 @@
+//LoginPanel.js
 import React, { useEffect, useRef, useState } from 'react';
 
 function LoginPanel({ onClose }) {
