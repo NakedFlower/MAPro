@@ -329,7 +329,7 @@ function ChatbotPanel({ onClose }) {
             </div>
           ) : msg.type === 'location_candidates' ? (
             <div key={idx} style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>
                 {msg.candidates.map((cand, index) => (
                   <button
                     key={index}
@@ -337,8 +337,8 @@ function ChatbotPanel({ onClose }) {
                     style={{
                       display:'inline-flex', alignItems:'center', gap:8,
                       background: isDarkMode 
-                        ? 'linear-gradient(180deg, #3a57e8 0%, #2747d8 100%)' 
-                        : 'linear-gradient(180deg, #3b6fff 0%, #2357dd 100%)',
+                        ? 'linear-gradient(180deg, #87CEEB 0%, #5F9EA0 100%)' 
+                        : 'linear-gradient(180deg, #87CEEB 0%, #5F9EA0 100%)',
                       color:'#fff',
                       border:'1px solid rgba(255,255,255,0.15)',
                       borderRadius:999,
@@ -347,18 +347,20 @@ function ChatbotPanel({ onClose }) {
                       fontWeight:700,
                       letterSpacing:'.2px',
                       cursor:'pointer',
-                      boxShadow: '0 6px 18px rgba(35,87,221,0.25)',
+                      boxShadow: '0 6px 18px rgba(135,206,235,0.25)',
                       transform:'translateZ(0)',
                       transition:'transform .15s ease, box-shadow .15s ease, filter .2s ease',
-                      WebkitTapHighlightColor:'transparent'
+                      WebkitTapHighlightColor:'transparent',
+                      width: 'auto',
+                      minWidth: 'fit-content'
                     }}
                     onMouseEnter={e => {
                       e.currentTarget.style.transform = 'translateY(-1px)';
-                      e.currentTarget.style.boxShadow = '0 10px 24px rgba(35,87,221,0.32)';
+                      e.currentTarget.style.boxShadow = '0 10px 24px rgba(135,206,235,0.32)';
                     }}
                     onMouseLeave={e => {
                       e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 6px 18px rgba(35,87,221,0.25)';
+                      e.currentTarget.style.boxShadow = '0 6px 18px rgba(135,206,235,0.25)';
                     }}
                     onMouseDown={e => {
                       e.currentTarget.style.transform = 'translateY(0) scale(0.99)';
