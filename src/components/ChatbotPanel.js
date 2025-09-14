@@ -329,7 +329,7 @@ function ChatbotPanel({ onClose }) {
             </div>
           ) : msg.type === 'location_candidates' ? (
             <div key={idx} style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>
                 {msg.candidates.map((cand, index) => (
                   <button
                     key={index}
@@ -350,7 +350,9 @@ function ChatbotPanel({ onClose }) {
                       boxShadow: '0 6px 18px rgba(135,206,235,0.25)',
                       transform:'translateZ(0)',
                       transition:'transform .15s ease, box-shadow .15s ease, filter .2s ease',
-                      WebkitTapHighlightColor:'transparent'
+                      WebkitTapHighlightColor:'transparent',
+                      width: 'auto',
+                      minWidth: 'fit-content'
                     }}
                     onMouseEnter={e => {
                       e.currentTarget.style.transform = 'translateY(-1px)';
