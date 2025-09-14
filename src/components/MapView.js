@@ -8,8 +8,16 @@ function MapView() {
   const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const searchInputRef = useRef(null);
+  const geocoderRef = useRef(null);
+  const searchMarkersRef = useRef([]);
 
   const fetchMapData = useCallback(async () => {
     try {
@@ -19,7 +27,7 @@ function MapView() {
       console.log('🔍 지도 API 호출 시작...');
       
       const response = await axios.get('http://34.64.120.99:4000/api/map/init', {
-        timeout: 10000,
+        timeout: 15000, // 타임아웃 증가
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -56,13 +64,10 @@ function MapView() {
         const { latitude, longitude } = position.coords;
         setUserLocation({ lat: latitude, lng: longitude });
         
-        // 지도가 로드되어 있다면 위치로 이동
         if (mapInstanceRef.current && window.google) {
           const newCenter = new window.google.maps.LatLng(latitude, longitude);
           mapInstanceRef.current.setCenter(newCenter);
           mapInstanceRef.current.setZoom(16);
-          
-          // 현재 위치 마커 추가/업데이트
           addCurrentLocationMarker(latitude, longitude);
         }
         
@@ -101,7 +106,6 @@ function MapView() {
   const addCurrentLocationMarker = (lat, lng) => {
     if (!mapInstanceRef.current || !window.google) return;
 
-    // 기존 현재 위치 마커 제거
     if (window.currentLocationMarker) {
       window.currentLocationMarker.setMap(null);
     }
@@ -109,7 +113,6 @@ function MapView() {
       window.currentLocationCircle.setMap(null);
     }
 
-    // 현재 위치 마커 생성 (파란색 점)
     window.currentLocationMarker = new window.google.maps.Marker({
       position: { lat, lng },
       map: mapInstanceRef.current,
@@ -125,7 +128,6 @@ function MapView() {
       zIndex: 1000
     });
 
-    // 현재 위치 주변에 반투명 원 추가 (정확도 표시)
     window.currentLocationCircle = new window.google.maps.Circle({
       strokeColor: '#4285f4',
       strokeOpacity: 0.3,
@@ -134,10 +136,97 @@ function MapView() {
       fillOpacity: 0.1,
       map: mapInstanceRef.current,
       center: { lat, lng },
-      radius: 50, // 50미터
+      radius: 50,
       zIndex: 999
     });
   };
+
+  // 주소 검색 함수
+  const searchAddress = useCallback(async (query) => {
+    if (!query.trim() || !geocoderRef.current) return;
+
+    setIsSearching(true);
+    
+    try {
+      geocoderRef.current.geocode({ address: query }, (results, status) => {
+        if (status === 'OK' && results) {
+          setSearchResults(results.slice(0, 5)); // 최대 5개 결과만
+          setShowSearchResults(true);
+        } else {
+          setSearchResults([]);
+          console.log('Geocoder failed due to: ' + status);
+        }
+        setIsSearching(false);
+      });
+    } catch (error) {
+      console.error('주소 검색 오류:', error);
+      setIsSearching(false);
+    }
+  }, []);
+
+  // 검색 결과 선택
+  const selectSearchResult = (result) => {
+    if (!mapInstanceRef.current || !result.geometry?.location) return;
+
+    const location = result.geometry.location;
+    
+    // 지도 중심 이동
+    mapInstanceRef.current.setCenter(location);
+    mapInstanceRef.current.setZoom(16);
+
+    // 기존 검색 마커들 제거
+    searchMarkersRef.current.forEach(marker => marker.setMap(null));
+    searchMarkersRef.current = [];
+
+    // 새 마커 추가
+    const marker = new window.google.maps.Marker({
+      position: location,
+      map: mapInstanceRef.current,
+      title: result.formatted_address,
+      icon: {
+        path: window.google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+        scale: 6,
+        fillColor: '#ff4444',
+        fillOpacity: 1,
+        strokeColor: '#ffffff',
+        strokeWeight: 2
+      },
+      animation: window.google.maps.Animation.DROP
+    });
+
+    searchMarkersRef.current.push(marker);
+
+    // 검색 결과 숨기기
+    setShowSearchResults(false);
+    setSearchQuery(result.formatted_address);
+  };
+
+  // 검색 입력 처리
+  const handleSearchInput = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    
+    if (value.length > 1) {
+      searchAddress(value);
+    } else {
+      setSearchResults([]);
+      setShowSearchResults(false);
+    }
+  };
+
+  // 검색창 외부 클릭 시 결과 숨기기
+  const handleClickOutside = useCallback((e) => {
+    if (searchInputRef.current && !searchInputRef.current.contains(e.target)) {
+      setShowSearchResults(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [handleClickOutside]);
 
   // 현위치 버튼 생성
   const createLocationButton = () => {
@@ -157,7 +246,7 @@ function MapView() {
     
     locationButton.style.cssText = `
       position: absolute;
-      top: 20px;
+      top: 80px;
       right: 20px;
       background: #fff;
       border: 1px solid #dadce0;
@@ -186,66 +275,89 @@ function MapView() {
       getUserLocation();
     });
 
-    // 지도에 버튼 추가
     mapInstanceRef.current.controls[window.google.maps.ControlPosition.TOP_RIGHT].push(locationButton);
   };
 
-  // 지도 HTML 처리 및 Google Maps 설정
+  // 지도 HTML 처리 및 Google Maps 설정 (성능 최적화)
   useEffect(() => {
     if (mapData?.mapHtml && mapContainerRef.current) {
-      // HTML 삽입
-      mapContainerRef.current.innerHTML = mapData.mapHtml;
+      // 미리 로딩 상태 업데이트를 방지하고 부드러운 전환을 위한 처리
+      const container = mapContainerRef.current;
+      
+      // 페이드 인 애니메이션을 위한 초기 스타일
+      container.style.opacity = '0';
+      container.style.transition = 'opacity 0.3s ease-in-out';
+      
+      container.innerHTML = mapData.mapHtml;
 
-      // 스크립트 재실행
-      const scripts = mapContainerRef.current.querySelectorAll('script');
+      const scripts = container.querySelectorAll('script');
+      let scriptPromises = [];
+
       scripts.forEach((oldScript) => {
         const newScript = document.createElement('script');
         Array.from(oldScript.attributes).forEach((attr) =>
           newScript.setAttribute(attr.name, attr.value)
         );
         newScript.textContent = oldScript.textContent;
+        
+        // 스크립트 로딩을 Promise로 처리
+        const promise = new Promise((resolve) => {
+          if (newScript.src) {
+            newScript.onload = resolve;
+            newScript.onerror = resolve;
+          } else {
+            setTimeout(resolve, 0);
+          }
+        });
+        
+        scriptPromises.push(promise);
         oldScript.parentNode.replaceChild(newScript, oldScript);
       });
 
-      // Google Maps 로드 대기 후 설정
-      const checkGoogleMaps = setInterval(() => {
-        if (window.google && window.google.maps) {
-          clearInterval(checkGoogleMaps);
-          
-          setTimeout(() => {
-            setupGoogleMap();
-          }, 500);
-        }
-      }, 100);
+      // 모든 스크립트 로딩 완료 후 지도 설정
+      Promise.all(scriptPromises).then(() => {
+        const checkGoogleMaps = setInterval(() => {
+          if (window.google && window.google.maps) {
+            clearInterval(checkGoogleMaps);
+            
+            // 지연 시간을 줄이고 requestAnimationFrame 사용
+            requestAnimationFrame(() => {
+              setupGoogleMap();
+              // 페이드 인 효과
+              container.style.opacity = '1';
+            });
+          }
+        }, 50); // 체크 간격 단축
 
-      // 타임아웃 설정 (10초 후 중단)
-      setTimeout(() => {
-        clearInterval(checkGoogleMaps);
-      }, 10000);
+        setTimeout(() => {
+          clearInterval(checkGoogleMaps);
+        }, 10000);
+      });
     }
   }, [mapData]);
 
-  // Google Maps 설정
+  // Google Maps 설정 (성능 최적화)
   const setupGoogleMap = () => {
     try {
-      // 지도 요소 찾기
       const mapElement = mapContainerRef.current?.querySelector('#map') || 
                         mapContainerRef.current?.querySelector('div[style*="height"]') ||
                         mapContainerRef.current?.firstChild;
 
       if (mapElement && window.google) {
-        // 지도 요소 크기 설정
         mapElement.style.width = '100%';
         mapElement.style.height = '100vh';
         mapElement.style.position = 'relative';
 
-        // 지도 옵션 설정
         const mapOptions = {
-          center: { lat: 37.5665, lng: 126.9780 }, // 서울시청 기본 위치
+          center: { lat: 37.5665, lng: 126.9780 },
           zoom: 15,
           mapTypeId: window.google.maps.MapTypeId.ROADMAP,
-          disableDefaultUI: true, // 모든 기본 UI 제거
-          gestureHandling: 'greedy', // 스크롤 제스처 개선
+          disableDefaultUI: true,
+          gestureHandling: 'greedy',
+          // 성능 최적화 옵션 추가
+          optimized: true,
+          maxZoom: 20,
+          minZoom: 8,
           styles: [
             {
               featureType: "transit",
@@ -255,20 +367,25 @@ function MapView() {
           ]
         };
 
-        // 지도 인스턴스 생성
         mapInstanceRef.current = new window.google.maps.Map(mapElement, mapOptions);
         
-        // 지도 크기 조정
-        setTimeout(() => {
-          if (mapInstanceRef.current) {
+        // Geocoder 초기화
+        geocoderRef.current = new window.google.maps.Geocoder();
+        
+        // 지도 로딩 완료 후 처리
+        const idleListener = window.google.maps.event.addListenerOnce(mapInstanceRef.current, 'idle', () => {
+          createLocationButton();
+          console.log('✅ Google Maps 설정 완료');
+        });
+
+        // 리사이즈 이벤트를 debounce 처리
+        let resizeTimeout;
+        window.google.maps.event.addListener(mapInstanceRef.current, 'bounds_changed', () => {
+          clearTimeout(resizeTimeout);
+          resizeTimeout = setTimeout(() => {
             window.google.maps.event.trigger(mapInstanceRef.current, 'resize');
-          }
-        }, 100);
-
-        // 현위치 버튼 추가
-        createLocationButton();
-
-        console.log('✅ Google Maps 설정 완료');
+          }, 100);
+        });
       }
     } catch (error) {
       console.error('❌ Google Maps 설정 오류:', error);
@@ -288,19 +405,24 @@ function MapView() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#f8f9fa',
+        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
         flexDirection: 'column',
-        gap: '20px'
+        gap: '24px'
       }}>
         <div style={{
-          width: '48px',
-          height: '48px',
+          width: '60px',
+          height: '60px',
           border: '4px solid #e3e8ef',
           borderTop: '4px solid #1890ff',
           borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
+          animation: 'spin 0.8s linear infinite'
         }}></div>
-        <div style={{ color: '#666', fontSize: '18px', fontWeight: '500' }}>
+        <div style={{ 
+          color: '#4a5568', 
+          fontSize: '20px', 
+          fontWeight: '600',
+          letterSpacing: '0.5px'
+        }}>
           지도를 불러오는 중...
         </div>
         <style>
@@ -347,6 +469,21 @@ function MapView() {
         }}>
           {error}
         </div>
+        <button
+          onClick={fetchMapData}
+          style={{
+            padding: '12px 24px',
+            backgroundColor: '#1890ff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            fontSize: '16px',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s'
+          }}
+        >
+          다시 시도
+        </button>
       </div>
     );
   }
@@ -354,13 +491,134 @@ function MapView() {
   // 지도 렌더링
   return (
     <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
+      {/* 주소 검색 창 */}
+      <div
+        ref={searchInputRef}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          left: '20px',
+          zIndex: 1000,
+          width: '320px',
+          maxWidth: 'calc(100vw - 80px)'
+        }}
+      >
+        <div style={{
+          position: 'relative',
+          backgroundColor: '#fff',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          border: '1px solid #e0e6ed'
+        }}>
+          <div style={{
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center'
+          }}>
+            <svg
+              style={{
+                position: 'absolute',
+                left: '12px',
+                width: '20px',
+                height: '20px',
+                color: '#9ca3af'
+              }}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="주소를 검색하세요..."
+              value={searchQuery}
+              onChange={handleSearchInput}
+              onFocus={() => searchResults.length > 0 && setShowSearchResults(true)}
+              style={{
+                width: '100%',
+                padding: '14px 16px 14px 44px',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                outline: 'none',
+                backgroundColor: 'transparent'
+              }}
+            />
+            {isSearching && (
+              <div style={{
+                position: 'absolute',
+                right: '12px',
+                width: '20px',
+                height: '20px',
+                border: '2px solid #e3e8ef',
+                borderTop: '2px solid #1890ff',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+              }}></div>
+            )}
+          </div>
+          
+          {/* 검색 결과 목록 */}
+          {showSearchResults && searchResults.length > 0 && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: '0',
+              right: '0',
+              backgroundColor: '#fff',
+              borderRadius: '0 0 8px 8px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              border: '1px solid #e0e6ed',
+              borderTop: 'none',
+              maxHeight: '300px',
+              overflowY: 'auto'
+            }}>
+              {searchResults.map((result, index) => (
+                <div
+                  key={index}
+                  onClick={() => selectSearchResult(result)}
+                  style={{
+                    padding: '12px 16px',
+                    cursor: 'pointer',
+                    borderBottom: index < searchResults.length - 1 ? '1px solid #f0f0f0' : 'none',
+                    fontSize: '14px',
+                    color: '#374151',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#f8f9fa';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = 'transparent';
+                  }}
+                >
+                  <div style={{ fontWeight: '500', marginBottom: '2px' }}>
+                    {result.address_components[0]?.long_name || result.formatted_address}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                    {result.formatted_address}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* 백엔드에서 생성된 지도 HTML을 렌더링 */}
       <div
         ref={mapContainerRef}
         style={{ 
           width: '100%', 
           height: '100vh',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          backgroundColor: '#f8f9fa' // 로딩 중 배경색
         }}
       />
     </div>
