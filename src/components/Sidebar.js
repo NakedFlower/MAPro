@@ -34,9 +34,10 @@ function Sidebar({ selected, setSelected, onOpenLogin, isCollapsed, onToggleColl
         position: 'fixed',
         left: 0,
         top: 0,
-        zIndex: 9, // ✅ 중요: 너무 높지 않게 (Content: ~1, Modal: 1000+)
+        zIndex: 9,
         display: 'flex',
         flexDirection: 'column',
+        transition: 'all 0.3s ease',
       }}
       breakpoint="lg"
       onBreakpoint={(broken) => {
@@ -47,7 +48,13 @@ function Sidebar({ selected, setSelected, onOpenLogin, isCollapsed, onToggleColl
       trigger={null}
     >
       {/* 상단 헤더 */}
-      <div style={{ display: 'flex', alignItems: 'center', padding: '16px 16px 8px', justifyContent: 'space-between' }}>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        padding: '16px 16px 8px', 
+        justifyContent: 'space-between',
+        minHeight: '64px' // 고정 높이로 안정성 확보
+      }}>
         {!isCollapsed && (
           <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#1f1f1f' }}>메뉴</span>
         )}
@@ -59,40 +66,78 @@ function Sidebar({ selected, setSelected, onOpenLogin, isCollapsed, onToggleColl
         />
       </div>
 
-      {/* 메뉴 (남은 공간 차지) */}
+      {/* 메뉴 (남은 공간 차지, 하단 여백 확보) */}
       <Menu
         mode="inline"
         selectedKeys={[menuItems[selected]?.key]}
         items={menuItems}
         onClick={handleMenuClick}
-        style={{ flex: 1, borderRight: 0 }}
+        style={{ 
+          flex: 1, 
+          borderRight: 0,
+          paddingBottom: '80px', // 로그인 버튼 공간 확보
+          overflow: 'auto'
+        }}
       />
 
-      {/* 로그인 버튼 - 절대 위치로 하단 고정 */}
+      {/* 로그인 버튼 - 반응형 크기 및 위치 조정 */}
       <div
         style={{
           position: 'absolute',
-          bottom: 24,
-          left: isCollapsed ? 20 : 16,
-          zIndex: 1, // ✅ 사이드바 내에서만 유효한 z-index
+          bottom: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)', // 중앙 정렬
+          width: isCollapsed ? '48px' : 'calc(100% - 32px)', // 너비 반응형 조정
+          maxWidth: isCollapsed ? '48px' : '212px', // 최대 너비 제한
           transition: 'all 0.3s ease',
+          zIndex: 1,
         }}
       >
-        <Tooltip title="로그인" placement="right">
+        {isCollapsed ? (
+          // 접힌 상태: 원형 아이콘 버튼
+          <Tooltip title="로그인" placement="right">
+            <Button
+              type="primary"
+              shape="circle"
+              icon={<UserOutlined />}
+              size="large"
+              onClick={onOpenLogin}
+              style={{
+                width: '48px',
+                height: '48px',
+                background: '#1890ff',
+                border: 'none',
+                boxShadow: '0 2px 8px rgba(24, 144, 255, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            />
+          </Tooltip>
+        ) : (
+          // 펼쳐진 상태: 전체 너비 텍스트 버튼
           <Button
             type="primary"
-            shape="circle"
             icon={<UserOutlined />}
-            size="large"
             onClick={onOpenLogin}
             style={{
-              width: 48,
-              height: 48,
+              width: '100%',
+              height: '44px',
               background: '#1890ff',
               border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              boxShadow: '0 2px 8px rgba(24, 144, 255, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
             }}
-          />
-        </Tooltip>
+          >
+            로그인
+          </Button>
+        )}
       </div>
     </Sider>
   );
