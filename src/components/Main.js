@@ -235,7 +235,7 @@ const MaProLandingPage = () => {
                 type="default"
                 size="large"
                 icon={<PlayCircleOutlined />}
-                onClick={handleGoToLogin} // 로그인 페이지로 변경
+                onClick={() => navigate('/map')} // 맵 페이지로 직접 이동
                 style={{ 
                   background: 'transparent',
                   color: 'white',
