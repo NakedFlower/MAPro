@@ -20,6 +20,7 @@ import {
   Progress,
   Tag
 } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import {
   UserOutlined,
   LockOutlined,
@@ -46,6 +47,7 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 const ProfileSettingsPage = () => {
+  const navigate = useNavigate();  // 이 줄 추가
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState({
@@ -679,6 +681,13 @@ const ProfileSettingsPage = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <Badge status="success" />
               <Text type="secondary">마지막 업데이트: 방금 전</Text>
+              <Divider type="vertical" />
+              <Button 
+                onClick={() => navigate('/login')} 
+                style={{ marginLeft: '12px' }}
+              >
+                로그아웃
+              </Button>
             </div>
           </div>
         </div>

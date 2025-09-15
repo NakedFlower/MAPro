@@ -12,6 +12,7 @@ import {
   Col,
   Checkbox
 } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import {
   UserOutlined,
   LockOutlined,
@@ -31,30 +32,53 @@ import {
 const { Title, Text, Link } = Typography;
 
 const LoginPage = () => {
+  const navigate = useNavigate();  // 이 줄 추가
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  const handleLogin = () => {
-    if (!email || !password) {
-      message.error('이메일과 비밀번호를 모두 입력해주세요!');
-      return;
-    }
+  const handleLogin = async () => {
+  if (!email || !password) {
+    message.error('이메일과 비밀번호를 모두 입력해주세요!');
+    return;
+  }
 
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      message.error('올바른 이메일 형식을 입력해주세요!');
-      return;
-    }
+  if (!/\S+@\S+\.\S+/.test(email)) {
+    message.error('올바른 이메일 형식을 입력해주세요!');
+    return;
+  }
 
-    setLoading(true);
-    
-    // 로그인 시뮬레이션
-    setTimeout(() => {
-      setLoading(false);
+  setLoading(true);
+  
+  try {
+    // 백엔드 로그인 API 호출
+    const response = await fetch('http://mapro.cloud:4000/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
       message.success('로그인이 성공적으로 완료되었습니다!');
-    }, 2000);
-  };
+      // 로그인 성공 후 토큰 저장 등 처리
+      localStorage.setItem('token', data.token);
+      navigate('/User/MyPage/Home'); // 로그인 후 메인 대시보드로 이동
+    } else {
+      message.error('이메일 또는 비밀번호가 잘못되었습니다.');
+    }
+  } catch (error) {
+    message.error('로그인 중 오류가 발생했습니다.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSocialLogin = (provider) => {
     message.info(`${provider}로 로그인 중...`);
@@ -356,7 +380,7 @@ const LoginPage = () => {
                 >
                   <Text style={{ fontSize: '14px' }}>로그인 상태 유지</Text>
                 </Checkbox>
-                <Link href="#" style={{ fontSize: '14px', fontWeight: '500' }}>
+                <Link onClick={() => navigate('/find/account')} style={{ fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>
                   비밀번호를 잊으셨나요?
                 </Link>
               </div>
@@ -384,7 +408,7 @@ const LoginPage = () => {
                 <Text type="secondary" style={{ fontSize: '14px' }}>
                   아직 계정이 없으신가요? {' '}
                 </Text>
-                <Link href="#" style={{ fontSize: '14px', fontWeight: '600' }}>
+                <Link onClick={() => navigate('/register')} style={{ fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
                   무료로 시작하기
                 </Link>
               </div>
