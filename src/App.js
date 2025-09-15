@@ -208,8 +208,8 @@ function AppContent() {
               style={{
                 right: 24,
                 bottom: 24,
-                width: 64,
-                height: 64,
+                width: 48,
+                height: 48,
                 backgroundColor: '#1890ff',
                 boxShadow: showChatbot 
                   ? '0 8px 30px rgba(24, 144, 255, 0.4)' 
