@@ -53,13 +53,13 @@ const LoginPage = () => {
   
   try {
     // 백엔드 로그인 API 호출
-    const response = await fetch('http://mapro.cloud:4000/api/login', {
+    const response = await fetch('http://34.64.120.99:4000/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        email: email,
+        username: email,
         password: password,
       }),
     });

@@ -116,17 +116,17 @@ const RegisterPage = () => {
     setLoading(true);
 
     try {
-        const response = await fetch('http://mapro.cloud:4000/api/register', {
+        const response = await fetch('http://34.64.120.99:4000/api/auth/signup', {
             method: 'POST',
             headers: {
-            'Content-Type': 'application/json',
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-            name: formData.name.trim(),
-            email: formData.email.toLowerCase().trim(),
-            password: formData.password
+                name: formData.name.trim(),
+                username: formData.email.toLowerCase().trim(),  // email → username으로 변경
+                password: formData.password
             }),
-        });
+            });
 
       if (response.success) {
         message.success('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');

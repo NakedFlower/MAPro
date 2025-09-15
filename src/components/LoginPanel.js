@@ -1,7 +1,9 @@
 //LoginPanel.js
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function LoginPanel({ onClose }) {
+  const navigate = useNavigate();
   const PANEL_WIDTH = 520;
   const PANEL_HEIGHT = 360;
 
@@ -12,6 +14,7 @@ function LoginPanel({ onClose }) {
   const [animateIn, setAnimateIn] = useState(false);
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // 마운트 직후 컨테이너 크기를 기준으로 좌측 하단에 배치
@@ -83,10 +86,62 @@ function LoginPanel({ onClose }) {
     };
   }, [isDragging]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: 실제 로그인 로직 연결
-    console.log('Login submit', { userId, password });
+    
+    if (!userId || !password) {
+      alert('아이디와 비밀번호를 모두 입력해주세요!');
+      return;
+    }
+
+    if (!/\S+@\S+\.\S+/.test(userId)) {
+      alert('올바른 이메일 형식을 입력해주세요!');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch('http://34.64.120.99:4000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: userId,
+          password: password,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert('로그인이 성공적으로 완료되었습니다!');
+        // 로그인 성공 후 토큰 저장 등 처리
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+        }
+        onClose(); // 패널 닫기
+        navigate('/User/MyPage/Home'); // 메인 대시보드로 이동
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || '로그인에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('로그인 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleJoinClick = () => {
+    onClose(); // 패널 닫기
+    navigate('/register'); // 회원가입 페이지로 이동
+  };
+
+  const handleForgotPassword = () => {
+    onClose(); // 패널 닫기
+    navigate('/find/account'); // 계정찾기 페이지로 이동
   };
 
   return (
@@ -147,11 +202,14 @@ function LoginPanel({ onClose }) {
         <input
           value={userId}
           onChange={(e) => setUserId(e.target.value)}
-          placeholder="아이디"
+          placeholder="이메일 주소"
+          type="email"
+          disabled={loading}
           style={{
             width: '100%', height: '34px', borderRadius: '6px',
             border: '1px solid #e2e5ea', outline: 'none',
-            padding: '0 5px', fontSize: '12px', color: '#333'
+            padding: '0 5px', fontSize: '12px', color: '#333',
+            opacity: loading ? 0.6 : 1
           }}
         />
         <input
@@ -159,33 +217,72 @@ function LoginPanel({ onClose }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="비밀번호"
+          disabled={loading}
           style={{
             width: '100%', height: '34px', borderRadius: '6px',
             border: '1px solid #e2e5ea', outline: 'none',
             padding: '0 5px', fontSize: '12px', color: '#333',
-            marginTop: '14px'
+            marginTop: '14px',
+            opacity: loading ? 0.6 : 1
           }}
         />
 
-        <div style={{ textAlign: 'center', marginTop: '14px', color: '#9aa0a6', fontSize: '10px' }}>
+        <div 
+          onClick={handleForgotPassword}
+          style={{ 
+            textAlign: 'center', 
+            marginTop: '14px', 
+            color: '#9aa0a6', 
+            fontSize: '10px',
+            cursor: 'pointer',
+            textDecoration: 'underline'
+          }}
+        >
           로그인 정보를 잊으셨나요?
         </div>
 
         <div style={{ position: 'absolute', bottom: '18px', left: '28px', right: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button type="button" style={{
-            border: 'none', background: 'transparent', color: '#6b7280', fontSize: '15px', cursor: 'pointer'
-          }}>Join</button>
+          <button 
+            type="button" 
+            onClick={handleJoinClick}
+            disabled={loading}
+            style={{
+              border: 'none', 
+              background: 'transparent', 
+              color: '#6b7280', 
+              fontSize: '15px', 
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1
+            }}
+          >
+            Join
+          </button>
 
-          <button type="submit" style={{
-            height: '36px', padding: '0 18px',
-            background: '#3e5ee9', color: '#fff', border: 'none', borderRadius: '18px',
-            cursor: 'pointer', fontSize: '14px', fontWeight: 600,
-            boxShadow: '0 6px 14px rgba(62,94,233,.3)'
-          }}>Next</button>
+          <button 
+            type="submit" 
+            disabled={loading}
+            style={{
+              height: '36px', padding: '0 18px',
+              background: loading ? '#9ca3af' : '#3e5ee9', 
+              color: '#fff', 
+              border: 'none', 
+              borderRadius: '18px',
+              cursor: loading ? 'not-allowed' : 'pointer', 
+              fontSize: '14px', 
+              fontWeight: 600,
+              boxShadow: loading ? 'none' : '0 6px 14px rgba(62,94,233,.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minWidth: '60px'
+            }}
+          >
+            {loading ? '...' : 'Next'}
+          </button>
         </div>
       </form>
     </div>
   );
 }
 
-export default LoginPanel; 
+export default LoginPanel;
