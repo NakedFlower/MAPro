@@ -15,6 +15,7 @@ import {
   Radio,
   Select
 } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import {
   UserOutlined,
   LockOutlined,
@@ -33,6 +34,7 @@ const { Title, Text, Link } = Typography;
 const { Option } = Select;
 
 const FindAccountPage = () => {
+  const navigate = useNavigate();  // 이 줄 추가
   const [currentStep, setCurrentStep] = useState(0);
   const [activeTab, setActiveTab] = useState('findId');
   const [loading, setLoading] = useState(false);
@@ -397,6 +399,7 @@ const FindAccountPage = () => {
                     <Button
                       type="primary"
                       size="small"
+                      onClick={() => navigate('/login')}
                       style={{
                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                         border: 'none',
@@ -421,7 +424,7 @@ const FindAccountPage = () => {
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   border: 'none'
                 }}
-                onClick={() => window.location.href = '/login'}
+                onClick={() => navigate('/login')}
               >
                 로그인 하기
               </Button>
@@ -677,11 +680,11 @@ const FindAccountPage = () => {
             <Divider />
             <div style={{ textAlign: 'center' }}>
               <Space split={<Divider type="vertical" />}>
-                <Link href="/login">
+                <Link onClick={() => navigate('/login')} style={{ cursor: 'pointer' }}>
                   <ArrowLeftOutlined style={{ marginRight: '4px' }} />
                   로그인으로 돌아가기
                 </Link>
-                <Link href="/register">
+                <Link onClick={() => navigate('/register')} style={{ cursor: 'pointer' }}>
                   회원가입
                 </Link>
               </Space>

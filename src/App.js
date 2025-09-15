@@ -19,10 +19,9 @@ import ChatbotPanel from './components/ChatbotPanel';
 import Main from './components/Main';
 
 import LoginPage from './components/LoginPage';
+import RegisterPage from './components/RegisterPage'; // 새로 추가
 import ProfileSettingsPage from './components/ProfileSettingsPage';
 import FindAccountPage from './components/FindAccountPage';
-
-
 
 // 메인 앱 컴포넌트 (라우터 내부)
 function AppContent() {
@@ -33,8 +32,8 @@ function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 메인 페이지 여부 확인
-  const isMainPage = location.pathname === '/main';
+  // 독립 페이지들 (사이드바 없는 페이지)
+  const isStandalonePage = ['/main', '/login', '/register', '/find/account', '/profile/edit'].includes(location.pathname);
 
   // 현재 경로에 따라 selected 상태 결정
   const getSelectedIndex = () => {
@@ -92,8 +91,8 @@ function AppContent() {
     setShowChatbot(false);
   };
 
-  // 메인 페이지면 Main 컴포넌트만 렌더링
-  if (isMainPage) {
+  // 독립 페이지들은 각각의 컴포넌트만 렌더링
+  if (isStandalonePage) {
     return (
       <ConfigProvider
         theme={{
@@ -103,7 +102,13 @@ function AppContent() {
         }}
       >
         <AntdApp>
-          <Main />
+          <Routes>
+            <Route path="/main" element={<Main />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/find/account" element={<FindAccountPage />} />
+            <Route path="/profile/edit" element={<ProfileSettingsPage />} />
+          </Routes>
         </AntdApp>
       </ConfigProvider>
     );
@@ -243,9 +248,6 @@ function App() {
         <Route path="/" element={<Navigate to="/main" replace />} />
         {/* 나머지 모든 경로는 AppContent에서 처리 */}
         <Route path="/*" element={<AppContent />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/profile/edit" element={<ProfileSettingsPage />} />
-        <Route path="/find/account" element={<FindAccountPage/>}/>
       </Routes>
     </Router>
   );

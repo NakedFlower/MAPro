@@ -27,9 +27,14 @@ const MaProLandingPage = () => {
   const [current, setCurrent] = useState('home');
   const navigate = useNavigate();
 
-  // 맵 페이지로 이동하는 함수
+  // 로그인 페이지로 이동하는 함수 (무료 시작하기 버튼용)
+  const handleGoToLogin = () => {
+    navigate('/login');
+  };
+
+  // 맵 페이지로 이동하는 함수 (무료 체험 버튼용)
   const handleGoToMap = () => {
-    navigate('/map');
+    navigate('/login'); // 일단 로그인 페이지로 보내고, 로그인 후 맵으로 이동하도록 나중에 설정
   };
 
   const menuItems = [
@@ -148,7 +153,7 @@ const MaProLandingPage = () => {
             type="primary" 
             size="large" 
             style={{ borderRadius: '25px' }}
-            onClick={handleGoToMap}
+            onClick={handleGoToLogin} // 로그인 페이지로 변경
           >
             무료 체험
           </Button>
@@ -211,7 +216,7 @@ const MaProLandingPage = () => {
               <Button 
                 type="primary" 
                 size="large"
-                onClick={handleGoToMap}
+                onClick={handleGoToLogin} // 로그인 페이지로 변경
                 style={{ 
                   background: 'white',
                   color: '#1890ff',
@@ -223,14 +228,14 @@ const MaProLandingPage = () => {
                   fontWeight: 600
                 }}
               >
-                지금 시작하기
+                무료로 시작하기
               </Button>
               
               <Button 
                 type="default"
                 size="large"
                 icon={<PlayCircleOutlined />}
-                onClick={handleGoToMap}
+                onClick={handleGoToLogin} // 로그인 페이지로 변경
                 style={{ 
                   background: 'transparent',
                   color: 'white',
@@ -528,7 +533,7 @@ const MaProLandingPage = () => {
               <Button 
                 type="primary" 
                 size="large"
-                onClick={handleGoToMap}
+                onClick={handleGoToLogin} // 로그인 페이지로 변경
                 style={{ 
                   background: 'white',
                   color: '#1890ff',
