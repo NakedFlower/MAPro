@@ -947,6 +947,39 @@ def send_places_to_map(places: List[dict]):
         return {"status": "success", "map_response": response.json()}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+    
+
+@app.get("/db/schema")
+def get_db_schema():
+    """DB 테이블 구조를 반환하는 API"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as conn:
+            # 테이블 구조 조회
+            schema_query = text("DESCRIBE place")
+            schema_result = conn.execute(schema_query).fetchall()
+            
+            # 샘플 데이터 조회 (5개만)
+            sample_query = text("SELECT * FROM place LIMIT 5")
+            sample_result = conn.execute(sample_query).fetchall()
+            
+            return {
+                "schema": [dict(row._mapping) for row in schema_result],
+                "sample_data": [dict(row._mapping) for row in sample_result]
+            }
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/test/places")
+def test_places():
+    """테스트용 - 판교 지역 데이터 확인"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT * FROM place WHERE location LIKE '%판교%' LIMIT 10")).fetchall()
+            return [dict(row._mapping) for row in result]
+    except Exception as e:
+        return {"error": str(e)}
 # ------------------ 설정/DB ------------------
 load_dotenv()
 
