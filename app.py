@@ -903,6 +903,9 @@ def health_check():
     except Exception as e:
         return {"status": "error", "database": "disconnected", "error": str(e)}
 #동석 api  
+
+
+# 동석 API 추가 (기존 DB 연결 방식 사용)
 @app.get("/db/export")
 def export_places():
     """전체 매장 데이터를 JSON으로 export"""
@@ -934,6 +937,7 @@ def get_db_schema():
             }
     except Exception as e:
         return {"error": str(e)}
+
 @app.post("/send-to-map")
 def send_places_to_map(places: List[dict]):
     """챗봇 결과를 지도 API로 전송"""
@@ -947,28 +951,6 @@ def send_places_to_map(places: List[dict]):
         return {"status": "success", "map_response": response.json()}
     except Exception as e:
         return {"status": "error", "message": str(e)}
-    
-
-@app.get("/db/schema")
-def get_db_schema():
-    """DB 테이블 구조를 반환하는 API"""
-    try:
-        engine = get_db_engine()
-        with engine.connect() as conn:
-            # 테이블 구조 조회
-            schema_query = text("DESCRIBE place")
-            schema_result = conn.execute(schema_query).fetchall()
-            
-            # 샘플 데이터 조회 (5개만)
-            sample_query = text("SELECT * FROM place LIMIT 5")
-            sample_result = conn.execute(sample_query).fetchall()
-            
-            return {
-                "schema": [dict(row._mapping) for row in schema_result],
-                "sample_data": [dict(row._mapping) for row in sample_result]
-            }
-    except Exception as e:
-        return {"error": str(e)}
 
 @app.get("/test/places")
 def test_places():
