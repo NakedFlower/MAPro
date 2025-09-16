@@ -934,7 +934,19 @@ def get_db_schema():
             }
     except Exception as e:
         return {"error": str(e)}
-
+@app.post("/send-to-map")
+def send_places_to_map(places: List[dict]):
+    """챗봇 결과를 지도 API로 전송"""
+    try:
+        import requests
+        response = requests.post(
+            "http://34.64.120.99:5000/api/chat-places",
+            json={"places": places},
+            timeout=5
+        )
+        return {"status": "success", "map_response": response.json()}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 # ------------------ 설정/DB ------------------
 load_dotenv()
 
