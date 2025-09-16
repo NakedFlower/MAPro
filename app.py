@@ -966,13 +966,14 @@ def test_places():
 load_dotenv()
 
 def get_engine() -> Engine:
-    # GCP MySQL Database Configuration
     host = os.getenv("DB_HOST", "mapro.cloud")
     port = os.getenv("DB_PORT", "3306")
     user = os.getenv("DB_USER", "dev")
     password = os.getenv("DB_PASSWORD", "Dev1010**")
     name = os.getenv("DB_NAME", "mapro")
-    url = f"mariadb+mariadbconnector://{user}:{password}@{host}:{port}/{name}?charset=utf8mb4"
+    
+    # mariadb+mariadbconnector에서 mysql+pymysql로 변경
+    url = f"mysql+pymysql://{user}:{password}@{host}:{port}/{name}?charset=utf8mb4"
     return create_engine(url, pool_pre_ping=True)
 
 ENGINE: Optional[Engine] = None
