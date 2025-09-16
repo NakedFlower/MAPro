@@ -892,7 +892,6 @@ def chat_endpoint(req: ChatRequest):
         print(f"채팅 엔드포인트 오류: {e}") # 디버깅을 위한 로그 추가
         return ChatResponse(reply="서버에서 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", places=None)
 
-
 @app.get("/health")
 def health_check():
     try:
@@ -903,7 +902,38 @@ def health_check():
         return {"status": "ok", "database": "connected"}
     except Exception as e:
         return {"status": "error", "database": "disconnected", "error": str(e)}
+#동석 api  
+@app.get("/db/export")
+def export_places():
+    """전체 매장 데이터를 JSON으로 export"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT * FROM place")).fetchall()
+            return [dict(row._mapping) for row in result]
+    except Exception as e:
+        return {"error": str(e)}
 
+@app.get("/db/schema")
+def get_db_schema():
+    """DB 테이블 구조를 반환하는 API"""
+    try:
+        engine = get_db_engine()
+        with engine.connect() as conn:
+            # 테이블 구조 조회
+            schema_query = text("DESCRIBE place")
+            schema_result = conn.execute(schema_query).fetchall()
+            
+            # 샘플 데이터 조회 (5개만)
+            sample_query = text("SELECT * FROM place LIMIT 5")
+            sample_result = conn.execute(sample_query).fetchall()
+            
+            return {
+                "schema": [dict(row._mapping) for row in schema_result],
+                "sample_data": [dict(row._mapping) for row in sample_result]
+            }
+    except Exception as e:
+        return {"error": str(e)}
 
 # ------------------ 설정/DB ------------------
 load_dotenv()
