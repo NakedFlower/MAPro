@@ -9,13 +9,103 @@ from dotenv import load_dotenv
 import re
 import requests
 
+# ------------------ 지역명 처리 클래스 ------------------
+class LocationService:
+    def __init__(self):
+        self.api_key = os.getenv("MOIS_API_KEY", "devU01TX0FVVEgyMDI1MDkxMjExMzczMjExNjE3ODE=")
+        self.api_url = "https://business.juso.go.kr/addrlink/addrLinkApi.do"
+
+    def _call_mois_api(self, keyword: str, max_results: int = 20, timeout_sec: float = 0.7) -> list:
+        if not keyword or not self.api_key:
+            return []
+        params = {
+            "confmKey": self.api_key,
+            "resultType": "json",
+            "currentPage": "1",
+            "countPerPage": str(max_results),
+            "keyword": keyword,
+        }
+        try:
+            resp = requests.get(self.api_url, params=params, timeout=timeout_sec)
+            if resp.status_code != 200:
+                return []
+            data = resp.json() if resp.content else None
+            return ((data or {}).get("results") or {}).get("juso") or []
+        except Exception:
+            return []
+
+    def _parse_region_from_address(self, addr: str) -> Optional[str]:
+        if not addr:
+            return None
+        tokens = addr.strip().split()
+        if not tokens:
+            return None
+        def is_region_token(tok: str) -> bool:
+            return tok.endswith(("시", "군", "구"))
+        region_tokens = [t for t in tokens[:5] if is_region_token(t)]
+        if not region_tokens:
+            sub_tokens = [t for t in tokens[:5] if t.endswith(("동", "읍", "면"))]
+            return sub_tokens[0] if sub_tokens else None
+        def simplify(tok: str) -> str:
+            return tok.replace("특별시", "").replace("광역시", "").replace("자치구", "").strip()
+        simplified = [simplify(t) for t in region_tokens[:2]]
+        return " ".join([t for t in simplified if t]) or None
+
+    def _generate_location_candidates(self, text: str) -> list:
+        if not text:
+            return []
+        candidates = []
+        seen = set()
+        def push(s: str):
+            key = s.strip()
+            if key and key not in seen:
+                seen.add(key)
+                candidates.append(key)
+        push(text)
+        tokens = text.split()
+        admin_suffixes = ("시", "군", "구", "동", "읍", "면")
+        trial_suffixes = ("구", "시", "군")
+        for tok in tokens:
+            if not tok:
+                continue
+            if tok.endswith(admin_suffixes):
+                push(tok)
+                continue
+            for suf in trial_suffixes:
+                push(f"{tok}{suf}")
+                push(text.replace(tok, f"{tok}{suf}", 1))
+        return candidates
+
+    def get_location_candidates(self, text: str, timeout_sec: float = 0.7) -> list:
+        candidates = []
+        seen = set()
+        for keyword in self._generate_location_candidates(text):
+            juso_list = self._call_mois_api(keyword, timeout_sec=timeout_sec)
+            for juso in juso_list:
+                addr = juso.get("roadAddr") or juso.get("jibunAddr") or ""
+                region = self._parse_region_from_address(addr)
+                tokens = addr.split()
+                dong = next((t for t in tokens if t.endswith(("동", "읍", "면"))), None)
+                if region:
+                    label = f"{region} {dong}".strip() if dong and dong not in region else region
+                    if label and label not in seen:
+                        seen.add(label)
+                        candidates.append(label)
+        return candidates[:5]
+
+    def resolve_single_location(self, text: str, timeout_sec: float = 0.7) -> Optional[str]:
+        candidates = self.get_location_candidates(text, timeout_sec)
+        return candidates[0] if len(candidates) == 1 else None
+
+# 지역 처리 서비스 인스턴스 생성
+location_service = LocationService()
 
 # ------------------ 분류/키워드 사전 ------------------
 # 카테고리 매핑
 CATEGORY_PHRASES = {
     "음식점": ["음식점", "식당", "레스토랑", "먹을데", "먹을 곳", "밥집", "맛집"],
     "카페": ["카페", "커피숍", "커피 숍", "다방", "카페테리아", "카페라운지"],
-    "편의점": ["편의점", "편의 마트", "편의 소매", "편의 상점"],
+    "편의점": ["편의점", "편의 마트", "상점"],
     "약국": ["약국"],
     "호텔": ["호텔", "숙소", "숙박", "레지던스", "리조트"],
     "헤어샵": ["헤어샵", "미용실", "헤어 살롱", "헤어살롱", "살롱","바버샵", "이발소"],
@@ -100,12 +190,7 @@ KEYWORD_DICT = {
         },
         "지역화폐": {
             "positive": [
-                "지역 화폐", "지역 상품권", "상품권", "지역 페이", "시민 페이", "지역페이",
-                "경기 페이", "서울 페이", "제로 페이", "간편 결제", "모바일 결제",
-                "경기페이", "서울페이", "제로페이", "지역화폐", "상품권",
-                "부천페이", "수원페이", "용인페이", "성남페이", "고양페이", "안산페이",
-                "평택페이", "안양페이", "의정부페이", "남양주페이", "시흥페이",
-                "광명페이", "군포페이", "하남페이", "오산페이", "이천페이",
+                "지역 화폐", "지역 상품권", "상품권", "지역 페이", "시민 페이",
                 "QR코드", "QR 결제", "바코드", "바코드 결제", "앱 결제", "핸드폰 결제",
                 "디지털 화폐", "전자 화폐", "전자 상품권", "디지털 상품권",
                 "페이", "pay", "wallet", "월렛", "간편페이", "원터치", "터치결제"
@@ -253,7 +338,7 @@ KEYWORD_DICT = {
             "positive": [
                 "24 시간", "24 시", "밤늦게", "새벽", "심야", "올나잇", "24h",
                 "24시", "이십사시간", "하루종일", "야간", "밤", "늦은 시간",
-                "새벽 시간", "심야 시간", "밤샘", "올밤", "통밤", "밤새",
+                "새벽 시간", "심야 시간", "밤샘", "밤새",
                 "언제나", "항상", "늘", "계속", "무제한", "제한 없이"
             ],
             "negative": [
@@ -379,8 +464,6 @@ KEYWORD_DICT = {
                 "전기차 충전", "EV 충전", "급속충전", "완속충전", "충전시설",
                 "충전 서비스", "충전 스테이션", "차지비", "환경차", "친환경차",
                 "하이브리드", "플러그인", "배터리", "전력", "전원", "콘센트",
-                "테슬라", "아이오닉", "EQS", "볼트", "니로", "코나", "GV60",
-                "BMW", "벤츠", "아우디", "포르쉐", "현대", "기아", "제네시스"
             ],
             "negative": [
                 "전기차 충전 없다", "충전소 없다", "충전 불가"
@@ -532,10 +615,6 @@ KEYWORD_DICT = {
                 "전문의", "전문가", "교수", "박사", "스페셜리스트",
                 "전문 의사", "분과 전문의", "세부 전문의", "임상 교수",
                 "주치의", "담당의", "원장", "과장", "부장", "실장",
-                "내과", "외과", "소아과", "산부인과", "정형외과", "신경과",
-                "정신과", "피부과", "안과", "이비인후과", "비뇨기과",
-                "흉부외과", "신경외과", "성형외과", "마취과", "영상의학과",
-                "병리과", "진단검사의학과", "재활의학과", "가정의학과",
                 "경험", "실력", "숙련", "베테랑", "노하우", "기술", "솜씨"
             ],
             "negative": [
@@ -592,169 +671,7 @@ HELP_MESSAGE = (
 
 # ------------------ 외부 API 설정 (행안부 주소 API) ------------------
 # 실제 배포 시 환경변수 MOIS_API_KEY로 주입. 미설정 시 아래 기본값 사용
-MOIS_API_KEY = os.getenv("MOIS_API_KEY", "devU01TX0FVVEgyMDI1MDkxMjExMzczMjExNjE3ODE=")
-MOIS_ADDR_API_URL = "https://business.juso.go.kr/addrlink/addrLinkApi.do"
-
-def _parse_region_from_address(addr: str) -> Optional[str]:
-    """주소 문자열에서 시/군/구 등의 지역명만 간략히 추출.
-    예) "서울특별시 강남구 역삼동 ..." -> "서울 강남구"
-    """
-    if not addr:
-        return None
-    tokens = (addr or "").strip().split()
-    if not tokens:
-        return None
-    def is_region_token(tok: str) -> bool:
-        return tok.endswith(("시", "군", "구"))
-
-    region_tokens = [t for t in tokens[:5] if is_region_token(t)]
-    if not region_tokens:
-        # 동/읍/면이라도 잡아본다
-        sub_tokens = [t for t in tokens[:5] if t.endswith(("동", "읍", "면"))]
-        if sub_tokens:
-            return sub_tokens[0]
-        return None
-
-    # 광역시/특별시 표기를 간략화
-    def simplify(tok: str) -> str:
-        return tok.replace("특별시", "").replace("광역시", "").replace("자치구", "").strip()
-
-    simplified = [simplify(t) for t in region_tokens[:2]]
-    # 최소 1개, 최대 2개 조합 (예: 서울 강남구 / 성남시 분당구)
-    return " ".join([t for t in simplified if t]) or None
-
-def resolve_location_with_mois(keyword_text: str, timeout_sec: float = 0.7) -> Optional[str]:
-    """행안부(도로명주소) API를 호출해 입력 텍스트에서 지역명을 표준화하여 추출.
-    - 성공 시 간략 지역명(예: "서울 강남구") 반환
-    - 실패/없음 시 None
-    """
-    if not MOIS_API_KEY:
-        raise ValueError("MOIS_API_KEY가 설정되지 않았습니다.")
-    
-    if not keyword_text:
-        return None
-    params = {
-        "confmKey": MOIS_API_KEY,
-        "resultType": "json",
-        "currentPage": "1",
-        "countPerPage": "5",
-        "keyword": keyword_text,
-    }
-    resp = requests.get(MOIS_ADDR_API_URL, params=params, timeout=timeout_sec)
-    if resp.status_code != 200:
-        raise ValueError(f"행안부 API 호출 실패: {resp.status_code}")
-    data = resp.json() if resp.content else None
-    juso_list = ((data or {}).get("results") or {}).get("juso") or []
-    if not juso_list:
-        return None
-    # 우선 roadAddr, 없으면 jibunAddr 사용
-    top = juso_list[0]
-    addr = top.get("roadAddr") or top.get("jibunAddr") or ""
-    region = _parse_region_from_address(addr)
-    return region
-
-def resolve_location_candidates(keyword_text: str, timeout_sec: float = 0.7) -> List[str]:
-    """행안부 주소 API에서 복수의 지역 후보를 수집하여 반환한다.
-    - 예: "시흥" → ["경기 시흥시", "서울 금천구 시흥동"] 등의 형태
-    - 중복 제거 및 최대 5개까지만 반환
-    """
-    if not MOIS_API_KEY:
-        raise ValueError("MOIS_API_KEY가 설정되지 않았습니다.")
-    if not keyword_text:
-        return []
-    params = {
-        "confmKey": MOIS_API_KEY,
-        "resultType": "json",
-        "currentPage": "1",
-        "countPerPage": "20",
-        "keyword": keyword_text,
-    }
-    resp = requests.get(MOIS_ADDR_API_URL, params=params, timeout=timeout_sec)
-    if resp.status_code != 200:
-        return []
-    data = resp.json() if resp.content else None
-    juso_list = ((data or {}).get("results") or {}).get("juso") or []
-    if not juso_list:
-        return []
-
-    candidates: List[str] = []
-    seen = set()
-
-    for j in juso_list:
-        addr = j.get("roadAddr") or j.get("jibunAddr") or ""
-        # 가능한 한 상세 행정구역까지 포함되도록 구성 (도/시 + 구/군 + 동)
-        # 기존 파서로 상위 레벨을 우선 추출
-        region_hi = _parse_region_from_address(addr)  # 예: "서울 금천구" 혹은 "경기 시흥시"
-        # 세부 동 단위도 보조로 붙인다
-        tokens = (addr or "").split()
-        dong = next((t for t in tokens if t.endswith(("동", "읍", "면"))), None)
-        label = f"{region_hi} {dong}".strip() if dong and region_hi and dong not in region_hi else (region_hi or dong or addr)
-        key = label.strip()
-        if key and key not in seen:
-            seen.add(key)
-            candidates.append(key)
-
-    # 너무 많으면 상위 5개만
-    return candidates[:5]
-
-def find_location_candidates_from_text(text: str, timeout_sec: float = 0.7) -> List[str]:
-    """문장 전체가 아닌 토큰/접미사 보완 후보들을 대상으로 지역 후보를 종합 수집한다.
-    - 예: "시흥 카페" → ["경기 시흥시", "서울 금천구 시흥동", ...]
-    - 중복 제거 후 최대 5개 반환
-    """
-    if not text:
-        return []
-    aggregated: List[str] = []
-    seen = set()
-    for kw in _generate_location_keyword_candidates(text):
-        try:
-            cands = resolve_location_candidates(kw, timeout_sec=timeout_sec)
-        except Exception:
-            cands = []
-        for c in cands:
-            key = (c or "").strip()
-            if key and key not in seen:
-                seen.add(key)
-                aggregated.append(key)
-            if len(aggregated) >= 5:
-                return aggregated[:5]
-    return aggregated[:5]
-
-def _generate_location_keyword_candidates(text: str) -> list:
-    """입력에서 행정구역 접미사(구/시/군) 보완 후보들을 생성한다.
-    - 원문 그대로 1순위
-    - 공백 기준 토큰 중 접미사가 없는 것에는 구/시/군을 덧붙인 버전도 생성
-    - 중복 제거, 원본 순서 최대한 유지
-    """
-    if not text:
-        return []
-    candidates: list = []
-    seen = set()
-
-    def push(s: str):
-        key = s.strip()
-        if key and key not in seen:
-            seen.add(key)
-            candidates.append(key)
-
-    push(text)
-    tokens = (text or "").split()
-    admin_suffixes = ("시", "군", "구", "동", "읍", "면")
-    trial_suffixes = ("구", "시", "군")
-
-    for tok in tokens:
-        if not tok:
-            continue
-        if tok.endswith(admin_suffixes):
-            # 이미 접미사가 있으면 그대로도 한 번 더 강조해서 후보에 추가
-            push(tok)
-            continue
-        for suf in trial_suffixes:
-            push(f"{tok}{suf}")
-            # 문장 내 해당 토큰을 1회 치환한 전체 문장 후보도 추가
-            push(text.replace(tok, f"{tok}{suf}", 1))
-
-    return candidates
+# ------------------ 외부 API 설정 ------------------
 
 def is_low_quality_input(text: str) -> bool:
     """의미 없는 입력(기호만, 너무 짧음 등)을 판별."""
@@ -819,8 +736,7 @@ def chat_endpoint(req: ChatRequest):
 
         # 2.1) 원문 기반 지역 후보를 우선 계산해 표준화/모호성 처리
         try:
-            # 문장 전체가 아닌 토큰 기반 후보들을 합산하여 모호성 판단 강화
-            cand_from_text = find_location_candidates_from_text(user_message)
+            cand_from_text = location_service.get_location_candidates(user_message)
         except Exception:
             cand_from_text = []
         if cand_from_text:
@@ -843,7 +759,7 @@ def chat_endpoint(req: ChatRequest):
                 return ChatResponse(reply=HELP_MESSAGE, places=None)
             elif not location:
                 # 지역이 없는 경우: 먼저 후보를 시도적으로 제안
-                cand = find_location_candidates_from_text(user_message)
+                cand = location_service.get_location_candidates(user_message)
                 if cand and len(cand) > 1:
                     return ChatResponse(
                         reply="여러 지역이 검색되었어요. 원하시는 지역을 선택해 주세요.",
@@ -854,14 +770,14 @@ def chat_endpoint(req: ChatRequest):
                     )
                 # 후보가 없거나 1개뿐이면 기존 안내
                 return ChatResponse(reply=f"어느 지역에서 {category}을(를) 찾으시나요? 🤔\n예: \"강남 {category}\"", places=None)
-            else: # not category
+            else:
                 # 카테고리가 없는 경우
                 return ChatResponse(reply=f"'{location}'에서 어떤 장소를 찾으세요? 👀\n(예: 음식점, 카페, 약국 등)", places=None)
         # 2.5) 단순화: 추출된 location 기준으로만 후보 확인 → 0:그대로, 1:확정, 2+:선택요청
         cand_all: List[str] = []
         if location:
             try:
-                cand_all = resolve_location_candidates(location)
+                    cand_all = location_service.get_location_candidates(location)
             except Exception:
                 cand_all = []
             if cand_all:
@@ -1058,27 +974,16 @@ def extract_features_with_rules(text: str, category: str) -> list:
 ## NER 기반 위치 추출은 더 이상 사용하지 않음
 
 def extract_location(text: str) -> Optional[str]:
-    """행안부 주소 API만 사용하여 지역을 인식한다.
-    - 원문과 접미사 보완 후보들을 순차 조회하여 최초 성공값을 반환
-    """
-    for kw in _generate_location_keyword_candidates(text):
-        region = resolve_location_with_mois(kw, timeout_sec=0.5)
-        if region:
-            return region
-    return None
+    """LocationService를 사용하여 지역을 인식한다."""
+    return location_service.resolve_single_location(text)
 
 def extract_query(text: str) -> dict:
     """규칙/사전 기반으로 쿼리 성분을 추출한다."""
     t = normalize(text)
-    
     category = classify_category_with_rules(t)
-    
     features = extract_features_with_rules(t, category) if category else []
-    
-    location = extract_location(t)
-    
+    location = location_service.resolve_single_location(t)
     extracted = {"category": category, "features": features, "location": location}
-    # 진단 로그 (배포 환경에서도 유용하도록 간단 출력)
     try:
         print(f"[extract_query] parsed -> {extracted}")
     except Exception:
@@ -1168,7 +1073,6 @@ def build_reply(query: dict, places: list) -> str:
         parts.append(", ".join(query["features"]))
 
     cond = " ".join(parts) if parts else "요청하신"
-    names = ", ".join([p["name"] for p in places[:5]])
     
     if len(places) > 0:
         return f"{cond} 조건으로 {len(places)}곳을 찾았어요"
