@@ -697,29 +697,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# /chat 엔드포인트 이전에 추가
 def clean_location_query(text: str, category: str, features: list) -> str:
-    """사용자 메시지에서 카테고리와 특징 관련 키워드를 제거하여 지역명만 남깁니다."""
+    """사용자 메시지에서 카테고리와 특징 관련 키워드를 더 정확하게 제거하여 지역명만 남깁니다."""
     cleaned_text = text
-    
-    # 카테고리 관련 표현 제거
+    phrases_to_remove = []
+
+    # 1. 제거할 모든 키워드 문구들을 한 리스트에 모읍니다.
+    # 1.1 카테고리 관련 문구 추가
     if category and category in CATEGORY_PHRASES:
-        for phrase in CATEGORY_PHRASES[category]:
-            cleaned_text = cleaned_text.replace(phrase, "")
+        phrases_to_remove.extend(CATEGORY_PHRASES[category])
             
-    # 특징 관련 표현 제거
+    # 1.2 특징 관련 문구 추가
     if category and features:
         for feature in features:
             if feature in KEYWORD_DICT.get(category, {}):
-                all_phrases = KEYWORD_DICT[category][feature].get("positive", []) + \
-                              KEYWORD_DICT[category][feature].get("negative", [])
-                for phrase in all_phrases:
-                    # 너무 짧은 단어가 다른 단어의 일부를 지우는 것을 방지
-                    if len(phrase) > 1:
-                         cleaned_text = cleaned_text.replace(phrase, "")
+                feature_phrases = KEYWORD_DICT[category][feature].get("positive", []) + \
+                                  KEYWORD_DICT[category][feature].get("negative", [])
+                phrases_to_remove.extend(feature_phrases)
 
-    # 공백 정리 후 반환
-    return " ".join(cleaned_text.split())
+    # 2. 키워드를 길이의 역순(긴 것부터)으로 정렬합니다.
+    #    이렇게 해야 "뷰 맛집"이 "맛집"보다 먼저 처리되어 오류를 막을 수 있습니다.
+    phrases_to_remove = sorted(list(set(phrases_to_remove)), key=len, reverse=True)
+
+    # 3. 정렬된 순서대로 키워드를 제거합니다.
+    for phrase in phrases_to_remove:
+        if len(phrase) > 1: # 한 글자 단어는 오작동 가능성이 있어 제외
+            cleaned_text = cleaned_text.replace(phrase, "")
+
+    # 4. 양쪽 공백 및 중간의 여러 공백을 정리 후 반환합니다.
+    return " ".join(cleaned_text.strip().split())
 
 # chat_endpoint
 @app.post("/chat", response_model=ChatResponse)
