@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 function ChatbotPanel({ onClose }) {
-  const PANEL_WIDTH = 500;
-  const PANEL_HEIGHT = 600;
+  const PANEL_WIDTH = 480;
+  const PANEL_HEIGHT = 640;
 
   // 드래그 관련 상태
   const panelRef = useRef(null);
@@ -243,8 +243,10 @@ function ChatbotPanel({ onClose }) {
         width: PANEL_WIDTH,
         height: PANEL_HEIGHT,
         background: theme.background,
-        borderRadius: '28px',
-        boxShadow: '0 8px 30px rgba(0,0,0,0.18)',
+        borderRadius: '24px',
+        boxShadow: isDarkMode 
+          ? '0 16px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05)'
+          : '0 16px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
@@ -253,10 +255,12 @@ function ChatbotPanel({ onClose }) {
         bottom: pos.bottom,
         zIndex: 1100,
         userSelect: isDragging ? 'none' : 'auto',
-        transition: isDragging ? 'none' : 'opacity .22s ease, transform .22s cubic-bezier(.2,.8,.2,1)',
-        transform: animateIn ? 'translateY(0) scale(1)' : 'translateY(-8px) scale(0.98)',
+        transition: isDragging ? 'none' : 'all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
+        transform: animateIn ? 'translateY(0) scale(1)' : 'translateY(20px) scale(0.95)',
         opacity: animateIn ? 1 : 0,
-        cursor: isDragging ? 'grabbing' : 'default'
+        cursor: isDragging ? 'grabbing' : 'default',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)'
       }}
     >
       {/* 드래그 가능한 상단 프로필/로고 */}
@@ -266,163 +270,262 @@ function ChatbotPanel({ onClose }) {
         style={{
           display:'flex', 
           alignItems:'center', 
-          padding:'22px 22px 10px 22px', 
+          padding:'20px 20px 16px 20px', 
           borderBottom:`1px solid ${theme.headerBorder}`,
-          cursor: isDragging ? 'grabbing' : 'grab'
+          cursor: isDragging ? 'grabbing' : 'grab',
+          background: theme.background
         }}
       >
-        <div style={{width:44, height:44, borderRadius:'50%', background: theme.headerBorder, marginRight:14}}></div>
-        <div style={{flex:1}}>
-          <div style={{fontWeight:800, color: theme.textPrimary, fontSize:'18px', letterSpacing:'.2px'}}>MAPro</div>
-          <div style={{fontSize:'12px', color: theme.textSecondary, marginTop:2, cursor:'pointer'}}>회사정보 보기 &gt;</div>
+        <div style={{
+          width: 44, 
+          height: 44, 
+          borderRadius: '50%', 
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          marginRight: 14,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 2px 8px rgba(102, 126, 234, 0.2)'
+        }}>
+          <div style={{
+            color: '#fff',
+            fontWeight: 700,
+            fontSize: '16px',
+            letterSpacing: '0.5px'
+          }}>M</div>
         </div>
-        <button onClick={onClose} style={{background:'none', border:'none', fontSize:22, color: theme.textSecondary, cursor:'pointer', marginLeft:8}} aria-label="챗봇 닫기">✕</button>
+        <div style={{flex:1}}>
+          <div style={{
+            fontWeight: 700, 
+            color: theme.textPrimary, 
+            fontSize: '17px', 
+            letterSpacing: '0.3px',
+            marginBottom: '2px'
+          }}>MAPro</div>
+          <div style={{
+            fontSize: '12px', 
+            color: theme.textSecondary, 
+            cursor: 'pointer',
+            transition: 'color 0.2s ease'
+          }}
+          onMouseEnter={e => e.target.style.color = isDarkMode ? '#fff' : '#2357dd'}
+          onMouseLeave={e => e.target.style.color = theme.textSecondary}
+          >회사정보 보기 &gt;</div>
+        </div>
+        <button 
+          onClick={onClose} 
+          style={{
+            background: 'none', 
+            border: 'none', 
+            fontSize: 20, 
+            color: theme.textSecondary, 
+            cursor: 'pointer', 
+            marginLeft: 8,
+            width: 32,
+            height: 32,
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={e => {
+            e.target.style.background = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
+            e.target.style.transform = 'scale(1.05)';
+          }}
+          onMouseLeave={e => {
+            e.target.style.background = 'none';
+            e.target.style.transform = 'scale(1)';
+          }}
+          aria-label="챗봇 닫기"
+        >✕</button>
       </div>
 
       {/* 본문: 대화 메시지 */}
-      <div style={{flex:1, padding:'22px 22px 0 22px', overflowY:'auto', display:'flex', flexDirection:'column'}}>
+      <div style={{
+        flex: 1, 
+        padding: '20px', 
+        overflowY: 'auto', 
+        display: 'flex', 
+        flexDirection: 'column',
+        gap: '12px'
+      }}>
         {messages.map((msg, idx) => (
           msg.type === 'places' ? (
-            <div key={idx} style={{ marginBottom: 16 }}>
+            <div key={idx} style={{ marginBottom: 8 }}>
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'flex-start',
-                  marginBottom: 4
+                  marginBottom: 6
                 }}
               >
                 <div
                   style={{
                     background: theme.placeBackground,
                     border: `1px solid ${theme.placeBorder}`,
-                    borderRadius: 12,
-                    padding: '12px 14px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                    minWidth: 180
+                    borderRadius: 16,
+                    padding: '14px 16px',
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                    minWidth: 200,
+                    maxWidth: '85%'
                   }}
                 >
                   {msg.places.map((place, index) => (
                     <div 
                       key={index}
                       style={{
-                        fontSize:'13px', 
-                        color:'#2357dd', 
-                        fontWeight:600, 
-                        marginBottom: index === msg.places.length - 1 ? 0 : 4, 
-                        cursor:'pointer', 
-                        textDecoration:'underline'
+                        fontSize: '14px', 
+                        color: '#2357dd', 
+                        fontWeight: 600, 
+                        marginBottom: index === msg.places.length - 1 ? 0 : 6, 
+                        cursor: 'pointer', 
+                        textDecoration: 'none',
+                        padding: '2px 0',
+                        borderRadius: '4px',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={e => {
+                        e.target.style.textDecoration = 'underline';
+                        e.target.style.backgroundColor = isDarkMode ? 'rgba(35,87,221,0.1)' : 'rgba(35,87,221,0.05)';
+                      }}
+                      onMouseLeave={e => {
+                        e.target.style.textDecoration = 'none';
+                        e.target.style.backgroundColor = 'transparent';
                       }}
                     >
-                      {place}
+                      📍 {place}
                     </div>
                   ))}
                 </div>
               </div>
               <div style={{
-                fontSize:'11px', 
+                fontSize: '11px', 
                 color: theme.textTertiary, 
-                marginLeft: '4px',
-                marginTop: '2px'
+                marginLeft: '6px',
+                opacity: 0.7
               }}>
                 {msg.timestamp}
               </div>
             </div>
           ) : msg.type === 'location_candidates' ? (
-            <div key={idx} style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>
+            <div key={idx} style={{ marginBottom: 10 }}>
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: 8, 
+                alignItems: 'flex-start',
+                marginBottom: 8
+              }}>
                 {msg.candidates.map((cand, index) => (
                   <button
                     key={index}
                     onClick={() => handleChooseLocation(cand)}
                     style={{
-                      display:'inline-flex', alignItems:'center', gap:8,
-                      background: isDarkMode 
-                        ? 'linear-gradient(180deg, #87CEEB 0%, #5F9EA0 100%)' 
-                        : 'linear-gradient(180deg, #87CEEB 0%, #5F9EA0 100%)',
-                      color:'#fff',
-                      border:'1px solid rgba(255,255,255,0.15)',
-                      borderRadius:999,
-                      padding:'10px 14px',
-                      fontSize:13,
-                      fontWeight:700,
-                      letterSpacing:'.2px',
-                      cursor:'pointer',
-                      boxShadow: '0 6px 18px rgba(135,206,235,0.25)',
-                      transform:'translateZ(0)',
-                      transition:'transform .15s ease, box-shadow .15s ease, filter .2s ease',
-                      WebkitTapHighlightColor:'transparent',
-                      width: 'auto',
-                      minWidth: 'fit-content'
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      gap: 10,
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '18px',
+                      padding: '12px 18px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      letterSpacing: '0.3px',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.25)',
+                      transform: 'translateZ(0)',
+                      transition: 'all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                      WebkitTapHighlightColor: 'transparent',
+                      maxWidth: '280px',
+                      justifyContent: 'flex-start'
                     }}
                     onMouseEnter={e => {
-                      e.currentTarget.style.transform = 'translateY(-1px)';
-                      e.currentTarget.style.boxShadow = '0 10px 24px rgba(135,206,235,0.32)';
+                      e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.35)';
                     }}
                     onMouseLeave={e => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 6px 18px rgba(135,206,235,0.25)';
+                      e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.25)';
                     }}
                     onMouseDown={e => {
-                      e.currentTarget.style.transform = 'translateY(0) scale(0.99)';
-                      e.currentTarget.style.filter = 'brightness(0.98)';
+                      e.currentTarget.style.transform = 'translateY(0) scale(0.98)';
                     }}
                     onMouseUp={e => {
-                      e.currentTarget.style.transform = 'translateY(-1px) scale(1)';
-                      e.currentTarget.style.filter = 'none';
+                      e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
                     }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{filter:'drop-shadow(0 1px 0 rgba(0,0,0,0.15))'}}>
-                      <path d="M12 21s-7-7.582-7-12a7 7 0 1 1 14 0c0 4.418-7 12-7 12z" fill="rgba(255,255,255,0.9)"/>
-                      <circle cx="12" cy="9" r="3" fill={isDarkMode ? '#1c1c1e' : '#2357dd'} />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{
+                      filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))',
+                      flexShrink: 0
+                    }}>
+                      <path 
+                        d="M12 21s-7-7.582-7-12a7 7 0 1 1 14 0c0 4.418-7 12-7 12z" 
+                        fill="rgba(255,255,255,0.9)"
+                      />
+                      <circle cx="12" cy="9" r="3" fill="#2357dd" />
                     </svg>
-                    <span>{cand}</span>
+                    <span style={{ 
+                      textAlign: 'left',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}>{cand}</span>
                   </button>
                 ))}
               </div>
               <div style={{
-                fontSize:'11px', 
+                fontSize: '11px', 
                 color: theme.textTertiary, 
-                marginLeft: '4px',
-                marginTop: '6px'
+                marginLeft: '6px',
+                opacity: 0.7
               }}>
                 {msg.timestamp}
               </div>
             </div>
           ) : (
-            <div key={idx} style={{ marginBottom: 16 }}>
+            <div key={idx} style={{ marginBottom: 10 }}>
               <div
                 style={{
                   display: 'flex',
                   justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                  marginBottom: 4
+                  marginBottom: 6
                 }}
               >
                 <div
                   style={{
-                    maxWidth: '75%',
-                    background: msg.role === 'user' ? '#2357dd' : theme.botMessageBg,
+                    maxWidth: msg.role === 'user' ? '80%' : '85%',
+                    background: msg.role === 'user' 
+                      ? 'linear-gradient(135deg, #2357dd 0%, #1e4bb8 100%)' 
+                      : theme.botMessageBg,
                     color: msg.role === 'user' ? '#fff' : theme.botMessageText,
-                    borderRadius: msg.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                    padding: '10px 16px',
+                    borderRadius: msg.role === 'user' ? '20px 20px 6px 20px' : '20px 20px 20px 6px',
+                    padding: '12px 18px',
                     fontSize: '14px',
-                    fontWeight: msg.role === 'user' ? 600 : 400,
+                    fontWeight: msg.role === 'user' ? 500 : 400,
                     whiteSpace: 'pre-line',
                     wordBreak: 'break-word',
-                    boxShadow: msg.role === 'user' ? '0 2px 8px rgba(35,87,221,0.08)' : '0 2px 8px rgba(0,0,0,0.04)',
+                    boxShadow: msg.role === 'user' 
+                      ? '0 3px 12px rgba(35,87,221,0.15)' 
+                      : '0 2px 8px rgba(0,0,0,0.06)',
                     textAlign: 'left',
-                    lineHeight: 1.6
+                    lineHeight: 1.5,
+                    border: msg.role === 'user' 
+                      ? 'none' 
+                      : `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`
                   }}
                 >
                   {msg.text}
                 </div>
               </div>
               <div style={{
-                fontSize:'11px', 
+                fontSize: '11px', 
                 color: theme.textTertiary, 
                 textAlign: msg.role === 'user' ? 'right' : 'left',
-                marginLeft: msg.role === 'user' ? '0' : '4px',
-                marginRight: msg.role === 'user' ? '4px' : '0',
-                marginTop: '2px'
+                marginLeft: msg.role === 'user' ? '0' : '6px',
+                marginRight: msg.role === 'user' ? '6px' : '0',
+                opacity: 0.7
               }}>
                 {msg.timestamp}
               </div>
@@ -433,51 +536,158 @@ function ChatbotPanel({ onClose }) {
       </div>
 
       {/* 하단 입력창 및 아이콘 */}
-      <div style={{padding:'14px 18px', borderTop:`1px solid ${theme.inputBorder}`, background: theme.inputBackground, display:'flex', alignItems:'center'}}>
+      <div style={{
+        padding: '16px 18px', 
+        borderTop: `1px solid ${theme.inputBorder}`, 
+        background: theme.inputBackground, 
+        display: 'flex', 
+        alignItems: 'center',
+        gap: '12px'
+      }}>
         <input
           type="text"
           placeholder="예: 강남구 분위기좋은 카페"
           style={{
-            flex:1, 
-            height:'38px', 
-            borderRadius:'18px', 
-            border:`1px solid ${theme.inputFieldBorder}`, 
-            padding:'0 14px', 
-            fontSize:'14px', 
-            outline:'none', 
+            flex: 1, 
+            height: '42px', 
+            borderRadius: '21px', 
+            border: `1.5px solid ${theme.inputFieldBorder}`, 
+            padding: '0 18px', 
+            fontSize: '14px', 
+            outline: 'none', 
             background: theme.inputFieldBg,
-            color: theme.textPrimary
+            color: theme.textPrimary,
+            transition: 'all 0.2s ease',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+          }}
+          onFocus={e => {
+            e.target.style.borderColor = '#2357dd';
+            e.target.style.boxShadow = '0 0 0 3px rgba(35,87,221,0.1)';
+          }}
+          onBlur={e => {
+            e.target.style.borderColor = theme.inputFieldBorder;
+            e.target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.02)';
           }}
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleInputKeyDown}
         />
         <button
-          style={{marginLeft:'8px', background:'#fc9090', color:'#fff', border:'none', borderRadius:'18px', height:'38px', padding:'0 18px', fontWeight:600, cursor:'pointer'}}
+          style={{
+            background: input.trim() 
+              ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
+              : isDarkMode ? '#3a3a3c' : '#f0f0f0', 
+            color: input.trim() ? '#fff' : theme.textTertiary, 
+            border: 'none', 
+            borderRadius: '21px', 
+            height: '42px', 
+            padding: '0 20px', 
+            fontWeight: 600, 
+            fontSize: '14px',
+            cursor: input.trim() ? 'pointer' : 'not-allowed',
+            transition: 'all 0.2s ease',
+            boxShadow: input.trim() 
+              ? '0 2px 8px rgba(102,126,234,0.2)' 
+              : 'none',
+            transform: 'translateZ(0)'
+          }}
+          onMouseEnter={e => {
+            if (input.trim()) {
+              e.target.style.transform = 'translateY(-1px)';
+              e.target.style.boxShadow = '0 4px 12px rgba(102,126,234,0.25)';
+            }
+          }}
+          onMouseLeave={e => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = input.trim() 
+              ? '0 2px 8px rgba(102,126,234,0.2)' 
+              : 'none';
+          }}
           onClick={handleSend}
+          disabled={!input.trim()}
         >전송</button>
       </div>
 
       {/* 하단 아이콘 영역 */}
-      <div style={{display:'flex', justifyContent:'center', alignItems:'center', gap:32, padding:'10px 0 12px 0', background: theme.inputBackground}}>
-        <div style={{display:'flex', flexDirection:'column', alignItems:'center', fontSize:'11px', color: theme.textSecondary, cursor:'pointer'}}>
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-            <path d="M3 10.5L11 4L19 10.5" stroke={theme.textSecondary} strokeWidth="2"/>
-            <rect x="6.5" y="12" width="9" height="6" rx="2" stroke={theme.textSecondary} strokeWidth="2"/>
+      <div style={{
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        gap: 40, 
+        padding: '12px 0 16px 0', 
+        background: theme.inputBackground,
+        borderTop: `1px solid ${theme.inputBorder}`
+      }}>
+        <div style={{
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          fontSize: '11px', 
+          color: theme.textSecondary, 
+          cursor: 'pointer',
+          padding: '8px 12px',
+          borderRadius: '12px',
+          transition: 'all 0.2s ease'
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)';
+          e.currentTarget.style.transform = 'translateY(-1px)';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.backgroundColor = 'transparent';
+          e.currentTarget.style.transform = 'translateY(0)';
+        }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{marginBottom: '4px'}}>
+            <path 
+              d="M3 12L5 10L12 3L19 10L21 12" 
+              stroke={theme.textSecondary} 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            />
+            <path 
+              d="M5 12V19C5 19.5523 5.44772 20 6 20H18C18.5523 20 19 19.5523 19 19V12" 
+              stroke={theme.textSecondary} 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            />
           </svg>
           홈
         </div>
         <div 
-          style={{display:'flex', flexDirection:'column', alignItems:'center', fontSize:'11px', color: theme.textSecondary, cursor:'pointer'}}
+          style={{
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            fontSize: '11px', 
+            color: theme.textSecondary, 
+            cursor: 'pointer',
+            padding: '8px 12px',
+            borderRadius: '12px',
+            transition: 'all 0.2s ease',
+            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'
+          }}
           onClick={() => setIsDarkMode(!isDarkMode)}
+          onMouseEnter={e => {
+            e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)';
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}
         >
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{marginBottom: '4px'}}>
             <path 
               d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" 
               stroke={theme.textSecondary} 
               strokeWidth="2"
               fill={isDarkMode ? theme.textSecondary : 'none'}
               style={{transition: 'fill 0.3s ease'}}
+              strokeLinecap="round" 
+              strokeLinejoin="round"
             />
           </svg>
           다크모드
