@@ -3,12 +3,19 @@ import React, { useContext, useState} from 'react';
 import { Card, Typography, Avatar, Button, Upload, message } from 'antd';
 import { UploadOutlined, UserOutlined } from '@ant-design/icons';
 
-import { UserContext } from "../context/UserContext";
+import { useAuth } from "../context/AuthContext";
 
 const { Title, Text, Paragraph } = Typography;
 
 function ProfileInfo() {
-  const { user } = useContext(UserContext);
+  const { user, logout } = useAuth();
+
+    // 로그아웃 핸들러
+  const handleLogout = () => {
+    logout();
+    message.success('로그아웃되었습니다.');
+
+  };
 
   const [imageUrl, setImageUrl] = useState(
     'https://via.placeholder.com/150/337ab7/FFFFFF?text=DS' // 예: 김동석님 프로필 사진
@@ -27,6 +34,7 @@ function ProfileInfo() {
   };
 
   return (
+    <>
     <Card
       style={{ maxWidth: 800, margin: '80px auto', borderRadius: '24px' }}
       bodyStyle={{ padding: '50px' }}
@@ -73,7 +81,7 @@ function ProfileInfo() {
           <Text strong style={{ width: 110, fontSize: 16 }}>
             이름
           </Text>
-          <Text style={{ marginLeft: 34, fontSize: 16 }}>{user ? `${user.name} 님, 반갑습니다` : "게스트"}</Text>
+          <Text>{user ? `${user.name}` : "게스트"}</Text>
         </div>
 
         {/* 이메일 */}
@@ -84,9 +92,9 @@ function ProfileInfo() {
           <Button
             type="link"
             style={{ padding: 0, height: 'auto', fontSize: 16 }}
-            href="mailto:kim.dong@naver.com"
+            href="`mailto:${user.username}` : undefined"
           >
-            {user ? `${user.email}` : "이메일을 확인할 수 없습니다."}
+            {user ? `${user.username}` : "이메일을 확인할 수 없습니다."}
           </Button>
         </div>
 
@@ -101,6 +109,21 @@ function ProfileInfo() {
         </div>
       </div>
     </Card>
+    {/* 카드 아래 로그아웃 버튼 */}
+          {user && (
+            <div style={{ maxWidth: 800, margin: '20px auto', textAlign: 'center' }}>
+              <Button
+                type="primary"
+                danger
+                onClick={handleLogout}
+                style={{ borderRadius: '8px', padding: '0 24px', height: 40 }}
+              >
+                로그아웃
+              </Button>
+            </div>
+          )}
+</>
+    
   );
 }
 
