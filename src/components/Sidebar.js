@@ -1,6 +1,6 @@
 // Sidebar.js
 import React, { useContext, useMemo } from 'react';
-import { Layout, Menu, Button, Tooltip } from 'antd';
+import { Layout, Menu, Button, Tooltip, Avatar, Typography } from 'antd';
 import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
@@ -101,7 +101,7 @@ function Sidebar({ selected, setSelected, onOpenLogin, isCollapsed, onToggleColl
       />
 
       {/* 로그인 버튼 - 반응형 크기 및 위치 조정 */}
-      <div
+      {/* <div
         style={{
           position: 'absolute',
           bottom: '24px',
@@ -158,7 +158,66 @@ function Sidebar({ selected, setSelected, onOpenLogin, isCollapsed, onToggleColl
             로그인
           </Button>
         )}
+      </div> */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)', // 중앙 정렬
+          width: isCollapsed ? '48px' : 'calc(100% - 32px)', // 너비 반응형 조정
+          maxWidth: isCollapsed ? '48px' : '212px', // 최대 너비 제한
+          transition: 'all 0.3s ease',
+          zIndex: 1,
+        }}
+      >
+      {user ? (
+          // 로그인 상태: 사용자 정보 카드
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '8px',
+              background: '#f5f5f5',
+              borderRadius: '8px',
+            }}
+          >
+            <Avatar icon={<UserOutlined />} size={40} />
+            {!isCollapsed && (
+              <div>
+                <Typography.Text strong>{user.name}님</Typography.Text>
+                <br />
+                <Typography.Text type="secondary">{user.username}</Typography.Text>
+              </div>
+            )}
+          </div>
+        ) : (
+          // 비로그인 상태: 로그인 버튼
+          <Button
+            type="primary"
+            icon={<UserOutlined />}
+            onClick={onOpenLogin}
+            block={!isCollapsed}
+            shape={isCollapsed ? 'circle' : 'default'}
+            size="large"
+            style={{
+              width: isCollapsed ? '48px' : '100%',  // 접혔을 때 고정 너비
+              height: '48px',   
+              background: '#6c5ce7',
+              border: 'none',
+              borderRadius: isCollapsed ? '50%' : '8px', // 접혔을 때 원형
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+            }}
+          >
+            {!isCollapsed && '로그인'}
+          </Button>
+        )}
       </div>
+
     </Sider>
   );
 }
