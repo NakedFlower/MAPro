@@ -1,10 +1,15 @@
 //LoginPanel.js
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState , userContext} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useUser } from '../context/UserContext'; // 추가
+
 
 function LoginPanel({ onClose }) {
   const navigate = useNavigate();
+  const { login } = useUser(); // useUser() 훅에서 login 가져오기
+
+
   const { setLoginSuccess } = useAuth(); //context 함수 가져오기
   const PANEL_WIDTH = 520;
   const PANEL_HEIGHT = 360;
@@ -117,14 +122,20 @@ function LoginPanel({ onClose }) {
 
       if (response.ok) {
         const data = await response.json();
-        alert('로그인이 성공적으로 완료되었습니다!');
+        
         // 로그인 성공 후 토큰 저장 등 처리
         if (data.token) {
-          localStorage.setItem('user', JSON.stringify(data));
-          localStorage.setItem('token', data.token);
+          login(data); // 여기서 localStorage 동기화 포함
+          // localStorage.setItem('user', JSON.stringify(data));
+          // localStorage.setItem('token', data.token);
 
           //context에도 로그인 성공 상태 업데이트
           setLoginSuccess(data, data.token);
+          
+          console.log(localStorage.getItem("user")); // JSON 문자열로 저장됨
+          console.log(JSON.parse(localStorage.getItem("user"))); // 객체로 확인 가능
+
+          alert('로그인이 성공적으로 완료되었습니다!');
         }
         onClose(); // 패널 닫기
         navigate('/User/MyPage/Home'); // 메인 대시보드로 이동
