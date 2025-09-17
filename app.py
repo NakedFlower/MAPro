@@ -278,7 +278,7 @@ KEYWORD_DICT = {
         },
         "분위기좋은": {
             "positive": [
-                "분위기", "무드", "감성", "갬성", "뷰", "조명", "인테리어",
+                "분위기 좋은", "무드", "감성", "갬성", "뷰", "조명", "인테리어",
                 "창가", "테라스", "음악", "bgm", "힐링",
                 "예쁜", "이쁜", "아름다운", "멋진", "근사한", "세련된", "감각적",
                 "풍경", "경치", "전망", "야경", "일출", "일몰", "노을", "바다",
@@ -325,8 +325,8 @@ KEYWORD_DICT = {
         "조용한": {
             "positive": [
                 "조용", "차분", "정숙", "평화", "고요", "힐링", "한적",
-                "소음 없는", "시끄럽지 않은", "조용조용", "조용한 분위기",
-                "차분한 분위기", "평화로운", "고요한", "적막", "정적",
+                "소음 없는", "시끄럽지 않은", "조용", 
+                "차분한", "평화로운", "고요한", "적막", "정적",
                 "휴식", "쉬기 좋은", "편안한", "안정적", "여유로운",
                 "집중", "집중하기 좋은", "사색", "명상", "힐링 타임"
             ],
@@ -697,35 +697,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# /chat 엔드포인트 이전에 추가
 def clean_location_query(text: str, category: str, features: list) -> str:
-    """사용자 메시지에서 카테고리와 특징 관련 키워드를 더 정확하게 제거하여 지역명만 남깁니다."""
+    """사용자 메시지에서 카테고리와 특징 관련 키워드를 제거하여 지역명만 남깁니다."""
     cleaned_text = text
-    phrases_to_remove = []
-
-    # 1. 제거할 모든 키워드 문구들을 한 리스트에 모읍니다.
-    # 1.1 카테고리 관련 문구 추가
+    
+    # 카테고리 관련 표현 제거
     if category and category in CATEGORY_PHRASES:
-        phrases_to_remove.extend(CATEGORY_PHRASES[category])
+        for phrase in CATEGORY_PHRASES[category]:
+            cleaned_text = cleaned_text.replace(phrase, "")
             
-    # 1.2 특징 관련 문구 추가
+    # 특징 관련 표현 제거
     if category and features:
         for feature in features:
             if feature in KEYWORD_DICT.get(category, {}):
-                feature_phrases = KEYWORD_DICT[category][feature].get("positive", []) + \
-                                  KEYWORD_DICT[category][feature].get("negative", [])
-                phrases_to_remove.extend(feature_phrases)
+                all_phrases = KEYWORD_DICT[category][feature].get("positive", []) + \
+                              KEYWORD_DICT[category][feature].get("negative", [])
+                for phrase in all_phrases:
+                    # 너무 짧은 단어가 다른 단어의 일부를 지우는 것을 방지
+                    if len(phrase) > 1:
+                         cleaned_text = cleaned_text.replace(phrase, "")
 
-    # 2. 키워드를 길이의 역순(긴 것부터)으로 정렬합니다.
-    #    이렇게 해야 "뷰 맛집"이 "맛집"보다 먼저 처리되어 오류를 막을 수 있습니다.
-    phrases_to_remove = sorted(list(set(phrases_to_remove)), key=len, reverse=True)
-
-    # 3. 정렬된 순서대로 키워드를 제거합니다.
-    for phrase in phrases_to_remove:
-        if len(phrase) > 1: # 한 글자 단어는 오작동 가능성이 있어 제외
-            cleaned_text = cleaned_text.replace(phrase, "")
-
-    # 4. 양쪽 공백 및 중간의 여러 공백을 정리 후 반환합니다.
-    return " ".join(cleaned_text.strip().split())
+    # 공백 정리 후 반환
+    return " ".join(cleaned_text.split())
 
 # chat_endpoint
 @app.post("/chat", response_model=ChatResponse)
