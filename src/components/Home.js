@@ -3,12 +3,12 @@ import React, { useContext } from 'react';
 import { Card, Typography, Button, message } from 'antd';
 import { AppstoreOutlined } from '@ant-design/icons';
 
-import { UserContext } from "../context/UserContext";
+import { useAuth } from "../context/AuthContext";
 
 const { Title, Text } = Typography;
 
 function Home({ onOpenMap }) {
-  const { user } = useContext(UserContext);
+  const { user } = useAuth();
 
   const handleClick = () => {
     if (onOpenMap) onOpenMap();

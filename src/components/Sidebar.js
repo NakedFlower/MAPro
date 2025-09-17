@@ -9,7 +9,7 @@ import {
   SettingOutlined,
 } from '@ant-design/icons';
 
-import { UserContext } from "../context/UserContext"; 
+import { useAuth } from "../context/AuthContext";
 
 const { Sider } = Layout;
 
@@ -20,7 +20,7 @@ const menuItems = [
 ];
 
 function Sidebar({ selected, setSelected, onOpenLogin, isCollapsed, onToggleCollapse }) {
-  const { user } = useContext(UserContext); // 로그인 상태 확인
+  const { user } = useAuth();
 
     // 메뉴 배열을 로그인 상태에 따라 동적으로 생성
   const menuItems = useMemo(() => {
@@ -179,7 +179,7 @@ function Sidebar({ selected, setSelected, onOpenLogin, isCollapsed, onToggleColl
               alignItems: 'center',
               gap: '12px',
               padding: '8px',
-              background: '#f5f5f5',
+              // background: '#f5f5f5',
               borderRadius: '8px',
             }}
           >
