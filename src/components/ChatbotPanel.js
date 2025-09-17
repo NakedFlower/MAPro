@@ -497,7 +497,7 @@ function ChatbotPanel({ onClose }) {
                   style={{
                     maxWidth: msg.role === 'user' ? '80%' : '85%',
                     background: msg.role === 'user' 
-                      ? 'linear-gradient(135deg, #2357dd 0%, #1e4bb8 100%)' 
+                      ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
                       : theme.botMessageBg,
                     color: msg.role === 'user' ? '#fff' : theme.botMessageText,
                     borderRadius: msg.role === 'user' ? '20px 20px 6px 20px' : '20px 20px 20px 6px',
@@ -507,7 +507,7 @@ function ChatbotPanel({ onClose }) {
                     whiteSpace: 'pre-line',
                     wordBreak: 'break-word',
                     boxShadow: msg.role === 'user' 
-                      ? '0 3px 12px rgba(35,87,221,0.15)' 
+                      ? '0 3px 12px rgba(102,126,234,0.2)' 
                       : '0 2px 8px rgba(0,0,0,0.06)',
                     textAlign: 'left',
                     lineHeight: 1.5,
@@ -611,86 +611,116 @@ function ChatbotPanel({ onClose }) {
       {/* 하단 아이콘 영역 */}
       <div style={{
         display: 'flex', 
-        justifyContent: 'center', 
+        justifyContent: 'space-around', 
         alignItems: 'center', 
-        gap: 40, 
-        padding: '12px 0 16px 0', 
-        background: theme.inputBackground,
-        borderTop: `1px solid ${theme.inputBorder}`
+        padding: '16px 0', 
+        background: theme.background,
+        borderTop: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`
       }}>
         <div style={{
           display: 'flex', 
           flexDirection: 'column', 
           alignItems: 'center', 
-          fontSize: '11px', 
+          fontSize: '12px', 
           color: theme.textSecondary, 
           cursor: 'pointer',
-          padding: '8px 12px',
-          borderRadius: '12px',
+          padding: '4px',
           transition: 'all 0.2s ease'
         }}
         onMouseEnter={e => {
-          e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)';
-          e.currentTarget.style.transform = 'translateY(-1px)';
+          e.currentTarget.style.opacity = '0.7';
         }}
         onMouseLeave={e => {
-          e.currentTarget.style.backgroundColor = 'transparent';
-          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.opacity = '1';
         }}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{marginBottom: '4px'}}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{marginBottom: '6px'}}>
             <path 
-              d="M3 12L5 10L12 3L19 10L21 12" 
+              d="M3 9L12 2L21 9V20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V9Z" 
               stroke={theme.textSecondary} 
-              strokeWidth="2" 
+              strokeWidth="1.5" 
               strokeLinecap="round" 
               strokeLinejoin="round"
+              fill="none"
             />
             <path 
-              d="M5 12V19C5 19.5523 5.44772 20 6 20H18C18.5523 20 19 19.5523 19 19V12" 
+              d="M9 21V12H15V21" 
               stroke={theme.textSecondary} 
-              strokeWidth="2" 
+              strokeWidth="1.5" 
               strokeLinecap="round" 
               strokeLinejoin="round"
             />
           </svg>
-          홈
+          <span>새 세션</span>
         </div>
         <div 
           style={{
             display: 'flex', 
             flexDirection: 'column', 
             alignItems: 'center', 
-            fontSize: '11px', 
+            fontSize: '12px', 
             color: theme.textSecondary, 
             cursor: 'pointer',
-            padding: '8px 12px',
-            borderRadius: '12px',
+            padding: '4px',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.opacity = '0.7';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.opacity = '1';
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{marginBottom: '6px'}}>
+            <path 
+              d="M7 10V12C7 13.1046 7.89543 14 9 14H15C16.1046 14 17 13.1046 17 12V10" 
+              stroke={theme.textSecondary} 
+              strokeWidth="1.5" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            />
+            <path 
+              d="M12 14V18M8 18H16M12 6C13.6569 6 15 7.34315 15 9C15 10.6569 13.6569 12 12 12C10.3431 12 9 10.6569 9 9C9 7.34315 10.3431 6 12 6Z" 
+              stroke={theme.textSecondary} 
+              strokeWidth="1.5" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span>취향</span>
+        </div>
+        <div 
+          style={{
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            fontSize: '12px', 
+            color: theme.textSecondary, 
+            cursor: 'pointer',
+            padding: '4px',
             transition: 'all 0.2s ease',
-            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'
+            opacity: isDarkMode ? '0.8' : '1'
           }}
           onClick={() => setIsDarkMode(!isDarkMode)}
           onMouseEnter={e => {
-            e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)';
-            e.currentTarget.style.transform = 'translateY(-1px)';
+            e.currentTarget.style.opacity = '0.7';
           }}
           onMouseLeave={e => {
-            e.currentTarget.style.backgroundColor = isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)';
-            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.opacity = isDarkMode ? '0.8' : '1';
           }}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{marginBottom: '4px'}}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{marginBottom: '6px'}}>
             <path 
               d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" 
               stroke={theme.textSecondary} 
-              strokeWidth="2"
+              strokeWidth="1.5"
               fill={isDarkMode ? theme.textSecondary : 'none'}
               style={{transition: 'fill 0.3s ease'}}
               strokeLinecap="round" 
               strokeLinejoin="round"
             />
           </svg>
-          다크모드
+          <span>다크모드</span>
         </div>
       </div>
     </div>
