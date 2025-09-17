@@ -22,6 +22,7 @@ import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage'; // 새로 추가
 import ProfileSettingsPage from './components/ProfileSettingsPage';
 import FindAccountPage from './components/FindAccountPage';
+import { AuthProvider } from './context/AuthContext';
 
 // 메인 앱 컴포넌트 (라우터 내부)
 function AppContent() {
@@ -242,6 +243,7 @@ function AppContent() {
 // 최상위 App 컴포넌트
 function App() {
   return (
+    <AuthProvider>
     <Router>
       <Routes>
         {/* 루트 경로(/)를 /main으로 리다이렉트 */}
@@ -250,6 +252,7 @@ function App() {
         <Route path="/*" element={<AppContent />} />
       </Routes>
     </Router>
+    </AuthProvider>
   );
 }
 

@@ -1,9 +1,11 @@
 //LoginPanel.js
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 function LoginPanel({ onClose }) {
   const navigate = useNavigate();
+  const { setLoginSuccess } = useAuth(); //context 함수 가져오기
   const PANEL_WIDTH = 520;
   const PANEL_HEIGHT = 360;
 
@@ -88,7 +90,7 @@ function LoginPanel({ onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!userId || !password) {
       alert('아이디와 비밀번호를 모두 입력해주세요!');
       return;
@@ -102,7 +104,7 @@ function LoginPanel({ onClose }) {
     setLoading(true);
 
     try {
-      const response = await fetch('http://34.64.120.99:4000/api/auth/login', {
+      const response = await fetch('http://mapro.cloud:4000/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -118,7 +120,11 @@ function LoginPanel({ onClose }) {
         alert('로그인이 성공적으로 완료되었습니다!');
         // 로그인 성공 후 토큰 저장 등 처리
         if (data.token) {
+          localStorage.setItem('user', JSON.stringify(data));
           localStorage.setItem('token', data.token);
+
+          //context에도 로그인 성공 상태 업데이트
+          setLoginSuccess(data, data.token);
         }
         onClose(); // 패널 닫기
         navigate('/User/MyPage/Home'); // 메인 대시보드로 이동
@@ -227,12 +233,12 @@ function LoginPanel({ onClose }) {
           }}
         />
 
-        <div 
+        <div
           onClick={handleForgotPassword}
-          style={{ 
-            textAlign: 'center', 
-            marginTop: '14px', 
-            color: '#9aa0a6', 
+          style={{
+            textAlign: 'center',
+            marginTop: '14px',
+            color: '#9aa0a6',
             fontSize: '10px',
             cursor: 'pointer',
             textDecoration: 'underline'
@@ -242,15 +248,15 @@ function LoginPanel({ onClose }) {
         </div>
 
         <div style={{ position: 'absolute', bottom: '18px', left: '28px', right: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={handleJoinClick}
             disabled={loading}
             style={{
-              border: 'none', 
-              background: 'transparent', 
-              color: '#6b7280', 
-              fontSize: '15px', 
+              border: 'none',
+              background: 'transparent',
+              color: '#6b7280',
+              fontSize: '15px',
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.6 : 1
             }}
@@ -258,17 +264,17 @@ function LoginPanel({ onClose }) {
             Join
           </button>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={loading}
             style={{
               height: '36px', padding: '0 18px',
-              background: loading ? '#9ca3af' : '#3e5ee9', 
-              color: '#fff', 
-              border: 'none', 
+              background: loading ? '#9ca3af' : '#3e5ee9',
+              color: '#fff',
+              border: 'none',
               borderRadius: '18px',
-              cursor: loading ? 'not-allowed' : 'pointer', 
-              fontSize: '14px', 
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
               fontWeight: 600,
               boxShadow: loading ? 'none' : '0 6px 14px rgba(62,94,233,.3)',
               display: 'flex',
