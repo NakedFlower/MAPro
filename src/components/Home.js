@@ -1,11 +1,15 @@
-// Main.js
-import React from 'react';
+// Home.js
+import React, { useContext } from 'react';
 import { Card, Typography, Button, message } from 'antd';
 import { AppstoreOutlined } from '@ant-design/icons';
+
+import { UserContext } from "../context/UserContext";
 
 const { Title, Text } = Typography;
 
 function Home({ onOpenMap }) {
+  const { user } = useContext(UserContext);
+
   const handleClick = () => {
     if (onOpenMap) onOpenMap();
     message.info('지도 화면으로 이동합니다.');
@@ -26,7 +30,7 @@ function Home({ onOpenMap }) {
         }
       >
         <Title level={3} style={{ textAlign: 'center', marginBottom: 16 }}>
-          김동석 님, 반갑습니다
+          {user ? `${user.name} 님, 반갑습니다` : "게스트 님, 반갑습니다"}
         </Title>
 
         <Text type="secondary" style={{ display: 'block', textAlign: 'center', marginBottom: 24 }}>

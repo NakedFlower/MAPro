@@ -1,11 +1,15 @@
 // ProfileInfo.js
-import React, { useState } from 'react';
+import React, { useContext, useState} from 'react';
 import { Card, Typography, Avatar, Button, Upload, message } from 'antd';
 import { UploadOutlined, UserOutlined } from '@ant-design/icons';
+
+import { UserContext } from "../context/UserContext";
 
 const { Title, Text, Paragraph } = Typography;
 
 function ProfileInfo() {
+  const { user } = useContext(UserContext);
+
   const [imageUrl, setImageUrl] = useState(
     'https://via.placeholder.com/150/337ab7/FFFFFF?text=DS' // 예: 김동석님 프로필 사진
   );
@@ -69,7 +73,7 @@ function ProfileInfo() {
           <Text strong style={{ width: 110, fontSize: 16 }}>
             이름
           </Text>
-          <Text style={{ marginLeft: 34, fontSize: 16 }}>김동석</Text>
+          <Text style={{ marginLeft: 34, fontSize: 16 }}>{user ? `${user.name} 님, 반갑습니다` : "게스트"}</Text>
         </div>
 
         {/* 이메일 */}
@@ -82,7 +86,7 @@ function ProfileInfo() {
             style={{ padding: 0, height: 'auto', fontSize: 16 }}
             href="mailto:kim.dong@naver.com"
           >
-            kim.dong@naver.com
+            {user ? `${user.email}` : "이메일을 확인할 수 없습니다."}
           </Button>
         </div>
 
