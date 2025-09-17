@@ -1,5 +1,5 @@
 // Sidebar.js
-import React from 'react';
+import React, { useContext } from 'react';
 import { Layout, Menu, Button, Tooltip } from 'antd';
 import {
   MenuUnfoldOutlined,
@@ -8,6 +8,8 @@ import {
   UserOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
+
+import { UserContext } from "../context/UserContext"; 
 
 const { Sider } = Layout;
 
@@ -18,6 +20,18 @@ const menuItems = [
 ];
 
 function Sidebar({ selected, setSelected, onOpenLogin, isCollapsed, onToggleCollapse }) {
+  const { user } = useContext(UserContext); // 로그인 상태 확인
+
+  // 메뉴 배열
+  const menuItems = [
+    { key: 'home', icon: <HomeOutlined />, label: '홈' },
+    // 로그인 시에만 보이는 메뉴
+    ...(user ? [
+      { key: 'profile', icon: <UserOutlined />, label: '내 정보' },
+      { key: 'settings', icon: <SettingOutlined />, label: '성향 설정' },
+    ] : [])
+  ];
+
   const handleMenuClick = ({ key }) => {
     const indexMap = { home: 0, profile: 1, settings: 2 };
     setSelected(indexMap[key]);
