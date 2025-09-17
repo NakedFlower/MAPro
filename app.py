@@ -697,6 +697,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# /chat 엔드포인트 이전에 추가
+def clean_location_query(text: str, category: str, features: list) -> str:
+    """사용자 메시지에서 카테고리와 특징 관련 키워드를 제거하여 지역명만 남깁니다."""
+    cleaned_text = text
+    
+    # 카테고리 관련 표현 제거
+    if category and category in CATEGORY_PHRASES:
+        for phrase in CATEGORY_PHRASES[category]:
+            cleaned_text = cleaned_text.replace(phrase, "")
+            
+    # 특징 관련 표현 제거
+    if category and features:
+        for feature in features:
+            if feature in KEYWORD_DICT.get(category, {}):
+                all_phrases = KEYWORD_DICT[category][feature].get("positive", []) + \
+                              KEYWORD_DICT[category][feature].get("negative", [])
+                for phrase in all_phrases:
+                    # 너무 짧은 단어가 다른 단어의 일부를 지우는 것을 방지
+                    if len(phrase) > 1:
+                         cleaned_text = cleaned_text.replace(phrase, "")
+
+    # 공백 정리 후 반환
+    return " ".join(cleaned_text.split())
+
 # chat_endpoint
 @app.post("/chat", response_model=ChatResponse)
 def chat_endpoint(req: ChatRequest):
@@ -727,79 +751,55 @@ def chat_endpoint(req: ChatRequest):
         if is_low_quality_input(user_message):
             return ChatResponse(reply=HELP_MESSAGE, places=None)
 
-        # 1) NLP: 카테고리/특성/지역 추출
-        extracted = extract_query(user_message)
+        # 1) NLP: 카테고리/특성 먼저 추출
+        category = classify_category_with_rules(user_message)
+        features = extract_features_with_rules(user_message, category)
         
-        # 2) 필수 정보(지역, 카테고리) 검증 강화
-        location = extracted.get("location")
-        category = extracted.get("category")
+        # 2) [수정된 로직] 지역명 검색을 위한 쿼리 정제
+        location_query = clean_location_query(user_message, category, features)
+        
+        extracted = {"category": category, "features": features, "location": None}
 
-        # 2.1) 원문 기반 지역 후보를 우선 계산해 표준화/모호성 처리
-        try:
-            cand_from_text = location_service.get_location_candidates(user_message)
-        except Exception:
-            cand_from_text = []
+        # 3) [수정된 로직] 정제된 쿼리로만 지역 후보 검색
+        cand_from_text = []
+        if location_query: # 정제된 쿼리가 있을 때만 지역 검색을 수행합니다.
+            try:
+                # API 호출 최소화를 위해 resolve_single_location 대신 get_location_candidates를 사용
+                cand_from_text = location_service.get_location_candidates(location_query, timeout_sec=1.0)
+            except Exception as e:
+                print(f"Location candidate search error: {e}")
+                cand_from_text = []
+
         if cand_from_text:
             if len(cand_from_text) == 1:
                 extracted["location"] = cand_from_text[0]
-                location = cand_from_text[0]
+            # 여러 지역이 검색되었고, 카테고리가 명확할 때만 사용자에게 선택 요청
             elif len(cand_from_text) > 1 and category:
                 return ChatResponse(
                     reply="여러 지역이 검색되었어요. 원하시는 지역을 선택해 주세요.",
                     places=None,
                     action="choose_location",
                     candidates=cand_from_text,
-                    pending={"category": category, "features": extracted.get("features") or []}
+                    pending={"category": category, "features": features}
                 )
 
-        if not location or not category:
-            # 지역이나 카테고리 중 하나라도 없으면 더 구체적인 질문으로 응답
-            if not location and not category:
-                # 둘 다 없는 경우: 기존 도움말
-                return ChatResponse(reply=HELP_MESSAGE, places=None)
-            elif not location:
-                # 지역이 없는 경우: 먼저 후보를 시도적으로 제안
-                cand = location_service.get_location_candidates(user_message)
-                if cand and len(cand) > 1:
-                    return ChatResponse(
-                        reply="여러 지역이 검색되었어요. 원하시는 지역을 선택해 주세요.",
-                        places=None,
-                        action="choose_location",
-                        candidates=cand,
-                        pending={"category": category, "features": extracted.get("features") or []}
-                    )
-                # 후보가 없거나 1개뿐이면 기존 안내
-                return ChatResponse(reply=f"어느 지역에서 {category}을(를) 찾으시나요? 🤔\n예: \"강남 {category}\"", places=None)
-            else:
-                # 카테고리가 없는 경우
-                return ChatResponse(reply=f"'{location}'에서 어떤 장소를 찾으세요? 👀\n(예: 음식점, 카페, 약국 등)", places=None)
-        # 2.5) 단순화: 추출된 location 기준으로만 후보 확인 → 0:그대로, 1:확정, 2+:선택요청
-        cand_all: List[str] = []
-        if location:
-            try:
-                    cand_all = location_service.get_location_candidates(location)
-            except Exception:
-                cand_all = []
-            if cand_all:
-                if len(cand_all) == 1:
-                    extracted["location"] = cand_all[0]
-                    location = cand_all[0]
-                elif len(cand_all) > 1:
-                    return ChatResponse(
-                        reply="여러 지역이 검색되었어요. 원하시는 지역을 선택해 주세요.",
-                        places=None,
-                        action="choose_location",
-                        candidates=cand_all,
-                        pending={"category": category, "features": extracted.get("features") or []}
-                    )
+        location = extracted.get("location")
 
-        # 3) DB 조회 
+        # 4) [수정된 로직] 필수 정보(지역, 카테고리) 검증
+        if not category:
+            # 카테고리가 없는 경우 (지역 정보 유무와 상관없이)
+            location_display = f"'{location}'에서" if location else ""
+            return ChatResponse(reply=f"{location_display} 어떤 장소를 찾으세요? 👀\n(예: 음식점, 카페, 약국 등)".strip(), places=None)
+        
+        if not location:
+            # 카테고리는 있지만 지역 정보가 없는 경우
+            return ChatResponse(reply=f"어느 지역에서 {category}을(를) 찾으시나요? 🤔\n예: \"강남 {category}\"", places=None)
+
+        # 5) 모든 정보가 확정되었으므로 DB 조회 및 응답 생성
         matched_places = query_places(extracted)
         
-        # 4) 응답 생성
         if matched_places:
             reply_text = build_reply(extracted, matched_places)
-            # places 리스트에는 DB에서 받은 모든 정보를 포함하여 프론트에서 활용할 수 있도록 개선
             return ChatResponse(reply=reply_text, places=matched_places[:5])
         else:
             return ChatResponse(reply="조건에 맞는 매장을 찾지 못했어요. 다른 키워드로 시도해 보시겠어요?", places=None)
@@ -807,6 +807,7 @@ def chat_endpoint(req: ChatRequest):
     except Exception as e:
         print(f"채팅 엔드포인트 오류: {e}") # 디버깅을 위한 로그 추가
         return ChatResponse(reply="서버에서 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", places=None)
+
 
 @app.get("/health")
 def health_check():
