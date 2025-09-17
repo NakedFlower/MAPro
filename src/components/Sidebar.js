@@ -1,5 +1,5 @@
 // Sidebar.js
-import React, { useContext } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { Layout, Menu, Button, Tooltip } from 'antd';
 import {
   MenuUnfoldOutlined,
@@ -22,15 +22,21 @@ const menuItems = [
 function Sidebar({ selected, setSelected, onOpenLogin, isCollapsed, onToggleCollapse }) {
   const { user } = useContext(UserContext); // 로그인 상태 확인
 
-  // 메뉴 배열
-  const menuItems = [
-    { key: 'home', icon: <HomeOutlined />, label: '홈' },
-    // 로그인 시에만 보이는 메뉴
-    ...(user ? [
-      { key: 'profile', icon: <UserOutlined />, label: '내 정보' },
-      { key: 'settings', icon: <SettingOutlined />, label: '성향 설정' },
-    ] : [])
-  ];
+    // 메뉴 배열을 로그인 상태에 따라 동적으로 생성
+  const menuItems = useMemo(() => {
+    const baseMenu = [
+      { key: 'home', icon: <HomeOutlined />, label: '홈' },
+    ];
+
+    if (user) {
+      baseMenu.push(
+        { key: 'profile', icon: <UserOutlined />, label: '내 정보' },
+        { key: 'settings', icon: <SettingOutlined />, label: '성향 설정' }
+      );
+    }
+
+    return baseMenu;
+  }, [user]);
 
   const handleMenuClick = ({ key }) => {
     const indexMap = { home: 0, profile: 1, settings: 2 };
