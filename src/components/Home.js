@@ -25,7 +25,7 @@ function Home({ onOpenMap }) {
               }}
         cover={
           <div style={{ padding: '40px 0', textAlign: 'center' }}>
-            <AppstoreOutlined style={{ fontSize: 64, color: '#1890ff' }} />
+            <AppstoreOutlined style={{ fontSize: 64, color: '#667eea' }} />
           </div>
         }
       >

@@ -558,7 +558,7 @@ const displayChatbotPlaces = useCallback(async (placeNames) => {
           width: '60px',
           height: '60px',
           border: '4px solid #e3e8ef',
-          borderTop: '4px solid #1890ff',
+          borderTop: '4px solid #667eea',
           borderRadius: '50%',
           animation: 'spin 0.8s linear infinite'
         }}></div>
@@ -618,7 +618,7 @@ const displayChatbotPlaces = useCallback(async (placeNames) => {
           onClick={fetchMapData}
           style={{
             padding: '12px 24px',
-            backgroundColor: '#1890ff',
+            backgroundColor: '#667eea',
             color: 'white',
             border: 'none',
             borderRadius: '6px',
@@ -702,7 +702,7 @@ const displayChatbotPlaces = useCallback(async (placeNames) => {
                 width: '20px',
                 height: '20px',
                 border: '2px solid #e3e8ef',
-                borderTop: '2px solid #1890ff',
+                borderTop: '2px solid #667eea',
                 borderRadius: '50%',
                 animation: 'spin 1s linear infinite'
               }}></div>
