@@ -19,35 +19,54 @@ function MapView({ places, onPlacesDisplayed }) {
   const geocoderRef = useRef(null);
   const searchMarkersRef = useRef([]);
 
-  const fetchMapData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      console.log('🔍 지도 API 호출 시작...');
-      
-      const response = await axios.get('http://34.64.120.99:5000/health', {        timeout: 15000, // 타임아웃 증가
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        }
-      });
-      
-      console.log('✅ API 응답:', response.data);
-      
-      if (response.data && response.data.mapHtml) {
-        setMapData(response.data);
-      } else {
-        throw new Error('지도 데이터가 올바르지 않습니다.');
-      }
-    } catch (err) {
-      console.error('❌ Map API 호출 실패:', err);
-      setError('지도를 불러올 수 없습니다.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
+// 수정된 fetchMapData 함수 - 기존 백엔드 프록시 방식 유지
+const fetchMapData = useCallback(async () => {
+  try {
+    setLoading(true);
+    setError(null);
+    
+    console.log('🔍 지도 API 호출 시작...');
+    
+    // Java 백엔드(4000 포트)에서 지도 HTML 받아오기
+    const response = await axios.get('http://34.64.120.99:4000/api/map/init', {
+      timeout: 15000,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      }
+    });
+    
+    console.log('✅ API 응답:', response.data);
+    
+    // 응답 데이터 구조에 따라 검증 로직 수정
+    if (response.data && response.data.mapHtml) {
+      setMapData(response.data);
+    } else {
+      throw new Error('지도 데이터가 올바르지 않습니다.');
+    }
+  } catch (err) {
+    console.error('❌ Map API 호출 실패:', err);
+    setError('지도를 불러올 수 없습니다: ' + err.message);
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
+// initializeGoogleMaps 함수는 제거 - 백엔드 프록시 방식만 사용
+// 서버 상태 확인 함수 (별도)
+const checkServerHealth = async () => {
+  try {
+    const response = await axios.get('http://34.64.120.99:5000/health', {
+      timeout: 5000
+    });
+    console.log('서버 상태:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('서버 상태 확인 실패:', error);
+    return null;
+  }
+};
   // 사용자 현재 위치 가져오기
   const getUserLocation = () => {
     setLocationLoading(true);
