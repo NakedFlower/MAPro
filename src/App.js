@@ -110,7 +110,7 @@ function AppContent() {
       <ConfigProvider
         theme={{
           token: {
-            colorPrimary: '#667eea',
+            colorPrimary: '#6c5ce7',
           },
         }}
       >
@@ -131,7 +131,7 @@ function AppContent() {
     <ConfigProvider
       theme={{
         token: {
-          colorPrimary: '#667eea',
+          colorPrimary: '#6c5ce7',
         },
         components: {
           Modal: {
@@ -212,8 +212,8 @@ function AppContent() {
                   >
                     <rect x="4" y="6" width="24" height="16" rx="6" fill="white" />
                     <path d="M16 28c-2.5-2-8-2-8-6V12a6 6 0 016-6h8a6 6 0 016 6v6c0 4-5.5 4-8 6z" fill="white" />
-                    <rect x="8" y="10" width="16" height="2.5" rx="1.25" fill="#667eea" />
-                    <rect x="8" y="15" width="10" height="2.5" rx="1.25" fill="#667eea" />
+                    <rect x="8" y="10" width="16" height="2.5" rx="1.25" fill="#6c5ce7" />
+                    <rect x="8" y="15" width="10" height="2.5" rx="1.25" fill="#6c5ce7" />
                   </svg>
                 )
               }
@@ -222,10 +222,10 @@ function AppContent() {
                 bottom: 24,
                 width: 48,
                 height: 48,
-                backgroundColor: '#667eea',
+                backgroundColor: '#6c5ce7',
                 boxShadow: showChatbot 
-                  ? '0 8px 30px rgba(102, 126, 234, 0.4)' 
-                  : '0 4px 16px rgba(102, 126, 234, 0.2)',
+                  ? '0 8px 30px rgba(108, 92, 231, 0.4)' 
+                  : '0 4px 16px rgba(108, 92, 231, 0.2)',
                 transform: showChatbot ? 'scale(1.1)' : 'scale(1)',
                 transition: 'all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
               }}
