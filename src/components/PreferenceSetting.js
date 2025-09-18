@@ -131,7 +131,7 @@ function PreferenceSetting() {
               {cat.options.map((opt, jdx) => (
                 <Tag
                   key={opt}
-                  icon={checked[idx][jdx] ? <span style={{ color: '#667eea' }}>✓</span> : null}
+                  icon={checked[idx][jdx] ? <span style={{ color: '#6c5ce7' }}>✓</span> : null}
                   color={checked[idx][jdx] ? 'purple' : 'default'}
                   style={{
                     padding: '6px 12px',

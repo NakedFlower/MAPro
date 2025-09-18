@@ -280,12 +280,12 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
           width: 44, 
           height: 44, 
           borderRadius: '50%', 
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #6c5ce7 0%, #764ba2 100%)',
           marginRight: 14,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 2px 8px rgba(102, 126, 234, 0.2)'
+          boxShadow: '0 2px 8px rgba(108, 92, 231, 0.2)'
         }}>
           <div style={{
             color: '#fff',
@@ -308,7 +308,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
             cursor: 'pointer',
             transition: 'color 0.2s ease'
           }}
-          onMouseEnter={e => e.target.style.color = isDarkMode ? '#fff' : '#667eea'}
+          onMouseEnter={e => e.target.style.color = isDarkMode ? '#fff' : '#6c5ce7'}
           onMouseLeave={e => e.target.style.color = theme.textSecondary}
           >회사정보 보기 &gt;</div>
         </div>
@@ -376,7 +376,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
                       key={index}
                       style={{
                         fontSize: '14px', 
-                        color: '#667eea',
+                        color: '#6c5ce7',
                         fontWeight: 600, 
                         marginBottom: index === msg.places.length - 1 ? 0 : 6, 
                         cursor: 'pointer', 
@@ -388,7 +388,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
                       onClick={() => onShowPlacesOnMap && onShowPlacesOnMap(msg.places)}
                       onMouseEnter={e => {
                         e.target.style.textDecoration = 'underline';
-                        e.target.style.backgroundColor = isDarkMode ? 'rgba(102,126,234,0.1)' : 'rgba(102,126,234,0.05)';
+                        e.target.style.backgroundColor = isDarkMode ? 'rgba(108,92,231,0.1)' : 'rgba(108,92,231,0.05)';
                       }}
                       onMouseLeave={e => {
                         e.target.style.textDecoration = 'none';
@@ -426,7 +426,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
                       display: 'inline-flex', 
                       alignItems: 'center', 
                       gap: 10,
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      background: 'linear-gradient(135deg, #6c5ce7 0%, #764ba2 100%)',
                       color: '#fff',
                       border: 'none',
                       borderRadius: '18px',
@@ -435,7 +435,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
                       fontWeight: 600,
                       letterSpacing: '0.3px',
                       cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.25)',
+                      boxShadow: '0 4px 12px rgba(108, 92, 231, 0.25)',
                       transform: 'translateZ(0)',
                       transition: 'all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)',
                       WebkitTapHighlightColor: 'transparent',
@@ -444,11 +444,11 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
                     }}
                     onMouseEnter={e => {
                       e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.35)';
+                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(108, 92, 231, 0.35)';
                     }}
                     onMouseLeave={e => {
                       e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.25)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(108, 92, 231, 0.25)';
                     }}
                     onMouseDown={e => {
                       e.currentTarget.style.transform = 'translateY(0) scale(0.98)';
@@ -465,7 +465,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
                         d="M12 21s-7-7.582-7-12a7 7 0 1 1 14 0c0 4.418-7 12-7 12z" 
                         fill="rgba(255,255,255,0.9)"
                       />
-                      <circle cx="12" cy="9" r="3" fill="#667eea" />
+                      <circle cx="12" cy="9" r="3" fill="#6c5ce7" />
                     </svg>
                     <span style={{ 
                       textAlign: 'left',
@@ -498,7 +498,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
                   style={{
                     maxWidth: msg.role === 'user' ? '80%' : '85%',
                     background: msg.role === 'user' 
-                      ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
+                      ? 'linear-gradient(135deg, #6c5ce7 0%, #764ba2 100%)' 
                       : theme.botMessageBg,
                     color: msg.role === 'user' ? '#fff' : theme.botMessageText,
                     borderRadius: msg.role === 'user' ? '20px 20px 6px 20px' : '20px 20px 20px 6px',
@@ -508,7 +508,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
                     whiteSpace: 'pre-line',
                     wordBreak: 'break-word',
                     boxShadow: msg.role === 'user' 
-                      ? '0 3px 12px rgba(102,126,234,0.2)' 
+                      ? '0 3px 12px rgba(108,92,231,0.2)' 
                       : '0 2px 8px rgba(0,0,0,0.06)',
                     textAlign: 'left',
                     lineHeight: 1.5,
@@ -562,8 +562,8 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
             boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
           }}
           onFocus={e => {
-            e.target.style.borderColor = '#667eea';
-            e.target.style.boxShadow = '0 0 0 3px rgba(102,126,234,0.1)';
+            e.target.style.borderColor = '#6c5ce7';
+            e.target.style.boxShadow = '0 0 0 3px rgba(108,92,231,0.1)';
           }}
           onBlur={e => {
             e.target.style.borderColor = theme.inputFieldBorder;
@@ -576,7 +576,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
         <button
           style={{
             background: input.trim() 
-              ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
+              ? 'linear-gradient(135deg, #6c5ce7 0%, #764ba2 100%)' 
               : isDarkMode ? '#3a3a3c' : '#f0f0f0', 
             color: input.trim() ? '#fff' : theme.textTertiary, 
             border: 'none', 
@@ -588,20 +588,20 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
             cursor: input.trim() ? 'pointer' : 'not-allowed',
             transition: 'all 0.2s ease',
             boxShadow: input.trim() 
-              ? '0 2px 8px rgba(102,126,234,0.2)' 
+              ? '0 2px 8px rgba(108,92,231,0.2)' 
               : 'none',
             transform: 'translateZ(0)'
           }}
           onMouseEnter={e => {
             if (input.trim()) {
               e.target.style.transform = 'translateY(-1px)';
-              e.target.style.boxShadow = '0 4px 12px rgba(102,126,234,0.25)';
+              e.target.style.boxShadow = '0 4px 12px rgba(108,92,231,0.25)';
             }
           }}
           onMouseLeave={e => {
             e.target.style.transform = 'translateY(0)';
             e.target.style.boxShadow = input.trim() 
-              ? '0 2px 8px rgba(102,126,234,0.2)' 
+              ? '0 2px 8px rgba(108,92,231,0.2)' 
               : 'none';
           }}
           onClick={handleSend}
