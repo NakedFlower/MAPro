@@ -16,12 +16,12 @@ function Home({ onOpenMap }) {
   };
 
   return (
-    <div style={{ padding: 24, background: '#f0f2f5', minHeight: '100vh' }}>
+    <div style={{ padding: 24, background: '#rgb(240, 242, 245)', minHeight: '100vh' }}>
       <Card
         hoverable
         style={{ width: '90vw',        // 뷰포트 너비의 90%
-                maxWidth: '1400px',  
-                margin: 'auto' 
+                maxWidth: '1000px',  
+                margin: '0 auto' 
               }}
         cover={
           <div style={{ padding: '40px 0', textAlign: 'center' }}>
