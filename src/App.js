@@ -29,7 +29,7 @@ function AppContent() {
   const [showLogin, setShowLogin] = useState(false);
   const [showChatbot, setShowChatbot] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
+  const [mapPlaces, setMapPlaces] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -73,8 +73,16 @@ function AppContent() {
   };
 
   // 홈에서 지도로 이동
+// 홈에서 지도로 이동
   const handleOpenMap = () => {
     navigate('/map');
+  };
+
+  // 챗봇에서 장소 데이터를 받아서 지도로 이동
+  const handleShowPlacesOnMap = (places) => {
+    setMapPlaces(places);
+    setShowChatbot(false); // 챗봇 닫기
+    navigate('/map'); // 지도 페이지로 이동
   };
 
   // 사이드바 토글 함수
@@ -91,6 +99,10 @@ function AppContent() {
   const handleCloseChatbot = () => {
     setShowChatbot(false);
   };
+
+
+
+
 
   // 독립 페이지들은 각각의 컴포넌트만 렌더링
   if (isStandalonePage) {
@@ -163,8 +175,7 @@ function AppContent() {
               <Route path="/User/MyPage/Home" element={<Home onOpenMap={handleOpenMap} />} />
               <Route path="/User/MyPage/Private" element={<ProfileInfo />} />
               <Route path="/User/MyPage/Favorite" element={<PreferenceSetting />} />
-              <Route path="/map" element={<MapView />} />
-            </Routes>
+              <Route path="/map" element={<MapView places={mapPlaces} onPlacesDisplayed={() => setMapPlaces(null)} />} />            </Routes>
 
             {/* 로그인 패널 */}
             {showLogin && (
@@ -231,7 +242,10 @@ function AppContent() {
 
             {/* 챗봇 패널 */}
             {showChatbot && (
-              <ChatbotPanel onClose={handleCloseChatbot} />
+              <ChatbotPanel 
+                onClose={handleCloseChatbot} 
+                onShowPlacesOnMap={handleShowPlacesOnMap}
+              />
             )}
           </div>
         </div>

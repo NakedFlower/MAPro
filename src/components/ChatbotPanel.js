@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-function ChatbotPanel({ onClose }) {
+function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
   const PANEL_WIDTH = 480;
   const PANEL_HEIGHT = 640;
 
@@ -385,6 +385,7 @@ function ChatbotPanel({ onClose }) {
                         borderRadius: '4px',
                         transition: 'all 0.2s ease'
                       }}
+                      onClick={() => onShowPlacesOnMap && onShowPlacesOnMap(msg.places)}
                       onMouseEnter={e => {
                         e.target.style.textDecoration = 'underline';
                         e.target.style.backgroundColor = isDarkMode ? 'rgba(35,87,221,0.1)' : 'rgba(35,87,221,0.05)';
@@ -702,9 +703,6 @@ function ChatbotPanel({ onClose }) {
             opacity: isDarkMode ? '0.8' : '1'
           }}
           onClick={() => setIsDarkMode(!isDarkMode)}
-          onMouseEnter={e => {
-            e.currentTarget.style.opacity = '0.7';
-          }}
           onMouseLeave={e => {
             e.currentTarget.style.opacity = isDarkMode ? '0.8' : '1';
           }}
