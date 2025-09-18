@@ -167,6 +167,39 @@ app.post('/api/geocoding', async (req, res) => {
     }
 });
 
+
+// Python에서 장소 데이터를 받는 새로운 엔드포인트 추가
+app.post('/api/receive-places', (req, res) => {
+    try {
+        const places = req.body;
+        
+        console.log('Python에서 받은 장소 데이터:', places);
+        
+        // 받은 데이터를 그대로 프론트엔드가 사용할 수 있는 형태로 반환
+        const formattedPlaces = places.map((place, index) => ({
+            id: `place-${index}`,
+            name: place.name || '알 수 없는 장소',
+            location: place.location || '',
+            address: place.address || place.location,
+            coordinates: place.coordinates || null,
+            category: place.category || '기타'
+        }));
+
+        res.json({
+            success: true,
+            places: formattedPlaces,
+            count: formattedPlaces.length
+        });
+
+    } catch (error) {
+        console.error('장소 데이터 처리 오류:', error);
+        res.status(500).json({ 
+            error: '장소 데이터 처리 중 오류가 발생했습니다.',
+            details: error.message 
+        });
+    }
+});
+
 // 에러 핸들링 미들웨어
 app.use((error, req, res, next) => {
     console.error('서버 오류:', error);
