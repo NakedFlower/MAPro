@@ -22,6 +22,9 @@ import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage'; // 새로 추가
 import ProfileSettingsPage from './components/ProfileSettingsPage';
 import FindAccountPage from './components/FindAccountPage';
+import AccountSettings from './components/AccountSettings';
+
+
 import { AuthProvider } from './context/AuthContext';
 
 // 메인 앱 컴포넌트 (라우터 내부)
@@ -173,7 +176,7 @@ function AppContent() {
           >
             <Routes>
               <Route path="/User/MyPage/Home" element={<Home onOpenMap={handleOpenMap} />} />
-              <Route path="/User/MyPage/Private" element={<ProfileInfo />} />
+              <Route path="/User/MyPage/Private" element={<AccountSettings />} />
               <Route path="/User/MyPage/Favorite" element={<PreferenceSetting />} />
               <Route path="/map" element={<MapView places={mapPlaces} onPlacesDisplayed={() => setMapPlaces(null)} />} />            </Routes>
 
