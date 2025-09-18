@@ -550,7 +550,7 @@ const MaProLandingPage = () => {
                   fontWeight: 600
                 }}
               >
-                무료로 시작하기
+                지금 시작하기
               </Button>
               
               <Button 
