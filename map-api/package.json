@@ -1,14 +1,16 @@
 {
-  "name": "map-api",
+  "name": "mapro-map-api",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "MAPro Map API Server",
+  "main": "src/app.js",
   "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["map", "api", "nodejs", "express"],
+  "author": "your-name",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "axios": "^1.12.2",
     "cors": "^2.8.5",
