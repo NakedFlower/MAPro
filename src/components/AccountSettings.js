@@ -255,23 +255,28 @@ const AccountSettings = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-      <Header style={{ backgroundColor: 'white', padding: '12px 24px', borderBottom: '1px solid #e8e8e8', minHeight: '100px' }}>
-        <Row justify="space-between" align="middle" style={{ height: '100%' }}>
-          <Col>
-            <Title level={3} style={{ margin: 0, color: '#722ed1' }}>계정 설정</Title>
-            <Text type="secondary">프로필, 보안 및 알림 설정을 관리하세요</Text>
-          </Col>
-          <Col>
-            <Space>
-              <Badge dot>
-                <Text>마지막 업데이트: 방금 전</Text>
-              </Badge>
-              <Button icon={<LogoutOutlined />} onClick={logout}>로그아웃</Button>
-            </Space>
-          </Col>
-        </Row>
-      </Header>
+    <Layout style={{ backgroundColor: '#f5f5f5' }}>
+      <Content style={{ padding: '24px', background: '#f5f5f5', display: 'flex', justifyContent: 'center' }}>
+        <div
+          style={{
+            width: '100%',
+            maxWidth: 1000,
+            backgroundColor: '#fff',
+            borderRadius: 12,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+            padding: '24px 32px',
+          }}
+        >
+          {/* 헤더 영역 */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <Title level={3} style={{ margin: 0, color: '#722ed1' }}>계정 설정</Title>
+              <Text type="secondary">프로필, 보안 및 알림 설정을 관리하세요</Text>
+            </div>
+            <Button icon={<LogoutOutlined />} onClick={logout}>로그아웃</Button>
+          </div>
+        </div>
+      </Content>
 
       <Content style={{ padding: '24px' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
