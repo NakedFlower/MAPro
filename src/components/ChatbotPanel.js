@@ -308,7 +308,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
             cursor: 'pointer',
             transition: 'color 0.2s ease'
           }}
-          onMouseEnter={e => e.target.style.color = isDarkMode ? '#fff' : '#2357dd'}
+          onMouseEnter={e => e.target.style.color = isDarkMode ? '#fff' : '#667eea'}
           onMouseLeave={e => e.target.style.color = theme.textSecondary}
           >회사정보 보기 &gt;</div>
         </div>
@@ -376,7 +376,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
                       key={index}
                       style={{
                         fontSize: '14px', 
-                        color: '#2357dd', 
+                        color: '#667eea',
                         fontWeight: 600, 
                         marginBottom: index === msg.places.length - 1 ? 0 : 6, 
                         cursor: 'pointer', 
@@ -388,7 +388,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
                       onClick={() => onShowPlacesOnMap && onShowPlacesOnMap(msg.places)}
                       onMouseEnter={e => {
                         e.target.style.textDecoration = 'underline';
-                        e.target.style.backgroundColor = isDarkMode ? 'rgba(35,87,221,0.1)' : 'rgba(35,87,221,0.05)';
+                        e.target.style.backgroundColor = isDarkMode ? 'rgba(102,126,234,0.1)' : 'rgba(102,126,234,0.05)';
                       }}
                       onMouseLeave={e => {
                         e.target.style.textDecoration = 'none';
@@ -465,7 +465,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
                         d="M12 21s-7-7.582-7-12a7 7 0 1 1 14 0c0 4.418-7 12-7 12z" 
                         fill="rgba(255,255,255,0.9)"
                       />
-                      <circle cx="12" cy="9" r="3" fill="#2357dd" />
+                      <circle cx="12" cy="9" r="3" fill="#667eea" />
                     </svg>
                     <span style={{ 
                       textAlign: 'left',
@@ -562,8 +562,8 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
             boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
           }}
           onFocus={e => {
-            e.target.style.borderColor = '#2357dd';
-            e.target.style.boxShadow = '0 0 0 3px rgba(35,87,221,0.1)';
+            e.target.style.borderColor = '#667eea';
+            e.target.style.boxShadow = '0 0 0 3px rgba(102,126,234,0.1)';
           }}
           onBlur={e => {
             e.target.style.borderColor = theme.inputFieldBorder;
