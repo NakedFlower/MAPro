@@ -22,6 +22,15 @@ app.use(express.json());
 const PYTHON_CHAT_API = process.env.PYTHON_CHAT_API || 'http://34.64.120.99:8000';
 const JAVA_BACKEND_API = process.env.JAVA_BACKEND_API || 'http://34.64.120.99:4000';
 
+// 구글맵 URL 생성 헬퍼 함수
+const createGoogleMapsUrl = (name, address, coordinates) => {
+    if (coordinates && coordinates.lat && coordinates.lng) {
+        return `https://www.google.com/maps/search/?api=1&query=${coordinates.lat},${coordinates.lng}`;
+    }
+    const query = encodeURIComponent(`${name} ${address}`);
+    return `https://www.google.com/maps/search/?api=1&query=${query}`;
+};
+
 // 헬스체크
 app.get('/health', (req, res) => {
     res.json({ 
@@ -42,35 +51,45 @@ app.post('/api/chat-places', async (req, res) => {
             });
         }
 
-        // 받은 상호들의 주소 정보를 자바 백엔드에서 조회
-        const placeDetails = await Promise.all(
-            places.map(async (place) => {
-                try {
-                    // 자바 백엔드 API 호출하여 주소 정보 가져오기
-                    const response = await axios.get(`${JAVA_BACKEND_API}/api/places/search`, {
-                        params: { name: place.name, location: place.location }
-                    });
-                    
-                    return {
-                        ...place,
-                        address: response.data.address,
-                        coordinates: response.data.coordinates
-                    };
-                } catch (error) {
-                    console.error(`주소 조회 실패 - ${place.name}:`, error.message);
-                    return {
-                        ...place,
-                        address: place.location,
-                        coordinates: null
-                    };
+        // 핀 정보창과 구글맵 연동을 위한 상세 정보 포함
+        const placeDetails = places.map((place, index) => {
+            const coordinates = place.coordinates || { lat: 37.5665 + (index * 0.01), lng: 126.9780 + (index * 0.01) };
+            const address = place.address || place.location || '주소 정보 없음';
+            
+            return {
+                id: `chat-place-${index}`,
+                name: place.name || '알 수 없는 장소',
+                location: place.location || '',
+                address: address,
+                coordinates: coordinates,
+                category: place.category || '기타',
+                // 핀 클릭 시 표시할 정보
+                info: {
+                    phone: place.phone || null,
+                    rating: place.rating || null,
+                    openHours: place.openHours || null,
+                    description: place.description || `${place.name || '장소'}에 대한 정보입니다.`,
+                    features: place.features || []
+                },
+                // 구글맵 연동
+                googleMapsUrl: createGoogleMapsUrl(place.name, address, coordinates),
+                // 핀 표시 옵션
+                pinOptions: {
+                    color: place.category === '음식점' ? '#FF6B6B' : 
+                           place.category === '카페' ? '#4ECDC4' : 
+                           place.category === '병원' ? '#45B7D1' : '#96CEB4',
+                    icon: place.category === '음식점' ? 'restaurant' : 
+                          place.category === '카페' ? 'local_cafe' : 
+                          place.category === '병원' ? 'local_hospital' : 'place'
                 }
-            })
-        );
+            };
+        });
 
         res.json({
             success: true,
             places: placeDetails,
-            count: placeDetails.length
+            count: placeDetails.length,
+            source: 'chatbot'
         });
 
     } catch (error) {
@@ -93,42 +112,62 @@ app.get('/api/places/search', async (req, res) => {
             });
         }
 
-        // 자바 백엔드 API 호출
-        const response = await axios.get(`${JAVA_BACKEND_API}/api/places/search`, {
-            params: { 
-                keyword, 
-                location: location || '' 
+        // 임시 모의 데이터 (실제 검색 결과와 유사한 형태)
+        const mockPlaces = [
+            {
+                id: 'search-1',
+                name: `${keyword} 1호점`,
+                category: keyword.includes('카페') ? '카페' : '음식점',
+                location: location || '서울',
+                address: `${location || '서울특별시'} 강남구 테헤란로 427`,
+                coordinates: { lat: 37.5665, lng: 126.9780 },
+                info: {
+                    phone: '02-1234-5678',
+                    rating: 4.2,
+                    openHours: '09:00 - 22:00',
+                    description: `맛있는 ${keyword}를 제공하는 곳입니다.`,
+                    features: ['WiFi', '주차가능', '포장가능']
+                },
+                googleMapsUrl: createGoogleMapsUrl(`${keyword} 1호점`, `${location || '서울특별시'} 강남구 테헤란로 427`, { lat: 37.5665, lng: 126.9780 }),
+                pinOptions: {
+                    color: keyword.includes('카페') ? '#4ECDC4' : '#FF6B6B',
+                    icon: keyword.includes('카페') ? 'local_cafe' : 'restaurant'
+                }
             },
-            timeout: 5000
-        });
-
-        const places = response.data.map(place => ({
-            id: place.place_id,
-            name: place.name,
-            category: place.category,
-            location: place.location,
-            address: place.address || place.location,
-            coordinates: place.coordinates || null,
-            features: place.feature ? place.feature.split(',') : []
-        }));
+            {
+                id: 'search-2',
+                name: `${keyword} 2호점`,
+                category: keyword.includes('카페') ? '카페' : '음식점',
+                location: location || '서울',
+                address: `${location || '서울특별시'} 서초구 서초대로 398`,
+                coordinates: { lat: 37.5645, lng: 126.9751 },
+                info: {
+                    phone: '02-8765-4321',
+                    rating: 4.5,
+                    openHours: '08:00 - 23:00',
+                    description: `분위기 좋은 ${keyword} 전문점입니다.`,
+                    features: ['24시간', 'WiFi', '배달가능']
+                },
+                googleMapsUrl: createGoogleMapsUrl(`${keyword} 2호점`, `${location || '서울특별시'} 서초구 서초대로 398`, { lat: 37.5645, lng: 126.9751 }),
+                pinOptions: {
+                    color: keyword.includes('카페') ? '#4ECDC4' : '#FF6B6B',
+                    icon: keyword.includes('카페') ? 'local_cafe' : 'restaurant'
+                }
+            }
+        ];
 
         res.json({
             success: true,
-            places: places,
-            count: places.length,
+            places: mockPlaces,
+            count: mockPlaces.length,
             keyword: keyword,
-            searchLocation: location
+            searchLocation: location,
+            source: 'search',
+            note: 'Mock data - 실제 검색 기능은 추후 구현'
         });
 
     } catch (error) {
         console.error('지도 검색 오류:', error);
-        
-        if (error.code === 'ECONNREFUSED') {
-            return res.status(503).json({ 
-                error: '백엔드 서버에 연결할 수 없습니다.' 
-            });
-        }
-
         res.status(500).json({ 
             error: '검색 중 오류가 발생했습니다.',
             details: error.message 
@@ -136,7 +175,7 @@ app.get('/api/places/search', async (req, res) => {
     }
 });
 
-// 3. 좌표 변환 서비스 (필요시)
+// 3. 좌표 변환 서비스
 app.post('/api/geocoding', async (req, res) => {
     try {
         const { address } = req.body;
@@ -147,16 +186,13 @@ app.post('/api/geocoding', async (req, res) => {
             });
         }
 
-        // 여기서는 자바 백엔드의 지오코딩 서비스 호출
-        // 또는 직접 구글/네이버 지도 API 호출
-        const response = await axios.post(`${JAVA_BACKEND_API}/api/geocoding`, {
-            address: address
-        });
-
+        // 임시 모의 좌표 반환
         res.json({
             success: true,
-            coordinates: response.data.coordinates,
-            address: response.data.formattedAddress || address
+            coordinates: { lat: 37.5665, lng: 126.9780 },
+            address: address,
+            googleMapsUrl: createGoogleMapsUrl('검색 위치', address, { lat: 37.5665, lng: 126.9780 }),
+            note: 'Mock coordinates - 실제 지오코딩은 추후 구현'
         });
 
     } catch (error) {
@@ -167,28 +203,53 @@ app.post('/api/geocoding', async (req, res) => {
     }
 });
 
-
-// Python에서 장소 데이터를 받는 새로운 엔드포인트 추가
+// 4. Python에서 장소 데이터를 받는 엔드포인트
 app.post('/api/receive-places', (req, res) => {
     try {
         const places = req.body;
         
         console.log('Python에서 받은 장소 데이터:', places);
         
-        // 받은 데이터를 그대로 프론트엔드가 사용할 수 있는 형태로 반환
-        const formattedPlaces = places.map((place, index) => ({
-            id: `place-${index}`,
-            name: place.name || '알 수 없는 장소',
-            location: place.location || '',
-            address: place.address || place.location,
-            coordinates: place.coordinates || null,
-            category: place.category || '기타'
-        }));
+        // 핀 정보창과 구글맵 연동을 위한 상세 정보 포함
+        const formattedPlaces = places.map((place, index) => {
+            const coordinates = place.coordinates || { lat: 37.5665 + (index * 0.01), lng: 126.9780 + (index * 0.01) };
+            const address = place.address || place.location || '주소 정보 없음';
+            const name = place.name || '알 수 없는 장소';
+            
+            return {
+                id: `python-place-${index}`,
+                name: name,
+                location: place.location || '',
+                address: address,
+                coordinates: coordinates,
+                category: place.category || '기타',
+                // 핀 클릭 시 표시할 정보
+                info: {
+                    phone: place.phone || null,
+                    rating: place.rating || null,
+                    openHours: place.openHours || null,
+                    description: place.description || `${name}에 대한 정보입니다.`,
+                    features: place.features || []
+                },
+                // 구글맵 연동
+                googleMapsUrl: createGoogleMapsUrl(name, address, coordinates),
+                // 핀 표시 옵션
+                pinOptions: {
+                    color: place.category === '음식점' ? '#FF6B6B' : 
+                           place.category === '카페' ? '#4ECDC4' : 
+                           place.category === '병원' ? '#45B7D1' : '#96CEB4',
+                    icon: place.category === '음식점' ? 'restaurant' : 
+                          place.category === '카페' ? 'local_cafe' : 
+                          place.category === '병원' ? 'local_hospital' : 'place'
+                }
+            };
+        });
 
         res.json({
             success: true,
             places: formattedPlaces,
-            count: formattedPlaces.length
+            count: formattedPlaces.length,
+            source: 'python'
         });
 
     } catch (error) {
@@ -196,6 +257,43 @@ app.post('/api/receive-places', (req, res) => {
         res.status(500).json({ 
             error: '장소 데이터 처리 중 오류가 발생했습니다.',
             details: error.message 
+        });
+    }
+});
+
+// 5. 특정 장소 상세 정보 조회
+app.get('/api/place/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // 임시 상세 정보 반환 (실제로는 데이터베이스에서 조회)
+        const placeDetail = {
+            id: id,
+            name: '상세 정보 테스트',
+            address: '서울특별시 강남구 테헤란로 427',
+            coordinates: { lat: 37.5665, lng: 126.9780 },
+            category: '음식점',
+            info: {
+                phone: '02-1234-5678',
+                rating: 4.3,
+                openHours: '10:00 - 22:00',
+                description: '맛있는 음식을 제공하는 레스토랑입니다.',
+                features: ['WiFi', '주차가능', '포장가능', '배달가능'],
+                photos: [] // 추후 이미지 URL 배열
+            },
+            googleMapsUrl: createGoogleMapsUrl('상세 정보 테스트', '서울특별시 강남구 테헤란로 427', { lat: 37.5665, lng: 126.9780 }),
+            reviews: [] // 추후 리뷰 데이터
+        };
+
+        res.json({
+            success: true,
+            place: placeDetail
+        });
+
+    } catch (error) {
+        console.error('장소 상세 정보 조회 오류:', error);
+        res.status(500).json({ 
+            error: '장소 정보를 가져올 수 없습니다.' 
         });
     }
 });
@@ -209,14 +307,14 @@ app.use((error, req, res, next) => {
     });
 });
 
-// 모든 라우트 뒤에 추가
-// 404 핸들링 (맨 마지막에)
+// 404 핸들링
 app.use('*', (req, res) => {
     res.status(404).json({ 
         error: '엔드포인트를 찾을 수 없습니다.',
         path: req.originalUrl
     });
 });
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🗺️  Map API Server running on port ${PORT}`);
     console.log(`🔗 Python Chat API: ${PYTHON_CHAT_API}`);
