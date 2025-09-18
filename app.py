@@ -725,6 +725,7 @@ def clean_location_query(text: str, category: str, features: list) -> str:
 @app.post("/chat", response_model=ChatResponse)
 def chat_endpoint(req: ChatRequest):
     user_message = (req.message or "").strip()
+    
     # 후속 요청(지역 선택) 처리
     if req.selected_location and req.pending:
         try:
@@ -736,6 +737,18 @@ def chat_endpoint(req: ChatRequest):
             matched_places = query_places(extracted)
             if matched_places:
                 reply_text = build_reply(extracted, matched_places)
+                
+                # 🔥🔥 Node.js로도 전송 (후속 요청)
+                try:
+                    node_response = requests.post(
+                        "http://34.64.120.99:5000/api/chat-places",
+                        json={"places": matched_places[:5]},
+                        timeout=3
+                    )
+                    print(f"✅ Node.js 전송 성공 (후속): {node_response.status_code}")
+                except Exception as e:
+                    print(f"⚠️ Node.js 전송 실패 (후속): {e}")
+                
                 return ChatResponse(reply=reply_text, places=matched_places[:5])
             else:
                 return ChatResponse(reply="조건에 맞는 매장을 찾지 못했어요. 다른 키워드로 시도해 보시겠어요?", places=None)
@@ -800,6 +813,18 @@ def chat_endpoint(req: ChatRequest):
         
         if matched_places:
             reply_text = build_reply(extracted, matched_places)
+            
+            # 🔥🔥 Node.js로도 전송 (메인 응답)
+            try:
+                node_response = requests.post(
+                    "http://34.64.120.99:5000/api/chat-places",
+                    json={"places": matched_places[:5]},
+                    timeout=3
+                )
+                print(f"✅ Node.js 전송 성공: {node_response.status_code}")
+            except Exception as e:
+                print(f"⚠️ Node.js 전송 실패: {e}")
+            
             return ChatResponse(reply=reply_text, places=matched_places[:5])
         else:
             return ChatResponse(reply="조건에 맞는 매장을 찾지 못했어요. 다른 키워드로 시도해 보시겠어요?", places=None)
