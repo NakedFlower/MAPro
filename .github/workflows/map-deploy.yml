@@ -24,6 +24,7 @@ jobs:
       run: gcloud auth configure-docker asia-northeast3-docker.pkg.dev
 
     - name: Build and push Docker image (no cache)
+      working-directory: ./map-api
       run: |
         IMAGE_NAME=asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-map-api:latest
         docker build --no-cache -t $IMAGE_NAME .
@@ -55,4 +56,3 @@ jobs:
             -e JAVA_BACKEND_API="http://34.64.120.99:4000" \
             -e PORT=5000 \
             $IMAGE_NAME
-            
