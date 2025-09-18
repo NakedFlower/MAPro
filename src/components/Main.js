@@ -32,6 +32,11 @@ const MaProLandingPage = () => {
     navigate('/login');
   };
 
+  // 회원등록 페이지로 이동하는 함수
+  const handleGoToRegister = () => {
+    navigate('/register');
+  };
+
   // 맵 페이지로 이동하는 함수 (무료 체험 버튼용)
   const handleGoToMap = () => {
     navigate('/login'); // 일단 로그인 페이지로 보내고, 로그인 후 맵으로 이동하도록 나중에 설정
@@ -155,7 +160,7 @@ const MaProLandingPage = () => {
             style={{ borderRadius: '25px' }}
             onClick={handleGoToLogin} // 로그인 페이지로 변경
           >
-            무료 체험
+            로그인
           </Button>
         </div>
       </Header>
@@ -216,7 +221,7 @@ const MaProLandingPage = () => {
               <Button 
                 type="primary" 
                 size="large"
-                onClick={handleGoToLogin} // 로그인 페이지로 변경
+                onClick={handleGoToRegister} // 로그인 페이지로 변경
                 style={{ 
                   background: 'white',
                   color: '#1890ff',
@@ -228,7 +233,7 @@ const MaProLandingPage = () => {
                   fontWeight: 600
                 }}
               >
-                무료로 시작하기
+                지금 시작하기
               </Button>
               
               <Button 
