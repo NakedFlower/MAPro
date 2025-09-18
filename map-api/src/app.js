@@ -176,8 +176,8 @@ app.use((error, req, res, next) => {
     });
 });
 
-// 404 핸들링
-app.use('*', (req, res) => {
+// 모든 라우트 뒤에 추가
+app.all('*', (req, res) => {
     res.status(404).json({ 
         error: '엔드포인트를 찾을 수 없습니다.',
         path: req.originalUrl
