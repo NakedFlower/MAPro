@@ -178,8 +178,8 @@ const RegisterPage = () => {
     },
     {
       icon: <CloudOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
-      title: '챗봇',
-      description: '사용자 친화적인 지도 어플'
+      title: '사용자 중심',
+      description: '대화형 지도 어플'
     }
   ];
 
@@ -358,8 +358,7 @@ const RegisterPage = () => {
                 onClick={() => handleSocialRegister('Google')}
               >
                 Google로 가입하기
-              </Button>
-              {/*               
+              </Button>              
               <Row gutter={12}>
                 <Col span={12}>
                   <Button
@@ -393,7 +392,7 @@ const RegisterPage = () => {
                     Apple
                   </Button>
                 </Col>
-              </Row> */}
+              </Row>
             </Space>
 
             <Divider>
