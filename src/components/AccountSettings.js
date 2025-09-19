@@ -278,7 +278,7 @@ const AccountSettings = () => {
         </div>
       </Content>
 
-      <Content style={{ padding: '24px' }}>
+      <Content style={{ padding: '0 24px 24px 24px' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
           <Card style={{ borderRadius: '8px' }}>
             <Tabs
