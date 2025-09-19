@@ -49,17 +49,6 @@ const FindAccountPage = () => {
   });
   const [foundAccounts, setFoundAccounts] = useState([]);
 
-   useEffect(() => {
-    // 페이지 진입 시 body 스크롤 방지
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-    
-    // 컴포넌트 언마운트 시 원복
-    return () => {
-      document.body.style.overflow = 'auto';
-      document.documentElement.style.overflow = 'auto';
-    };
-  }, []);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -548,14 +537,12 @@ const FindAccountPage = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      height: '100vh', // 추가
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '20px',
-      position: 'relative',
-      overflow: 'hidden' // 추가
+      padding: '60px 20px',
+      position: 'relative'
     }}>
       {/* 배경 장식 */}
       <div style={{
