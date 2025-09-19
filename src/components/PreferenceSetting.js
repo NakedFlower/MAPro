@@ -102,11 +102,10 @@ function PreferenceSettings() {
                 
                 <Checkbox.Group
                   style={{ 
-                    display: "grid", 
-                    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", 
-                    gap: "4px 8px",
-                    width: "100%",
-                    justifyItems: "start"
+                    display: "flex", 
+                    flexWrap: "wrap",
+                    gap: "4px 16px",
+                    width: "100%"
                   }}
                   value={selected[category]}
                   onChange={(values) => handleChange(category, values)}
@@ -118,7 +117,8 @@ function PreferenceSettings() {
                       style={{ 
                         fontSize: '14px',
                         padding: '2px 0',
-                        margin: 0
+                        margin: 0,
+                        minWidth: '120px'
                       }}
                     >
                       {option}
