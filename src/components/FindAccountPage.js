@@ -140,19 +140,18 @@ const FindAccountPage = () => {
 
   const steps = [
     {
-      title: '정보 입력',
+      title: '이메일 입력',
       icon: <UserOutlined />,
-      description: '본인 확인 정보를 입력해주세요'
     },
     {
       title: '본인 인증',
       icon: <SafetyCertificateOutlined />,
-      description: '인증 코드를 확인해주세요'
+      description: '인증 코드 확인'
     },
     {
       title: activeTab === 'findId' ? '계정 확인' : '비밀번호 재설정',
       icon: activeTab === 'findId' ? <CheckCircleOutlined /> : <KeyOutlined />,
-      description: activeTab === 'findId' ? '계정을 확인하세요' : '새 비밀번호를 설정하세요'
+      description: activeTab === 'findId' ? '' : '새 비밀번호를 설정하세요'
     }
   ];
 
@@ -160,7 +159,6 @@ const FindAccountPage = () => {
     steps.push({
       title: '완료',
       icon: <CheckCircleOutlined />,
-      description: '비밀번호 변경이 완료되었습니다'
     });
   }
 
@@ -173,7 +171,7 @@ const FindAccountPage = () => {
             <Title level={4}>
               {activeTab === 'findId' ? '아이디 찾기' : '비밀번호 찾기'}
             </Title>
-            <Text type="secondary" style={{ fontSize: '16px' }}>
+            <Text type="secondary" style={{ fontSize: '12px' }}>
               {activeTab === 'findId' 
                 ? '가입 시 입력한 정보로 아이디를 찾을 수 있습니다' 
                 : '가입 시 입력한 정보로 비밀번호를 재설정할 수 있습니다'
@@ -197,9 +195,6 @@ const FindAccountPage = () => {
             </div>
 
             <div>
-              <Text strong style={{ display: 'block', marginBottom: '8px' }}>
-                인증 방법 선택 *
-              </Text>
               <Radio.Group 
                 value={verificationMethod} 
                 onChange={(e) => setVerificationMethod(e.target.value)}
@@ -214,18 +209,6 @@ const FindAccountPage = () => {
                         <br />
                         <Text type="secondary" style={{ fontSize: '12px' }}>
                           등록된 이메일로 인증코드를 전송합니다
-                        </Text>
-                      </div>
-                    </div>
-                  </Radio>
-                  <Radio value="phone">
-                    <div style={{ display: 'flex', alignItems: 'center', padding: '8px 0' }}>
-                      <PhoneOutlined style={{ marginRight: '8px', color: '#667eea' }} />
-                      <div>
-                        <Text strong>SMS로 인증</Text>
-                        <br />
-                        <Text type="secondary" style={{ fontSize: '12px' }}>
-                          등록된 전화번호로 인증코드를 전송합니다
                         </Text>
                       </div>
                     </div>
@@ -631,7 +614,7 @@ const FindAccountPage = () => {
             WebkitTextFillColor: 'transparent',
             fontWeight: '700'
           }}>
-            MaproCloud
+            MAPro
           </Title>
 
           {/* 탭 선택 */}
