@@ -172,24 +172,14 @@ const RegisterPage = () => {
 
   const features = [
     {
-      icon: <SafetyOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
-      title: '보안',
-      description: '엔터프라이즈급 보안'
-    },
-    {
-      icon: <TeamOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
-      title: '협업',
-      description: '팀 단위 협업 도구'
-    },
-    {
       icon: <ThunderboltOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
-      title: '성능',
-      description: '빠른 처리 속도'
+      title: '개인 맞춤화',
+      description: '개인의 선호도를 반영한 매장 탐색'
     },
     {
       icon: <CloudOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
-      title: '클라우드',
-      description: '안정적인 클라우드 서비스'
+      title: '챗봇',
+      description: '챗봇을 통한 사용자 친화적인 지도 어플'
     }
   ];
 
@@ -241,16 +231,15 @@ const RegisterPage = () => {
                 marginBottom: '24px',
                 lineHeight: '1.2'
               }}>
-                MaproCloud와 함께<br />
-                새로운 시작을 하세요
+                MAPro를 이용해<br />
+                여러분만의 매장을 찾아보세요 
               </Title>
               <Text style={{ 
                 color: 'rgba(255, 255, 255, 0.9)', 
                 fontSize: '18px',
                 lineHeight: '1.6'
               }}>
-                무료로 시작하여 비즈니스 성장을 경험해보세요.<br />
-                언제든 업그레이드 가능합니다.
+                무료로 시작하여 지도 어플의 혁신을 경험해보세요.<br />
               </Text>
             </div>
 
@@ -348,7 +337,7 @@ const RegisterPage = () => {
                 WebkitTextFillColor: 'transparent',
                 fontWeight: '700'
               }}>
-                MaproCloud
+                MAPro
               </Title>
               <Text type="secondary" style={{ fontSize: '16px' }}>
                 무료로 계정을 만들어보세요
@@ -371,6 +360,7 @@ const RegisterPage = () => {
               >
                 Google로 가입하기
               </Button>
+              {/*               
               <Row gutter={12}>
                 <Col span={12}>
                   <Button
@@ -404,7 +394,7 @@ const RegisterPage = () => {
                     Apple
                   </Button>
                 </Col>
-              </Row>
+              </Row> */}
             </Space>
 
             <Divider>
@@ -530,8 +520,7 @@ const RegisterPage = () => {
                   </Text>
                 )}
               </div>
-
-              {/* 약관 동의 */}
+              
               <div style={{ marginBottom: '24px' }}>
                 <Space direction="vertical" style={{ width: '100%' }} size="small">
                   <Checkbox 
@@ -548,7 +537,7 @@ const RegisterPage = () => {
                     checked={agreePrivacy}
                     onChange={(e) => setAgreePrivacy(e.target.checked)}
                   >
-                    <Text style={{ fontSize: '14px' }}>
+                    {/* <Text style={{ fontSize: '14px' }}>
                       <Text strong style={{ color: '#ff4d4f' }}>*</Text>
                       {' '}개인정보 처리방침에 동의합니다 
                       <Link href="#" style={{ fontSize: '14px' }}>(보기)</Link>
@@ -560,7 +549,7 @@ const RegisterPage = () => {
                   >
                     <Text style={{ fontSize: '14px' }}>
                       마케팅 정보 수신에 동의합니다 (선택)
-                    </Text>
+                    </Text> */}
                   </Checkbox>
                 </Space>
               </div>
@@ -597,7 +586,7 @@ const RegisterPage = () => {
                 </Link>
               </div>
 
-              {/* 보안 정보 */}
+              {/* 보안 정보 
               <div style={{
                 marginTop: '24px',
                 padding: '16px',
@@ -616,6 +605,7 @@ const RegisterPage = () => {
                   개인정보는 철저히 보안이 유지됩니다.
                 </Text>
               </div>
+              */}
             </div>
           </Card>
         </Col>
