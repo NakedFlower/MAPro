@@ -258,7 +258,7 @@ const RegisterPage = () => {
                     <Title level={5} style={{ color: 'white', marginBottom: '8px' }}>
                       {feature.title}
                     </Title>
-                    <Text style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '14px' }}>
+                    <Text style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '13px', whiteSpace: 'nowrap' }}>
                       {feature.description}
                     </Text>
                   </div>
