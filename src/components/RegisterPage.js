@@ -242,9 +242,9 @@ const RegisterPage = () => {
               </Text>
             </div>
 
-            <Row gutter={[32, 32]}>
+            <Row gutter={[24, 24]}>
               {features.map((feature, index) => (
-                <Col span={12} key={index}>
+                <Col span={24} key={index}>
                   <div style={{
                     background: 'rgba(255, 255, 255, 0.1)',
                     backdropFilter: 'blur(10px)',
