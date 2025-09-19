@@ -49,6 +49,25 @@ const FindAccountPage = () => {
   });
   const [foundAccounts, setFoundAccounts] = useState([]);
 
+  useEffect(() => {
+    // 페이지 진입 시 좌우 스크롤 방지 및 여백 제거
+    document.body.style.overflowX = 'hidden';
+    document.body.style.margin = '0';
+    document.body.style.padding = '0';
+    document.documentElement.style.overflowX = 'hidden';
+    document.documentElement.style.margin = '0';
+    document.documentElement.style.padding = '0';
+    
+    // 컴포넌트 언마운트 시 원복
+    return () => {
+      document.body.style.overflowX = 'auto';
+      document.body.style.margin = '';
+      document.body.style.padding = '';
+      document.documentElement.style.overflowX = 'auto';
+      document.documentElement.style.margin = '';
+      document.documentElement.style.padding = '';
+    };
+  }, []);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -542,7 +561,10 @@ const FindAccountPage = () => {
       alignItems: 'center',
       justifyContent: 'center',
       padding: '60px 20px 60px 20px',
-      position: 'relative'
+      position: 'relative',
+      overflowX: 'hidden',
+      width: '100vw',
+      boxSizing: 'border-box'
     }}>
       {/* 배경 장식 */}
       <div style={{
@@ -594,15 +616,6 @@ const FindAccountPage = () => {
           }}>
             <CloudOutlined style={{ fontSize: '32px', color: 'white' }} />
           </div>
-          <Title level={2} style={{ 
-            marginBottom: '8px',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            fontWeight: '700'
-          }}>
-            MAPro
-          </Title>
 
           {/* 탭 선택 */}
           <div style={{
