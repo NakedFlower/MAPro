@@ -172,12 +172,12 @@ const RegisterPage = () => {
 
   const features = [
     {
-      icon: <ThunderboltOutlined style={{ fontSize: '24px', color: 'white' }} />,
+      icon: <ThunderboltOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
       title: '개인 맞춤화',
       description: '취향을 반영한 매장 탐색'
     },
     {
-      icon: <CloudOutlined style={{ fontSize: '24px', color: 'white' }} />,
+      icon: <CloudOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
       title: '사용자 중심',
       description: '대화형 지도 어플'
     }
@@ -242,9 +242,9 @@ const RegisterPage = () => {
               </Text>
             </div>
 
-            <Row gutter={[24, 24]}>
+            <Row gutter={[32, 32]}>
               {features.map((feature, index) => (
-                <Col span={24} key={index}>
+                <Col span={12} key={index}>
                   <div style={{
                     background: 'rgba(255, 255, 255, 0.1)',
                     backdropFilter: 'blur(10px)',
