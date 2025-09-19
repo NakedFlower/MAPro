@@ -172,12 +172,12 @@ const RegisterPage = () => {
 
   const features = [
     {
-      icon: <ThunderboltOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
+      icon: <ThunderboltOutlined style={{ fontSize: '24px', color: 'white' }} />,
       title: '개인 맞춤화',
       description: '취향을 반영한 매장 탐색'
     },
     {
-      icon: <CloudOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
+      icon: <CloudOutlined style={{ fontSize: '24px', color: 'white' }} />,
       title: '사용자 중심',
       description: '대화형 지도 어플'
     }
