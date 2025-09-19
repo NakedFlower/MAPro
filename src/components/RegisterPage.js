@@ -174,12 +174,12 @@ const RegisterPage = () => {
     {
       icon: <ThunderboltOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
       title: '개인 맞춤화',
-      description: '개인의 선호도를 반영한 매장 탐색'
+      description: '개인의 취향을 반영한 매장 탐색'
     },
     {
       icon: <CloudOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
       title: '챗봇',
-      description: '챗봇을 통한 사용자 친화적인 지도 어플'
+      description: '사용자 친화적인 지도 어플'
     }
   ];
 
@@ -231,8 +231,7 @@ const RegisterPage = () => {
                 marginBottom: '24px',
                 lineHeight: '1.2'
               }}>
-                MAPro를 이용해<br />
-                여러분만의 매장을 찾아보세요 
+                당신만의 매장을 <br />찾아보세요 
               </Title>
               <Text style={{ 
                 color: 'rgba(255, 255, 255, 0.9)', 
@@ -533,11 +532,12 @@ const RegisterPage = () => {
                       <Link href="#" style={{ fontSize: '14px' }}>(보기)</Link>
                     </Text>
                   </Checkbox>
+                  {/* 
                   <Checkbox 
                     checked={agreePrivacy}
                     onChange={(e) => setAgreePrivacy(e.target.checked)}
                   >
-                    {/* <Text style={{ fontSize: '14px' }}>
+                    <Text style={{ fontSize: '14px' }}>
                       <Text strong style={{ color: '#ff4d4f' }}>*</Text>
                       {' '}개인정보 처리방침에 동의합니다 
                       <Link href="#" style={{ fontSize: '14px' }}>(보기)</Link>
@@ -549,8 +549,9 @@ const RegisterPage = () => {
                   >
                     <Text style={{ fontSize: '14px' }}>
                       마케팅 정보 수신에 동의합니다 (선택)
-                    </Text> */}
+                    </Text>
                   </Checkbox>
+                  */} 
                 </Space>
               </div>
 
