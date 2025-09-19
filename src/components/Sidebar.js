@@ -178,12 +178,12 @@ function Sidebar({ selected, setSelected, onOpenLogin, isCollapsed, onToggleColl
               display: 'flex',
               alignItems: 'center',
               gap: '12px',
-              padding: '8px',
+              paddingLeft: '4px',
               // background: '#f5f5f5',
               borderRadius: '8px',
             }}
           >
-            <Avatar icon={<UserOutlined />} size={40} />
+            <Avatar icon={<UserOutlined />} size={40} style={{backgroundColor:"#6c5ce7", fontSize:"14px"}}/>
             {!isCollapsed && (
               <div>
                 <Typography.Text strong>{user.name}님</Typography.Text>
