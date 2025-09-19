@@ -226,17 +226,16 @@ function AppContent() {
                 width: 48,
                 height: 48,
                 backgroundColor: '#6c5ce7',
-                boxShadow: showChatbot 
-                  ? '0 8px 30px rgba(108, 92, 231, 0.4)' 
-                  : '0 4px 16px rgba(108, 92, 231, 0.2)',
-                transform: showChatbot ? 'scale(1.1)' : 'scale(1)',
+                // 항상 호버 상태의 스타일 적용
+                boxShadow: '0 8px 30px rgba(108, 92, 231, 0.4)',
+                transform: 'scale(1.1)',
                 transition: 'all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
               }}
               onClick={() => setShowChatbot((v) => !v)}
               tooltip={
                 <div style={{
                   transition: 'opacity 0.2s ease',
-                  opacity: showChatbot ? 0.8 : 1
+                  opacity: 1 // 항상 불투명하게
                 }}>
                   {showChatbot ? '닫기' : '챗봇 열기'}
                 </div>
