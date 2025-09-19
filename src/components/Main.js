@@ -53,7 +53,7 @@ const MaProLandingPage = () => {
     {
       icon: <StarOutlined style={{ fontSize: '2rem', color: '#1890ff' }} />,
       title: '개인 맞춤 추천',
-      description: 'AI가 분석한 개인의 취향과 선호도를 바탕으로 가장 적합한 장소를 추천해드립니다.'
+      description: '개인의 취향과 선호도를 바탕으로 가장 적합한 장소를 추천해드립니다.'
     },
     {
       icon: <BarChartOutlined style={{ fontSize: '2rem', color: '#1890ff' }} />,
@@ -63,7 +63,7 @@ const MaProLandingPage = () => {
     {
       icon: <RocketOutlined style={{ fontSize: '2rem', color: '#1890ff' }} />,
       title: '빠른 검색 속도',
-      description: '고성능 AI 엔진으로 몇 초 내에 최적의 장소를 찾아 추천해드립니다.'
+      description: '고성능 클라우드 엔진으로 몇 초 내에 최적의 장소를 찾아 추천해드립니다.'
     }
   ];
 
@@ -213,8 +213,7 @@ const MaProLandingPage = () => {
                 margin: '0 auto 2rem'
               }}
             >
-              수백만 개의 실제 리뷰를 분석하여 개인의 취향과 선호도에 맞는 
-              맞춤형 장소를 추천하는 AI 서비스입니다.
+              수백만 개의 실제 리뷰를 분석하여 <br />개인의 취향과 선호도에 맞는 맞춤형 장소를 추천하는 서비스입니다.
             </Paragraph>
             
             <Space size="large">
@@ -266,7 +265,7 @@ const MaProLandingPage = () => {
                 왜 MAPro를 선택해야 할까요?
               </Title>
               <Paragraph style={{ fontSize: '1.2rem', color: '#666' }}>
-                AI 기술로 더욱 정확하고 개인화된 장소 추천을 경험하세요.
+                더욱 정확하고 개인화된 장소 추천을 경험하세요.
               </Paragraph>
             </div>
             
@@ -342,7 +341,8 @@ const MaProLandingPage = () => {
                   </div>
                   <Statistic
                     title={<span style={{ color: '#666', fontSize: '14px', fontWeight: '500' }}>누적 사용자</span>}
-                    value={<CountUp end={320000} />}
+                    value={320000}
+                    formatter={(value) => <CountUp end={Number(value)} />}
                     suffix="+"
                     valueStyle={{ color: '#1890ff', fontSize: '2.5rem', fontWeight: '700', lineHeight: '1.2' }}
                   />
@@ -380,10 +380,11 @@ const MaProLandingPage = () => {
                     💬
                   </div>
                   <Statistic
-                    title={<span style={{ color: '#666', fontSize: '14px', fontWeight: '500' }}>분석된 리뷰</span>}
-                    value={<CountUp end={8700000} />}
+                    title={<span style={{ color: '#666', fontSize: '10px', fontWeight: '500' }}>분석된 리뷰</span>}
+                    value={8700000}
+                    formatter={(value) => <CountUp end={Number(value)} />}
                     suffix="개"
-                    valueStyle={{ color: '#52c41a', fontSize: '2.5rem', fontWeight: '700', lineHeight: '1.2' }}
+                    valueStyle={{ color: '#52c41a', fontSize: '2.0rem', fontWeight: '700', lineHeight: '1.2' }}
                   />
                   <div style={{ color: '#999', fontSize: '12px', marginTop: '8px' }}>
                     실시간 업데이트
@@ -420,12 +421,13 @@ const MaProLandingPage = () => {
                   </div>
                   <Statistic
                     title={<span style={{ color: '#666', fontSize: '14px', fontWeight: '500' }}>추천 정확도</span>}
-                    value={<CountUp end={94.8} />}
+                    value={94.8}
+                    formatter={(value) => <CountUp end={Number(value)} decimals={1} />}
                     suffix="%"
                     valueStyle={{ color: '#722ed1', fontSize: '2.5rem', fontWeight: '700', lineHeight: '1.2' }}
                   />
                   <div style={{ color: '#999', fontSize: '12px', marginTop: '8px' }}>
-                    AI 학습 기반
+                    실제 리뷰 기반
                   </div>
                 </Card>
               </Col>
@@ -459,7 +461,8 @@ const MaProLandingPage = () => {
                   </div>
                   <Statistic
                     title={<span style={{ color: '#666', fontSize: '14px', fontWeight: '500' }}>평균 만족도</span>}
-                    value={<CountUp end={4.9} />}
+                    value={4.9}
+                    formatter={(value) => <CountUp end={Number(value)} decimals={1} />}
                     suffix="/5.0"
                     valueStyle={{ color: '#fa8c16', fontSize: '2.5rem', fontWeight: '700', lineHeight: '1.2' }}
                   />
@@ -516,12 +519,12 @@ const MaProLandingPage = () => {
 
         {/* CTA Section */}
         <div style={{ 
-          padding: '80px 0', 
+          padding: '60px 0', 
           background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)',
           color: 'white',
           textAlign: 'center' 
         }}>
-          <div style={{ maxWidth: '600px', margin: '0 auto', padding: '0 2rem' }}>
+          <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 2rem' }}>
             <Title level={2} style={{ color: 'white', marginBottom: '1rem' }}>
               지금 바로 시작해보세요!
             </Title>
