@@ -154,12 +154,10 @@ const FindAccountPage = () => {
     {
       title: '본인 인증',
       icon: <SafetyCertificateOutlined />,
-      description: '인증 코드 확인'
     },
     {
       title: activeTab === 'findId' ? '계정 확인' : '비밀번호 재설정',
       icon: activeTab === 'findId' ? <CheckCircleOutlined /> : <KeyOutlined />,
-      description: activeTab === 'findId' ? '' : '새 비밀번호를 설정하세요'
     }
   ];
 
