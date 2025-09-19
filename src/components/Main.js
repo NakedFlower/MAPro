@@ -380,11 +380,11 @@ const MaProLandingPage = () => {
                     💬
                   </div>
                   <Statistic
-                    title={<span style={{ color: '#666', fontSize: '12px', fontWeight: '500' }}>분석된 리뷰</span>}
+                    title={<span style={{ color: '#666', fontSize: '10px', fontWeight: '500' }}>분석된 리뷰</span>}
                     value={8700000}
                     formatter={(value) => <CountUp end={Number(value)} />}
                     suffix="개"
-                    valueStyle={{ color: '#52c41a', fontSize: '2.5rem', fontWeight: '700', lineHeight: '1.2' }}
+                    valueStyle={{ color: '#52c41a', fontSize: '2.0rem', fontWeight: '700', lineHeight: '1.2' }}
                   />
                   <div style={{ color: '#999', fontSize: '12px', marginTop: '8px' }}>
                     실시간 업데이트
@@ -524,7 +524,7 @@ const MaProLandingPage = () => {
           color: 'white',
           textAlign: 'center' 
         }}>
-          <div style={{ maxWidth: '600px', margin: '0 auto', padding: '0 2rem' }}>
+          <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 2rem' }}>
             <Title level={2} style={{ color: 'white', marginBottom: '1rem' }}>
               지금 바로 시작해보세요!
             </Title>
