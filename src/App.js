@@ -200,24 +200,26 @@ function AppContent() {
                 justifyContent: 'center',
                 cursor: 'pointer',
                 zIndex: 1000,
-                // 항상 강화된 hover 스타일 적용
-                boxShadow: '0 12px 40px rgba(108, 92, 231, 0.5), 0 4px 20px rgba(108, 92, 231, 0.3)',
+                // 항상 강화된 hover 스타일 적용 (그림자 제거)
+                boxShadow: 'none',
                 transform: 'scale(1.15)',
                 border: '2px solid rgba(255, 255, 255, 0.2)',
                 backdropFilter: 'blur(10px)',
-                background: 'linear-gradient(135deg, #6c5ce7 0%, #764ba2 100%)',
+                background: showChatbot 
+                  ? 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)'
+                  : 'linear-gradient(135deg, #6c5ce7 0%, #764ba2 100%)',
                 transition: 'all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
               }}
               onClick={() => setShowChatbot((v) => !v)}
               onMouseEnter={(e) => {
                 // hover 시에도 동일한 스타일 유지 (약간만 더 강화)
                 e.currentTarget.style.transform = 'scale(1.18)';
-                e.currentTarget.style.boxShadow = '0 16px 50px rgba(108, 92, 231, 0.6), 0 6px 25px rgba(108, 92, 231, 0.4)';
+                e.currentTarget.style.boxShadow = 'none';
               }}
               onMouseLeave={(e) => {
                 // 원래 강화된 상태로 복귀
                 e.currentTarget.style.transform = 'scale(1.15)';
-                e.currentTarget.style.boxShadow = '0 12px 40px rgba(108, 92, 231, 0.5), 0 4px 20px rgba(108, 92, 231, 0.3)';
+                e.currentTarget.style.boxShadow = 'none';
               }}
               onMouseDown={(e) => {
                 e.currentTarget.style.transform = 'scale(1.12)';
@@ -239,8 +241,8 @@ function AppContent() {
                     filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
                   }}
                 >
-                  <path d="M8 8L24 24" stroke="white" strokeWidth="3" strokeLinecap="round" />
-                  <path d="M24 8L8 24" stroke="white" strokeWidth="3" strokeLinecap="round" />
+                  <path d="M8 8L24 24" stroke="#6c5ce7" strokeWidth="3" strokeLinecap="round" />
+                  <path d="M24 8L8 24" stroke="#6c5ce7" strokeWidth="3" strokeLinecap="round" />
                 </svg>
               ) : (
                 <svg 
