@@ -174,7 +174,7 @@ const RegisterPage = () => {
     {
       icon: <ThunderboltOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
       title: '개인 맞춤화',
-      description: '개인의 취향을 반영한 매장 탐색'
+      description: '취향을 반영한 매장 탐색'
     },
     {
       icon: <CloudOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
