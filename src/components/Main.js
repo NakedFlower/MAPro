@@ -213,8 +213,7 @@ const MaProLandingPage = () => {
                 margin: '0 auto 2rem'
               }}
             >
-              수백만 개의 실제 리뷰를 분석하여 개인의 취향과 선호도에 맞는 
-              맞춤형 장소를 추천하는 서비스입니다.
+              수백만 개의 실제 리뷰를 분석하여 <br />개인의 취향과 선호도에 맞는 맞춤형 장소를 추천하는 서비스입니다.
             </Paragraph>
             
             <Space size="large">
@@ -381,7 +380,7 @@ const MaProLandingPage = () => {
                     💬
                   </div>
                   <Statistic
-                    title={<span style={{ color: '#666', fontSize: '14px', fontWeight: '500' }}>분석된 리뷰</span>}
+                    title={<span style={{ color: '#666', fontSize: '12px', fontWeight: '500' }}>분석된 리뷰</span>}
                     value={8700000}
                     formatter={(value) => <CountUp end={Number(value)} />}
                     suffix="개"
@@ -520,7 +519,7 @@ const MaProLandingPage = () => {
 
         {/* CTA Section */}
         <div style={{ 
-          padding: '80px 0', 
+          padding: '60px 0', 
           background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)',
           color: 'white',
           textAlign: 'center' 
