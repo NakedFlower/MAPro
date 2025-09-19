@@ -93,8 +93,8 @@ const LoginPage = () => {
     },
     {
       icon: <CloudOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
-      title: '챗봇',
-      description: '사용자 친화적인 지도 어플'
+      title: '사용자 중심',
+      description: '대화형 지도 어플'
     }
   ];
 
@@ -181,7 +181,7 @@ const LoginPage = () => {
                 </Col>
               ))}
             </Row>
-
+            {/* 
             <div style={{ 
               marginTop: '60px', 
               padding: '24px', 
@@ -190,7 +190,7 @@ const LoginPage = () => {
               borderRadius: '16px',
               border: '1px solid rgba(255, 255, 255, 0.2)'
             }}>
-              {/* <Text style={{ color: 'rgba(255, 255, 255, 0.9)', fontStyle: 'italic' }}>
+              <Text style={{ color: 'rgba(255, 255, 255, 0.9)', fontStyle: 'italic' }}>
                 "MaproCloud 덕분에 우리 팀의 생산성이 300% 향상되었습니다. 
                 정말 혁신적인 플랫폼이에요!"
               </Text>
@@ -198,8 +198,9 @@ const LoginPage = () => {
                 <Text style={{ color: 'white', fontWeight: '600' }}>
                   김민수 CEO, 테크스타트업
                 </Text>
-              </div> */}
+              </div> 
             </div>
+            */}
           </div>
         </Col>
 
@@ -269,7 +270,7 @@ const LoginPage = () => {
               >
                 Google로 계속하기
               </Button>
-              {/* <Row gutter={12}>
+              <Row gutter={12}>
                 <Col span={12}>
                   <Button
                     icon={<GithubOutlined />}
@@ -302,7 +303,7 @@ const LoginPage = () => {
                     Apple
                   </Button>
                 </Col>
-              </Row> */}
+              </Row>
             </Space>
 
             <Divider>
