@@ -146,18 +146,17 @@ const LoginPage = () => {
                 marginBottom: '24px',
                 lineHeight: '1.2'
               }}>
-                MaproCloud와 함께<br />
-                비즈니스를 성장시키세요
+                당신만의 매장을 <br />찾아보세요 
               </Title>
               <Text style={{ 
                 color: 'rgba(255, 255, 255, 0.9)', 
                 fontSize: '18px',
                 lineHeight: '1.6'
               }}>
-                전 세계 10,000+ 기업이 선택한 올인원 비즈니스 플랫폼으로<br />
-                효율성을 극대화하고 성과를 창출하세요.
+                지도 어플의 혁신을 경험하세요.<br />
               </Text>
             </div>
+
 
             <Row gutter={[32, 32]}>
               {features.map((feature, index) => (
@@ -191,7 +190,7 @@ const LoginPage = () => {
               borderRadius: '16px',
               border: '1px solid rgba(255, 255, 255, 0.2)'
             }}>
-              <Text style={{ color: 'rgba(255, 255, 255, 0.9)', fontStyle: 'italic' }}>
+              {/* <Text style={{ color: 'rgba(255, 255, 255, 0.9)', fontStyle: 'italic' }}>
                 "MaproCloud 덕분에 우리 팀의 생산성이 300% 향상되었습니다. 
                 정말 혁신적인 플랫폼이에요!"
               </Text>
@@ -199,7 +198,7 @@ const LoginPage = () => {
                 <Text style={{ color: 'white', fontWeight: '600' }}>
                   김민수 CEO, 테크스타트업
                 </Text>
-              </div>
+              </div> */}
             </div>
           </div>
         </Col>
@@ -247,7 +246,7 @@ const LoginPage = () => {
                 WebkitTextFillColor: 'transparent',
                 fontWeight: '700'
               }}>
-                MaproCloud
+                MAPro
               </Title>
               <Text type="secondary" style={{ fontSize: '16px' }}>
                 계정에 로그인하세요
@@ -270,7 +269,7 @@ const LoginPage = () => {
               >
                 Google로 계속하기
               </Button>
-              <Row gutter={12}>
+              {/* <Row gutter={12}>
                 <Col span={12}>
                   <Button
                     icon={<GithubOutlined />}
@@ -303,7 +302,7 @@ const LoginPage = () => {
                     Apple
                   </Button>
                 </Col>
-              </Row>
+              </Row> */}
             </Space>
 
             <Divider>
@@ -404,7 +403,7 @@ const LoginPage = () => {
                 </Link>
               </div>
 
-              {/* 보안 정보 */}
+              {/* 보안 정보
               <div style={{
                 marginTop: '32px',
                 padding: '16px',
@@ -422,6 +421,7 @@ const LoginPage = () => {
                   모든 데이터는 256비트 SSL 암호화로 보호됩니다.
                 </Text>
               </div>
+               */}
             </div>
           </Card>
         </Col>
