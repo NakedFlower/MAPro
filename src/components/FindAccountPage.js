@@ -194,7 +194,7 @@ const FindAccountPage = () => {
               />
             </div>
 
-            <div>
+            {/* <div>
               <Radio.Group 
                 value={verificationMethod} 
                 onChange={(e) => setVerificationMethod(e.target.value)}
@@ -215,7 +215,7 @@ const FindAccountPage = () => {
                   </Radio>
                 </Space>
               </Radio.Group>
-            </div>
+            </div> */}
 
             {verificationMethod === 'email' ? (
               <div>
