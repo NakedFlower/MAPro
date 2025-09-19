@@ -26,7 +26,8 @@ import {
   SafetyOutlined,
   TeamOutlined,
   ThunderboltOutlined,
-  CloudOutlined
+  CloudOutlined,
+  CheckCircleOutlined
 } from '@ant-design/icons';
 
 const { Title, Text, Link } = Typography;
@@ -86,24 +87,14 @@ const LoginPage = () => {
 
   const features = [
     {
-      icon: <SafetyOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
-      title: '보안',
-      description: '엔터프라이즈급 보안'
-    },
-    {
-      icon: <TeamOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
-      title: '협업',
-      description: '팀 단위 협업 도구'
-    },
-    {
       icon: <ThunderboltOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
-      title: '성능',
-      description: '빠른 처리 속도'
+      title: '개인 맞춤화',
+      description: '취향을 반영한 매장 탐색'
     },
     {
       icon: <CloudOutlined style={{ fontSize: '24px', color: '#667eea' }} />,
-      title: '클라우드',
-      description: '안정적인 클라우드 서비스'
+      title: '챗봇',
+      description: '사용자 친화적인 지도 어플'
     }
   ];
 

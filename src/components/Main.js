@@ -88,7 +88,7 @@ const MaProLandingPage = () => {
     }
   ];
 
-  const CountUp = ({ end, duration = 2000 }) => {
+  const CountUp = ({ end, duration = 2000, decimals = 0 }) => {
     const [count, setCount] = useState(0);
     
     useEffect(() => {
@@ -107,7 +107,7 @@ const MaProLandingPage = () => {
       return () => clearInterval(timer);
     }, [end, duration]);
     
-    return Math.floor(count).toLocaleString();
+    return decimals > 0 ? count.toFixed(decimals) : Math.floor(count).toLocaleString();
   };
 
   return (
@@ -380,7 +380,7 @@ const MaProLandingPage = () => {
                     💬
                   </div>
                   <Statistic
-                    title={<span style={{ color: '#666', fontSize: '10px', fontWeight: '500' }}>분석된 리뷰</span>}
+                    title={<span style={{ color: '#666', fontSize: '11px', fontWeight: '500' }}>분석된 리뷰</span>}
                     value={8700000}
                     formatter={(value) => <CountUp end={Number(value)} />}
                     suffix="개"
