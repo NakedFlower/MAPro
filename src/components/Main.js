@@ -149,7 +149,8 @@ const MaProLandingPage = () => {
             style={{ 
               border: 'none',
               background: 'transparent',
-              minWidth: '400px'
+              minWidth: '400px',
+              marginLeft: '80px'
             }}
             onClick={(e) => setCurrent(e.key)}
           />
