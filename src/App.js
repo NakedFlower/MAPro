@@ -186,61 +186,81 @@ function AppContent() {
             )}
 
             {/* 챗봇 플로팅 버튼 */}
-            <FloatButton
-              icon={
-                showChatbot ? (
-                  <svg 
-                    width="20" 
-                    height="20" 
-                    viewBox="0 0 32 32" 
-                    fill="white"
-                    style={{
-                      transform: showChatbot ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)'
-                    }}
-                  >
-                    <path d="M8 8L24 24" stroke="white" strokeWidth="3" strokeLinecap="round" />
-                    <path d="M24 8L8 24" stroke="white" strokeWidth="3" strokeLinecap="round" />
-                  </svg>
-                ) : (
-                  <svg 
-                    width="20" 
-                    height="20" 
-                    viewBox="0 0 32 32" 
-                    fill="white"
-                    style={{
-                      transform: showChatbot ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)'
-                    }}
-                  >
-                    <rect x="4" y="6" width="24" height="16" rx="6" fill="white" />
-                    <path d="M16 28c-2.5-2-8-2-8-6V12a6 6 0 016-6h8a6 6 0 016 6v6c0 4-5.5 4-8 6z" fill="white" />
-                    <rect x="8" y="10" width="16" height="2.5" rx="1.25" fill="#6c5ce7" />
-                    <rect x="8" y="15" width="10" height="2.5" rx="1.25" fill="#6c5ce7" />
-                  </svg>
-                )
-              }
+            <div
               style={{
+                position: 'fixed',
                 right: 24,
                 bottom: 24,
                 width: 48,
                 height: 48,
+                borderRadius: '50%',
                 backgroundColor: '#6c5ce7',
-                // 항상 호버 상태의 스타일 적용
-                boxShadow: '0 8px 30px rgba(108, 92, 231, 0.4)',
-                transform: 'scale(1.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                zIndex: 1000,
+                // 항상 강화된 hover 스타일 적용
+                boxShadow: '0 12px 40px rgba(108, 92, 231, 0.5), 0 4px 20px rgba(108, 92, 231, 0.3)',
+                transform: 'scale(1.15)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)',
+                background: 'linear-gradient(135deg, #6c5ce7 0%, #764ba2 100%)',
                 transition: 'all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
               }}
               onClick={() => setShowChatbot((v) => !v)}
-              tooltip={
-                <div style={{
-                  transition: 'opacity 0.2s ease',
-                  opacity: 1 // 항상 불투명하게
-                }}>
-                  {showChatbot ? '닫기' : '챗봇 열기'}
-                </div>
-              }
-            />
+              onMouseEnter={(e) => {
+                // hover 시에도 동일한 스타일 유지 (약간만 더 강화)
+                e.currentTarget.style.transform = 'scale(1.18)';
+                e.currentTarget.style.boxShadow = '0 16px 50px rgba(108, 92, 231, 0.6), 0 6px 25px rgba(108, 92, 231, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                // 원래 강화된 상태로 복귀
+                e.currentTarget.style.transform = 'scale(1.15)';
+                e.currentTarget.style.boxShadow = '0 12px 40px rgba(108, 92, 231, 0.5), 0 4px 20px rgba(108, 92, 231, 0.3)';
+              }}
+              onMouseDown={(e) => {
+                e.currentTarget.style.transform = 'scale(1.12)';
+              }}
+              onMouseUp={(e) => {
+                e.currentTarget.style.transform = 'scale(1.18)';
+              }}
+              title={showChatbot ? '닫기' : '챗봇 열기'}
+            >
+              {showChatbot ? (
+                <svg 
+                  width="20" 
+                  height="20"
+                  viewBox="0 0 32 32" 
+                  fill="white"
+                  style={{
+                    transform: 'rotate(0deg)',
+                    transition: 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
+                  }}
+                >
+                  <path d="M8 8L24 24" stroke="white" strokeWidth="3" strokeLinecap="round" />
+                  <path d="M24 8L8 24" stroke="white" strokeWidth="3" strokeLinecap="round" />
+                </svg>
+              ) : (
+                <svg 
+                  width="20" 
+                  height="20"
+                  viewBox="0 0 32 32" 
+                  fill="white"
+                  style={{
+                    transform: 'rotate(0deg)',
+                    transition: 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
+                  }}
+                >
+                  <rect x="4" y="6" width="24" height="16" rx="6" fill="white" />
+                  <path d="M16 28c-2.5-2-8-2-8-6V12a6 6 0 016-6h8a6 6 0 016 6v6c0 4-5.5 4-8 6z" fill="white" />
+                  <rect x="8" y="10" width="16" height="2.5" rx="1.25" fill="#6c5ce7" />
+                  <rect x="8" y="15" width="10" height="2.5" rx="1.25" fill="#6c5ce7" />
+                </svg>
+              )}
+            </div>
 
             {/* 챗봇 패널 */}
             {showChatbot && (
