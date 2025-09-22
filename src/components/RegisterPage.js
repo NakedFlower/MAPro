@@ -44,8 +44,8 @@ const RegisterPage = () => {
     confirmPassword: ''
   });
   const [agreeTerms, setAgreeTerms] = useState(false);
-  const [agreePrivacy, setAgreePrivacy] = useState(false);
-  const [agreeMarketing, setAgreeMarketing] = useState(false);
+  // const [agreePrivacy, setAgreePrivacy] = useState(false);
+  // const [agreeMarketing, setAgreeMarketing] = useState(false);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -108,15 +108,15 @@ const RegisterPage = () => {
       return;
     }
 
-    if (!agreeTerms || !agreePrivacy) {
-      message.error('필수 약관에 동의해주세요!');
-      return;
-    }
+    // if (!agreeTerms || !agreePrivacy) {
+    //   message.error('필수 약관에 동의해주세요!');
+    //   return;
+    // }
 
     setLoading(true);
 
     try {
-        const response = await fetch('http://34.64.120.99:4000/api/auth/signup', {
+        const response = await fetch('http://mapro.cloud:4000/api/auth/signup', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -128,13 +128,15 @@ const RegisterPage = () => {
             }),
             });
 
-      if (response.success) {
+      const data = await response.json(); 
+
+      if (data.success) {
         message.success('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
         setTimeout(() => {
           navigate('/login');
         }, 1500);
       } else {
-        message.error(response.message || '회원가입에 실패했습니다.');
+        message.error(data.message || '회원가입에 실패했습니다.');
       }
     } catch (error) {
       console.error('Registration error:', error);
@@ -531,8 +533,8 @@ const RegisterPage = () => {
                       <Link href="#" style={{ fontSize: '14px' }}>(보기)</Link>
                     </Text>
                   </Checkbox>
-                  {/* 
-                  <Checkbox 
+                  
+                  {/* <Checkbox 
                     checked={agreePrivacy}
                     onChange={(e) => setAgreePrivacy(e.target.checked)}
                   >
@@ -549,8 +551,8 @@ const RegisterPage = () => {
                     <Text style={{ fontSize: '14px' }}>
                       마케팅 정보 수신에 동의합니다 (선택)
                     </Text>
-                  </Checkbox>
-                  */} 
+                  </Checkbox> */}
+                  
                 </Space>
               </div>
 
@@ -586,7 +588,7 @@ const RegisterPage = () => {
                 </Link>
               </div>
 
-              {/* 보안 정보 
+              보안 정보 
               <div style={{
                 marginTop: '24px',
                 padding: '16px',
@@ -605,7 +607,7 @@ const RegisterPage = () => {
                   개인정보는 철저히 보안이 유지됩니다.
                 </Text>
               </div>
-              */}
+             
             </div>
           </Card>
         </Col>
