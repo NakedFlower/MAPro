@@ -38,7 +38,8 @@ public class SecurityConfig {
                     "/api/auth/login",
                     "/api/auth/test",
                     "/api/auth/",
-                    "/api/map/**"
+                    "/api/map/**",
+                        "/api/user/**"
                     
                 ).permitAll()
                 
