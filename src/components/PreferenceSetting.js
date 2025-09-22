@@ -12,8 +12,13 @@ function PreferenceSettings() {
   // 카테고리 + 옵션 불러오기
   const fetchCategories = async () => {
     try {
+      const token = localStorage.getItem("jwtToken"); // 로그인 시 저장한 JWT
       const res = await axios.get("http://mapro.cloud:4000/api/user/pfr", 
-        { withCredentials: true 
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
         });
       // res.data 예시: [{ id:1, name:"음식점", options:[{id:1,name:"유아의자"}, ...]}]
       const cats = {};
@@ -34,7 +39,15 @@ function PreferenceSettings() {
   // 사용자 성향 조회
   const fetchUserPreferences = async () => {
     try {
-      const res = await axios.get("http://mapro.cloud:4000/api/user/pfr");
+      const token = localStorage.getItem("jwtToken"); // JWT 가져오기
+      const res = await axios.post("http://mapro.cloud:4000/api/user/pfr",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
       const optionIds = res.data.data; // 서버에서 optionId 리스트
       const newSelected = {};
       Object.keys(categories).forEach(cat => {
@@ -50,7 +63,7 @@ function PreferenceSettings() {
     setSelected(prev => ({ ...prev, [category]: checkedOptions }));
   };
 
-  // ✅ 사용자 성향 저장
+  // 사용자 성향 저장
   const handleSave = async () => {
     try {
       const optionIds = Object.values(selected).flat().map(o => o.id);
