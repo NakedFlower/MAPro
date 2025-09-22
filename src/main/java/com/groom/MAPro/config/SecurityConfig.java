@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 import com.groom.MAPro.util.JwtUtil;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -38,8 +39,7 @@ public class SecurityConfig {
                     "/api/auth/login",
                     "/api/auth/test",
                     "/api/auth/",
-                    "/api/map/**",
-                        "/api/user/**"
+                    "/api/map/**"
                     
                 ).permitAll()
                 
@@ -47,26 +47,23 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/user/**",          // 사용자 정보 관련
                     "/api/profile/**",       // 프로필 관련
-                    "/api/protected/**"      // 기타 보호된 리소스
+                    "/api/protected/**",      // 기타 보호된 리소스
+                         "/api/user/**"
                 ).authenticated()
-                
-                // 나머지 모든 요청은 인증 필요
-                .anyRequest().authenticated()
-            );
-
-        // JWT 필터 추가 (JWT 인증을 사용한다면)
-        // .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-
+                    .anyRequest().authenticated()
+            )
+                    // JWT 필터 추가 (JWT 인증을 사용한다면)
+                     .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
     // JWT 필터 (나중에 필요할 때 주석 해제)
-    /*
+
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtUtil);
     }
-    */
+
 }
 
 /*

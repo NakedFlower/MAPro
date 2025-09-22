@@ -13,6 +13,7 @@ import com.groom.MAPro.entity.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import javax.swing.text.html.Option;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +67,7 @@ public class UserPreferenceController {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        var optionIds = preferenceService.getUserPreferences(user).stream()
+        List<Long> optionIds = preferenceService.getUserPreferences(user).stream()
                 .filter(UserPreference::getIsSelected)
                 .map(pref -> pref.getOption().getOptionId())
                 .collect(Collectors.toList());
