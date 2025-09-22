@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -30,11 +31,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = getTokenFromRequest(request);
         
         if (StringUtils.hasText(token) && jwtUtil.validateToken(token)) {
-            String email = jwtUtil.getEmailFromToken(token);
+            String username = jwtUtil.getUsernameFromToken(token);
             Long userId = jwtUtil.getUserIdFromToken(token);
-            
+
+            UserDetails userDetails = org.springframework.security.core.userdetails.User
+                    .withUsername(username)
+                    .password("") // 비밀번호는 JWT니까 필요 없음
+                    .authorities(new ArrayList<>())
+                    .build();
+
             UsernamePasswordAuthenticationToken authentication = 
-                new UsernamePasswordAuthenticationToken(email, null, new ArrayList<>());
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
