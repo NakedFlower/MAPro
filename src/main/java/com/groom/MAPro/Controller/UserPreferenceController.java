@@ -1,16 +1,21 @@
 package com.groom.MAPro.Controller;
 
 import com.groom.MAPro.dto.ApiResponse;
+import com.groom.MAPro.entity.PreferenceCategory;
 import com.groom.MAPro.entity.UserPreference;
+import com.groom.MAPro.repository.PreferenceCategoryRepository;
 import com.groom.MAPro.repository.UserRepository;
 import com.groom.MAPro.service.UserPreferenceService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.groom.MAPro.entity.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -19,11 +24,30 @@ import java.util.stream.Collectors;
 public class UserPreferenceController {
     private final UserRepository userRepository;
     private final UserPreferenceService preferenceService;
+    @Autowired
+    private PreferenceCategoryRepository preferenceCategoryRepository;
 
     public UserPreferenceController(UserRepository userRepository, UserPreferenceService preferenceService) {
         this.userRepository = userRepository;
         this.preferenceService = preferenceService;
     }
+
+
+    @GetMapping
+    public ResponseEntity<?> getAllPreferences() {
+        List<PreferenceCategory> categories = preferenceCategoryRepository.findAll(); // 카테고리 조회
+        List<Map<String, Object>> result = categories.stream().map(cat -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", cat.getCategoryId());
+            map.put("name", cat.getCategoryName());
+            map.put("options", cat.getOptions().stream()
+                    .map(opt -> Map.of("id", opt.getOptionId(), "name", opt.getOptionName()))
+                    .toList());
+            return map;
+        }).toList();
+        return ResponseEntity.ok(result);
+    }
+
 
     // 로그인한 사용자의 성향 저장
     @PostMapping("/save")
@@ -37,7 +61,7 @@ public class UserPreferenceController {
     }
 
     // 로그인한 사용자의 성향 조회
-    @GetMapping
+    @PostMapping
     public ResponseEntity<?> getPreferences(@AuthenticationPrincipal UserDetails userDetails) {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));

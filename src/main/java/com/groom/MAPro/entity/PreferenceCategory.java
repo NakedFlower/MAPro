@@ -3,6 +3,9 @@ package com.groom.MAPro.entity;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -18,6 +21,9 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "preference_categories")
+@Data
+@Getter
+@Setter
 public class PreferenceCategory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
