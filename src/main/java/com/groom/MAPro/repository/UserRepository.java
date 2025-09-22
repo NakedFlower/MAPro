@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 import com.groom.MAPro.entity.User;
 
 @Repository
-// UserRepository.java
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);  // findByEmail -> findByUsername
     boolean existsByUsername(String username);       // existsByEmail -> existsByUsername
