@@ -47,8 +47,7 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/user/**",          // 사용자 정보 관련
                     "/api/profile/**",       // 프로필 관련
-                    "/api/protected/**",      // 기타 보호된 리소스
-                         "/api/user/**"
+                    "/api/protected/**"      // 기타 보호된 리소스
                 ).authenticated()
                     .anyRequest().authenticated()
             )
