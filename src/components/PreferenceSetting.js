@@ -12,7 +12,8 @@ function PreferenceSettings() {
   // 카테고리 + 옵션 불러오기
   const fetchCategories = async () => {
     try {
-      const token = localStorage.getItem("jwtToken"); // 로그인 시 저장한 JWT
+      const token = localStorage.getItem("token"); // 로그인 시 저장한 JWT
+      console.log("ttt | ", token);
       const res = await axios.get("http://mapro.cloud:4000/api/user/pfr", 
         {
           headers: {
@@ -20,6 +21,7 @@ function PreferenceSettings() {
             "Content-Type": "application/json"
           }
         });
+      
       // res.data 예시: [{ id:1, name:"음식점", options:[{id:1,name:"유아의자"}, ...]}]
       const cats = {};
       res.data.forEach(cat => {
@@ -39,8 +41,9 @@ function PreferenceSettings() {
   // 사용자 성향 조회
   const fetchUserPreferences = async () => {
     try {
-      const token = localStorage.getItem("jwtToken"); // JWT 가져오기
+      const token = localStorage.getItem("token"); // JWT 가져오기
       const res = await axios.post("http://mapro.cloud:4000/api/user/pfr",
+        null,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -66,11 +69,16 @@ function PreferenceSettings() {
   // 사용자 성향 저장
   const handleSave = async () => {
     try {
+      const token = localStorage.getItem("token"); // JWT 가져오기
       const optionIds = Object.values(selected).flat().map(o => o.id);
       await axios.post(
         "http://mapro.cloud:4000/api/user/pfr/save",
         optionIds,
-        { withCredentials: true }
+        {headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }}
+        
       );
       message.success("성향이 저장되었습니다!");
     } catch (err) {
