@@ -11,7 +11,7 @@ import com.groom.MAPro.service.MapService;
 @RestController
 @RequestMapping("/api/map")
 @CrossOrigin(
-    origins = {"http://34.64.120.99:3000", "http://localhost:3000", "*"},
+    origins = {"http://mapro.cloud:3000", "http://localhost:3000", "*"},
     allowedHeaders = "*",
     methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS}
 )
