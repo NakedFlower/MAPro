@@ -207,6 +207,11 @@ app.post('/api/chat-places', async (req, res) => {
         const failedCount = totalRequested - successCount;
         
         console.log(`🎯 지오코딩 완료: 성공 ${successCount}개, 실패 ${failedCount}개`);
+        
+        // 성공한 장소들의 좌표 정보 로그 출력 (프론트엔드 디버깅용)
+        placeDetails.forEach((place, index) => {
+            console.log(`📍 ${index + 1}. ${place.name}: ${place.coordinates.lat}, ${place.coordinates.lng}`);
+        });
 
         // 실패한 장소가 있으면 클라이언트에 알림
         if (failedCount > 0) {
