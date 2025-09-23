@@ -481,5 +481,5 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`🗺️  Map API Server running on port ${PORT}`);
     console.log(`🔗 Python Chat API: ${PYTHON_CHAT_API}`);
     console.log(`🔗 Java Backend API: ${JAVA_BACKEND_API}`);
-    console.log(`📍 Geocoding: ${GOOGLE_MAPS_API_KEY ? 'Google Maps API' : 'Nominatim (OSM)'}`);
+    console.log(`📍 Geocoding: VWorld (국토교통부) + Nominatim (OSM)`);
 });
