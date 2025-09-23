@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5000;
 // CORS 설정
 app.use(cors({
     origin: [
-        'http://34.64.120.99:3000',
+        'http://mapro.cloud:3000',
         'http://localhost:3000',
         'http://127.0.0.1:3000'
     ],
@@ -19,8 +19,8 @@ app.use(cors({
 app.use(express.json());
 
 // 환경변수 설정
-const PYTHON_CHAT_API = process.env.PYTHON_CHAT_API || 'http://34.64.120.99:8000';
-const JAVA_BACKEND_API = process.env.JAVA_BACKEND_API || 'http://34.64.120.99:4000';
+const PYTHON_CHAT_API = process.env.PYTHON_CHAT_API || 'http://mapro.cloud:8000';
+const JAVA_BACKEND_API = process.env.JAVA_BACKEND_API || 'http://mapro.cloud:4000';
 const VWORLD_API_KEY = '898A5222-BC51-352A-83A6-AD43538E2D39'; // 국토교통부 지오코더 API 키
 
 // 주소 전처리 함수
