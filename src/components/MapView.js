@@ -19,7 +19,6 @@ function MapView({ places, onPlacesDisplayed }) {
   const geocoderRef = useRef(null);
   const searchMarkersRef = useRef([]);
 
-
 // 수정된 fetchMapData 함수 - 기존 백엔드 프록시 방식 유지
 const fetchMapData = useCallback(async () => {
   try {
@@ -53,7 +52,6 @@ const fetchMapData = useCallback(async () => {
   }
 }, []);
 
-// initializeGoogleMaps 함수는 제거 - 백엔드 프록시 방식만 사용
 // 서버 상태 확인 함수 (별도)
 const checkServerHealth = async () => {
   try {
@@ -67,6 +65,7 @@ const checkServerHealth = async () => {
     return null;
   }
 };
+
   // 사용자 현재 위치 가져오기
   const getUserLocation = () => {
     setLocationLoading(true);
@@ -159,8 +158,7 @@ const checkServerHealth = async () => {
     });
   };
 
-  // 주소 검색 함수
-// Node.js API를 사용한 장소 검색 함수
+  // Node.js API를 사용한 장소 검색 함수
   const searchAddress = useCallback(async (query) => {
     if (!query.trim()) return;
 
@@ -221,10 +219,6 @@ const checkServerHealth = async () => {
           <p style="margin: 4px 0; color: #666; font-size: 14px;">${result.address}</p>
           <p style="margin: 4px 0; color: #666; font-size: 14px;">카테고리: ${result.category}</p>
           ${result.info.phone ? `<p style="margin: 4px 0; color: #666; font-size: 14px;">📞 ${result.info.phone}</p>` : ''}
-          <button onclick="window.open('${result.googleMapsUrl}', '_blank')" 
-                  style="margin-top: 8px; padding: 6px 12px; background: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer;">
-            구글맵에서 보기
-          </button>
         </div>
       `
     });
@@ -431,26 +425,33 @@ const checkServerHealth = async () => {
     }
   };
 
-  // 챗봇에서 받은 장소들을 지도에 핀으로 표시
-const displayChatbotPlaces = useCallback(async (placeNames) => {
-  if (!placeNames || !mapInstanceRef.current || !window.google) return;
-  
-  console.log('챗봇 장소들을 지도에 표시:', placeNames);
-  
-  try {
-    // 기존 검색 마커들 제거
-    searchMarkersRef.current.forEach(marker => marker.setMap(null));
-    searchMarkersRef.current = [];
+  // 챗봇에서 받은 장소들을 지도에 핀으로 표시 (Node.js API 직접 사용)
+  const displayChatbotPlaces = useCallback(async (placesData) => {
+    if (!placesData || !mapInstanceRef.current || !window.google) return;
     
-    // Node.js API를 통해 장소 상세 정보 가져오기
-    for (let i = 0; i < placeNames.length; i++) {
-      const placeName = placeNames[i];
+    console.log('📍 챗봇 장소들을 지도에 표시:', placesData);
+    
+    try {
+      // 기존 검색 마커들 제거
+      searchMarkersRef.current.forEach(marker => marker.setMap(null));
+      searchMarkersRef.current = [];
       
-      try {
-        const response = await axios.get(`http://34.64.120.99:5000/api/places/search?keyword=${encodeURIComponent(placeName)}&location=서울`);
+      // Node.js API로 각 장소의 지오코딩된 데이터 가져오기
+      const response = await axios.post('http://34.64.120.99:5000/api/chat-places', {
+        places: placesData
+      });
+      
+      if (response.data.success && response.data.places) {
+        const geocodedPlaces = response.data.places;
         
-        if (response.data.success && response.data.places.length > 0) {
-          const place = response.data.places[0]; // 첫 번째 결과 사용
+        // 지오코딩 실패한 장소가 있으면 사용자에게 알림
+        if (!response.data.success && response.data.error) {
+          alert(response.data.error);
+        }
+        
+        // 각 장소에 대해 마커 생성
+        geocodedPlaces.forEach((place, index) => {
+          if (!place.coordinates) return;
           
           const marker = new window.google.maps.Marker({
             position: place.coordinates,
@@ -475,11 +476,8 @@ const displayChatbotPlaces = useCallback(async (placeNames) => {
                 <p style="margin: 4px 0; color: #666; font-size: 14px;">📍 ${place.address}</p>
                 <p style="margin: 4px 0; color: #666; font-size: 14px;">🏷️ ${place.category}</p>
                 ${place.info.phone ? `<p style="margin: 4px 0; color: #666; font-size: 14px;">📞 ${place.info.phone}</p>` : ''}
-                ${place.info.rating ? `<p style="margin: 4px 0; color: #666; font-size: 14px;">⭐ ${place.info.rating}/5</p>` : ''}
-                <button onclick="window.open('${place.googleMapsUrl}', '_blank')" 
-                        style="margin-top: 10px; padding: 8px 16px; background: #4285f4; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
-                  구글맵에서 자세히 보기
-                </button>
+                ${place.info.features && place.info.features.length > 0 ? 
+                  `<p style="margin: 4px 0; color: #666; font-size: 14px;">✨ ${place.info.features.join(', ')}</p>` : ''}
               </div>
             `
           });
@@ -494,43 +492,49 @@ const displayChatbotPlaces = useCallback(async (placeNames) => {
 
           marker.infoWindow = infoWindow;
           searchMarkersRef.current.push(marker);
+        });
+        
+        // 모든 마커가 보이도록 지도 범위 조정
+        if (searchMarkersRef.current.length > 0) {
+          const bounds = new window.google.maps.LatLngBounds();
+          searchMarkersRef.current.forEach(marker => {
+            bounds.extend(marker.getPosition());
+          });
+          mapInstanceRef.current.fitBounds(bounds);
+          
+          // 줌이 너무 클 경우 제한 (단일 장소일 때는 적절한 줌 레벨 설정)
+          const listener = window.google.maps.event.addListenerOnce(mapInstanceRef.current, 'bounds_changed', () => {
+            if (searchMarkersRef.current.length === 1) {
+              mapInstanceRef.current.setZoom(16);
+            } else if (mapInstanceRef.current.getZoom() > 16) {
+              mapInstanceRef.current.setZoom(16);
+            }
+          });
         }
-      } catch (error) {
-        console.error(`장소 정보 가져오기 실패: ${placeName}`, error);
+        
+        console.log(`✅ ${geocodedPlaces.length}개 장소 핀 표시 완료`);
+        
+      } else {
+        console.error('지오코딩 API 응답 오류:', response.data);
+        if (response.data.error) {
+          alert(response.data.error);
+        }
       }
-    }
-    
-    // 모든 마커가 보이도록 지도 범위 조정
-    if (searchMarkersRef.current.length > 0) {
-      const bounds = new window.google.maps.LatLngBounds();
-      searchMarkersRef.current.forEach(marker => {
-        bounds.extend(marker.getPosition());
-      });
-      mapInstanceRef.current.fitBounds(bounds);
       
-      // 줌이 너무 클 경우 제한
-      const listener = window.google.maps.event.addListenerOnce(mapInstanceRef.current, 'bounds_changed', () => {
-        if (mapInstanceRef.current.getZoom() > 16) {
-          mapInstanceRef.current.setZoom(16);
-        }
-      });
+    } catch (error) {
+      console.error('❌ 챗봇 장소 표시 오류:', error);
+      alert('장소를 지도에 표시하는 중 오류가 발생했습니다.');
     }
-    
-  } catch (error) {
-    console.error('챗봇 장소 표시 오류:', error);
-  }
-}, []);
-
+  }, []);
 
   useEffect(() => {
     fetchMapData();
   }, [fetchMapData]);
 
-
-  // 챗봇에서 받은 장소들이 있을 때 지도에 표시// 챗봇에서 전달된 장소들 처리
+  // 챗봇에서 전달된 장소들 처리
   useEffect(() => {
     if (places && mapInstanceRef.current) {
-      console.log('챗봇에서 전달된 장소들:', places);
+      console.log('📨 챗봇에서 전달된 장소들:', places);
       displayChatbotPlaces(places);
       
       // 장소 표시 완료 후 상태 초기화
@@ -539,7 +543,6 @@ const displayChatbotPlaces = useCallback(async (placeNames) => {
       }
     }
   }, [places, displayChatbotPlaces, onPlacesDisplayed]);
-
 
   // 로딩 중
   if (loading) {
@@ -744,10 +747,10 @@ const displayChatbotPlaces = useCallback(async (placeNames) => {
                   }}
                 >
                   <div style={{ fontWeight: '500', marginBottom: '2px' }}>
-                    {result.address_components[0]?.long_name || result.formatted_address}
+                    {result.name}
                   </div>
                   <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                    {result.formatted_address}
+                    {result.address}
                   </div>
                 </div>
               ))}

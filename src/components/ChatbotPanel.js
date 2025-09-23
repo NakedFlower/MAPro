@@ -59,6 +59,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
     }
   ]);
   const [input, setInput] = useState("");
+  const [currentPlaces, setCurrentPlaces] = useState(null); // 현재 검색된 장소들 저장
   const messagesEndRef = useRef(null);
   const pendingRef = useRef(null);
 
@@ -177,12 +178,21 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
       const nextMessages = [
         { role: 'bot', text: data.reply, timestamp: getCurrentTime() }
       ];
+      
+      // 장소 데이터가 있으면 저장하고 메시지에 추가
       if (Array.isArray(data.places) && data.places.length > 0) {
+        setCurrentPlaces(data.places); // 전체 장소 데이터 저장
         const placeNames = data.places.slice(0, 5).map(p => p.name).filter(Boolean);
         if (placeNames.length > 0) {
-          nextMessages.push({ type: 'places', places: placeNames, timestamp: getCurrentTime() });
+          nextMessages.push({ 
+            type: 'places', 
+            places: placeNames, 
+            placesData: data.places, // 상세 데이터도 함께 저장
+            timestamp: getCurrentTime() 
+          });
         }
       }
+      
       setMessages(prev => [
         ...prev,
         ...nextMessages
@@ -212,12 +222,21 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
       const nextMessages = [
         { role: 'bot', text: data.reply, timestamp: getCurrentTime() }
       ];
+      
+      // 장소 데이터가 있으면 저장하고 메시지에 추가
       if (Array.isArray(data.places) && data.places.length > 0) {
+        setCurrentPlaces(data.places); // 전체 장소 데이터 저장
         const placeNames = data.places.slice(0, 5).map(p => p.name).filter(Boolean);
         if (placeNames.length > 0) {
-          nextMessages.push({ type: 'places', places: placeNames, timestamp: getCurrentTime() });
+          nextMessages.push({ 
+            type: 'places', 
+            places: placeNames, 
+            placesData: data.places, // 상세 데이터도 함께 저장
+            timestamp: getCurrentTime() 
+          });
         }
       }
+      
       setMessages(prev => [
         ...prev,
         ...nextMessages
@@ -229,6 +248,29 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
         { role: 'bot', text: '백엔드와 통신 중 오류가 발생했어요.', timestamp: getCurrentTime() }
       ]);
       console.error('Chat API error (choose_location):', err);
+    }
+  };
+
+  // 개별 상호 클릭 핸들러
+  const handlePlaceClick = (placeName, placesData) => {
+    console.log('상호 클릭:', placeName);
+    
+    // 클릭된 상호의 데이터 찾기
+    const selectedPlace = placesData.find(place => place.name === placeName);
+    
+    if (selectedPlace && onShowPlacesOnMap) {
+      // 선택된 장소만 지도에 표시
+      onShowPlacesOnMap([selectedPlace]);
+    } else {
+      console.error('선택된 장소 데이터를 찾을 수 없습니다:', placeName);
+    }
+  };
+
+  // 전체 상호 목록 클릭 핸들러 (기존 기능 유지)
+  const handleAllPlacesClick = (placesData) => {
+    console.log('전체 상호 목록 클릭');
+    if (placesData && onShowPlacesOnMap) {
+      onShowPlacesOnMap(placesData);
     }
   };
 
@@ -385,7 +427,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
                         borderRadius: '4px',
                         transition: 'all 0.2s ease'
                       }}
-                      onClick={() => onShowPlacesOnMap && onShowPlacesOnMap(msg.places)}
+                      onClick={() => handlePlaceClick(place, msg.placesData)}
                       onMouseEnter={e => {
                         e.target.style.textDecoration = 'underline';
                         e.target.style.backgroundColor = isDarkMode ? 'rgba(108,92,231,0.1)' : 'rgba(108,92,231,0.05)';
@@ -398,6 +440,41 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
                       📍 {place}
                     </div>
                   ))}
+                  
+                  {/* 전체 목록 보기 버튼 (구분선 추가) */}
+                  {msg.places.length > 1 && (
+                    <>
+                      <div style={{
+                        borderTop: `1px solid ${theme.placeBorder}`,
+                        margin: '8px 0',
+                        opacity: 0.5
+                      }} />
+                      <div 
+                        style={{
+                          fontSize: '13px', 
+                          color: '#8e8e93',
+                          fontWeight: 500,
+                          cursor: 'pointer', 
+                          textDecoration: 'none',
+                          padding: '4px 0',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s ease',
+                          textAlign: 'center'
+                        }}
+                        onClick={() => handleAllPlacesClick(msg.placesData)}
+                        onMouseEnter={e => {
+                          e.target.style.textDecoration = 'underline';
+                          e.target.style.backgroundColor = isDarkMode ? 'rgba(142,142,147,0.1)' : 'rgba(142,142,147,0.05)';
+                        }}
+                        onMouseLeave={e => {
+                          e.target.style.textDecoration = 'none';
+                          e.target.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        🗺️ 전체 {msg.places.length}곳 지도에서 보기
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
               <div style={{
