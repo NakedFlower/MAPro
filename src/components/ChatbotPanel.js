@@ -154,7 +154,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
 
     // 백엔드로 전송
     try {
-      const response = await fetch('http://34.64.120.99:8000/chat', {
+      const response = await fetch('http://mapro.cloud:8000/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userText })
@@ -208,7 +208,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
 
   const handleChooseLocation = async (selected) => {
     try {
-      const response = await fetch('http://34.64.120.99:8000/chat', {
+      const response = await fetch('http://mapro.cloud:8000/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input || ' ', selected_location: selected, pending: pendingRef.current })
