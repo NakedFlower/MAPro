@@ -25,10 +25,16 @@ const VWORLD_API_KEY = '898A5222-BC51-352A-83A6-AD43538E2D39'; // 국토교통�
 
 // 지오코딩 함수 - 주소를 위도경도로 변환
 async function geocodeAddress(address) {
-    if (!address) return null;
+    if (!address) {
+        console.log('❌ [지오코딩] 주소가 비어있음');
+        return null;
+    }
+    
+    console.log(`🔍 [지오코딩 시작] 주소: ${address}`);
     
     try {
         // 국토교통부 VWorld 지오코더 API 사용
+        console.log(`🌐 [VWorld API 호출] ${address}`);
         const vworldResponse = await axios.get('http://api.vworld.kr/req/address', {
             params: {
                 service: 'address',
@@ -43,17 +49,24 @@ async function geocodeAddress(address) {
             timeout: 5000
         });
 
+        console.log(`📋 [VWorld 응답] Status: ${vworldResponse.data.response.status}`);
+        console.log(`📋 [VWorld 응답] Data:`, JSON.stringify(vworldResponse.data, null, 2));
+
         if (vworldResponse.data.response.status === 'OK' && 
             vworldResponse.data.response.result && 
             vworldResponse.data.response.result.point) {
             
             const point = vworldResponse.data.response.result.point;
-            return {
+            const result = {
                 lat: parseFloat(point.y),
                 lng: parseFloat(point.x),
                 formatted_address: address
             };
+            console.log(`✅ [VWorld 성공] ${address} -> ${result.lat}, ${result.lng}`);
+            return result;
         }
+
+        console.log(`⚠️ [VWorld 실패] Nominatim으로 재시도: ${address}`);
 
         // 대안: Nominatim (OpenStreetMap) - 무료 지오코딩 서비스
         const nominatimResponse = await axios.get('https://nominatim.openstreetmap.org/search', {
@@ -69,20 +82,31 @@ async function geocodeAddress(address) {
             }
         });
 
+        console.log(`📋 [Nominatim 응답] 결과 수: ${nominatimResponse.data.length}`);
+        if (nominatimResponse.data.length > 0) {
+            console.log(`📋 [Nominatim 첫번째 결과]:`, nominatimResponse.data[0]);
+        }
+
         if (nominatimResponse.data && nominatimResponse.data.length > 0) {
             const result = nominatimResponse.data[0];
-            return {
+            const geocoded = {
                 lat: parseFloat(result.lat),
                 lng: parseFloat(result.lon),
                 formatted_address: result.display_name
             };
+            console.log(`✅ [Nominatim 성공] ${address} -> ${geocoded.lat}, ${geocoded.lng}`);
+            return geocoded;
         }
 
         // 지오코딩 실패시 null 반환
+        console.log(`❌ [지오코딩 완전 실패] ${address}`);
         return null;
 
     } catch (error) {
-        console.error('지오코딩 오류:', error.message);
+        console.error(`💥 [지오코딩 오류] ${address}:`, error.message);
+        if (error.response) {
+            console.error(`💥 [API 응답 오류]:`, error.response.data);
+        }
         return null;
     }
 }
@@ -102,7 +126,7 @@ app.get('/health', (req, res) => {
         status: 'ok', 
         service: 'map-api',
         timestamp: new Date().toISOString(),
-        geocoding: GOOGLE_MAPS_API_KEY ? 'Google Maps' : 'Nominatim (OSM)'
+        geocoding: 'VWorld (국토교통부) + Nominatim (OSM)'
     });
 });
 
@@ -111,20 +135,27 @@ app.post('/api/chat-places', async (req, res) => {
     try {
         const { places } = req.body;
         
+        console.log('🚀 [API 호출] /api/chat-places 시작');
+        console.log('📨 [요청 데이터]', JSON.stringify(req.body, null, 2));
+        
         if (!places || !Array.isArray(places)) {
+            console.log('❌ [검증 실패] places가 배열이 아님:', places);
             return res.status(400).json({ 
                 error: '상호목록이 올바르지 않습니다.' 
             });
         }
 
-        console.log(`📍 ${places.length}개 장소의 지오코딩을 시작합니다...`);
+        console.log(`📍 [처리 시작] ${places.length}개 장소의 지오코딩을 시작합니다...`);
 
         // 각 장소에 대해 지오코딩 수행 (병렬 처리)
         const geocodingPromises = places.map(async (place, index) => {
+            console.log(`\n🏪 [장소 ${index + 1}/${places.length}] 처리 시작`);
+            console.log(`📋 [장소 정보]`, JSON.stringify(place, null, 2));
+            
             const address = place.location || '주소 정보 없음';
             const name = place.name || '알 수 없는 장소';
             
-            console.log(`🔍 지오코딩 중: ${name} - ${address}`);
+            console.log(`🔍 [지오코딩 대상] ${name} - ${address}`);
             
             // 지오코딩 수행
             const geocodedLocation = await geocodeAddress(address);
@@ -138,17 +169,17 @@ app.post('/api/chat-places', async (req, res) => {
                     lng: geocodedLocation.lng
                 };
                 finalAddress = geocodedLocation.formatted_address || address;
-                console.log(`✅ 지오코딩 성공: ${name} -> ${coordinates.lat}, ${coordinates.lng}`);
+                console.log(`✅ [최종 성공] ${name} -> lat: ${coordinates.lat}, lng: ${coordinates.lng}`);
             } else {
                 // 지오코딩 실패시 기본 좌표 (서울 시청 주변에 분산 배치)
                 coordinates = {
                     lat: 37.5665 + (Math.random() - 0.5) * 0.02,
                     lng: 126.9780 + (Math.random() - 0.5) * 0.02
                 };
-                console.log(`⚠️ 지오코딩 실패: ${name} - 기본 좌표 사용`);
+                console.log(`⚠️ [기본 좌표 사용] ${name} -> lat: ${coordinates.lat}, lng: ${coordinates.lng}`);
             }
             
-            return {
+            const result = {
                 id: `chat-place-${index}`,
                 name: name,
                 location: place.location || '',
@@ -183,27 +214,38 @@ app.post('/api/chat-places', async (req, res) => {
                           place.category === '약국' ? 'local_pharmacy' : 'place'
                 }
             };
+            
+            console.log(`📋 [최종 결과 ${index + 1}]`, JSON.stringify(result, null, 2));
+            return result;
         });
 
         // 모든 지오코딩 작업 완료 대기
+        console.log(`⏳ [병렬 처리] ${places.length}개 장소 지오코딩 대기 중...`);
         const placeDetails = await Promise.all(geocodingPromises);
 
-        console.log(`🎯 지오코딩 완료: ${placeDetails.length}개 장소`);
+        const successCount = placeDetails.filter(p => Math.abs(p.coordinates.lat - 37.5665) > 0.01).length;
+        const failedCount = placeDetails.length - successCount;
+        
+        console.log(`🎯 [처리 완료] 성공: ${successCount}개, 실패: ${failedCount}개`);
 
-        res.json({
+        const response = {
             success: true,
             places: placeDetails,
             count: placeDetails.length,
             source: 'chatbot',
             geocoding_info: {
-                service: GOOGLE_MAPS_API_KEY ? 'Google Maps API' : 'Nominatim (OpenStreetMap)',
-                success_count: placeDetails.filter(p => p.coordinates.lat !== 37.5665).length,
-                failed_count: placeDetails.filter(p => Math.abs(p.coordinates.lat - 37.5665) < 0.01).length
+                service: 'VWorld (국토교통부) + Nominatim (OpenStreetMap)',
+                success_count: successCount,
+                failed_count: failedCount
             }
-        });
+        };
+        
+        console.log(`📤 [API 응답]`, JSON.stringify(response, null, 2));
+        res.json(response);
 
     } catch (error) {
-        console.error('챗봇 상호목록 처리 오류:', error);
+        console.error('💥 [API 오류] 챗봇 상호목록 처리 오류:', error);
+        console.error('💥 [오류 스택]', error.stack);
         res.status(500).json({ 
             error: '서버 오류가 발생했습니다.',
             details: error.message 
