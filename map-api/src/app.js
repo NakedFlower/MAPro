@@ -23,6 +23,20 @@ const PYTHON_CHAT_API = process.env.PYTHON_CHAT_API || 'http://34.64.120.99:8000
 const JAVA_BACKEND_API = process.env.JAVA_BACKEND_API || 'http://34.64.120.99:4000';
 const VWORLD_API_KEY = '898A5222-BC51-352A-83A6-AD43538E2D39'; // 국토교통부 지오코더 API 키
 
+// 주소 전처리 함수
+function preprocessAddress(address) {
+    if (!address) return address;
+    
+    // "대한민국" 제거 및 한국 주소 형식으로 변환
+    let cleaned = address
+        .replace(/^대한민국\s*/, '')  // "대한민국" 제거
+        .replace(/경기도\s*성남시\s*분당구/, '경기 성남시 분당구')  // 지역 형식 통일
+        .replace(/경기도\s*/, '경기 ')  // 경기도 → 경기
+        .trim();
+    
+    return cleaned;
+}
+
 // 지오코딩 함수 - 주소를 위도경도로 변환
 async function geocodeAddress(address) {
     if (!address) {
@@ -30,18 +44,22 @@ async function geocodeAddress(address) {
         return null;
     }
     
-    console.log(`🔍 [지오코딩 시작] 주소: ${address}`);
+    console.log(`🔍 [지오코딩 시작] 원본 주소: ${address}`);
+    
+    // 주소 전처리
+    const cleanedAddress = preprocessAddress(address);
+    console.log(`🔧 [주소 전처리] ${address} → ${cleanedAddress}`);
     
     try {
         // 국토교통부 VWorld 지오코더 API 사용
-        console.log(`🌐 [VWorld API 호출] ${address}`);
+        console.log(`🌐 [VWorld API 호출] ${cleanedAddress}`);
         const vworldResponse = await axios.get('http://api.vworld.kr/req/address', {
             params: {
                 service: 'address',
                 request: 'getCoord',
                 version: '2.0',
                 crs: 'epsg:4326',
-                address: address,
+                address: cleanedAddress,
                 format: 'json',
                 type: 'road',
                 key: VWORLD_API_KEY
@@ -60,18 +78,18 @@ async function geocodeAddress(address) {
             const result = {
                 lat: parseFloat(point.y),
                 lng: parseFloat(point.x),
-                formatted_address: address
+                formatted_address: cleanedAddress
             };
-            console.log(`✅ [VWorld 성공] ${address} -> ${result.lat}, ${result.lng}`);
+            console.log(`✅ [VWorld 성공] ${cleanedAddress} -> ${result.lat}, ${result.lng}`);
             return result;
         }
 
-        console.log(`⚠️ [VWorld 실패] Nominatim으로 재시도: ${address}`);
+        console.log(`⚠️ [VWorld 실패] Nominatim으로 재시도: ${cleanedAddress}`);
 
         // 대안: Nominatim (OpenStreetMap) - 무료 지오코딩 서비스
         const nominatimResponse = await axios.get('https://nominatim.openstreetmap.org/search', {
             params: {
-                q: address,
+                q: cleanedAddress,
                 format: 'json',
                 limit: 1,
                 'accept-language': 'ko'
@@ -94,16 +112,16 @@ async function geocodeAddress(address) {
                 lng: parseFloat(result.lon),
                 formatted_address: result.display_name
             };
-            console.log(`✅ [Nominatim 성공] ${address} -> ${geocoded.lat}, ${geocoded.lng}`);
+            console.log(`✅ [Nominatim 성공] ${cleanedAddress} -> ${geocoded.lat}, ${geocoded.lng}`);
             return geocoded;
         }
 
         // 지오코딩 실패시 null 반환
-        console.log(`❌ [지오코딩 완전 실패] ${address}`);
+        console.log(`❌ [지오코딩 완전 실패] ${cleanedAddress}`);
         return null;
 
     } catch (error) {
-        console.error(`💥 [지오코딩 오류] ${address}:`, error.message);
+        console.error(`💥 [지오코딩 오류] ${cleanedAddress}:`, error.message);
         if (error.response) {
             console.error(`💥 [API 응답 오류]:`, error.response.data);
         }
@@ -481,5 +499,4 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`🗺️  Map API Server running on port ${PORT}`);
     console.log(`🔗 Python Chat API: ${PYTHON_CHAT_API}`);
     console.log(`🔗 Java Backend API: ${JAVA_BACKEND_API}`);
-    console.log(`📍 Geocoding: VWorld (국토교통부) + Nominatim (OSM)`);
-});
+    console.log(`📍 Geocoding: VWorld (국토교통부) + Nominatim (OSM)`);});
