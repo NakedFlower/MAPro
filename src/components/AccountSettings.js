@@ -70,22 +70,47 @@ const AccountSettings = () => {
     const [nameInput, setNameInput] = useState(formData.name);
     const [emailInput, setEmailInput] = useState(formData.email);
     const [phoneInput, setPhoneInput] = useState(formData.phone);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
       setNameInput(formData.name);
-      setEmailInput(formData.email);
-      setPhoneInput(formData.phone);
+      // setEmailInput(formData.email);
+      // setPhoneInput(formData.phone);
     }, [formData]);
 
-    const handleProfileSave = () => {
-      setFormData(prev => ({
-        ...prev,
-        name: nameInput,
-        email: emailInput,
-        phone: phoneInput
-      }));
-      message.success('프로필 저장 완료');
-      console.log('Profile saved:', { name: nameInput, email: emailInput, phone: phoneInput });
+    const handleProfileSave = async () => {
+      try {
+        setLoading(true); 
+
+        // 백엔드 API 호출 (예: PATCH /api/users/{id}/name)
+        const token = localStorage.getItem("token");
+        const user = JSON.parse(localStorage.getItem("user"));
+        const res = await fetch(`http://mapro.cloud:4000/api/user/${user.userId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: nameInput,
+            // email: emailInput,
+            // phone: phoneInput
+          }),
+        });
+
+        if (!res.ok) throw new Error("이름 수정 실패");
+
+        const updatedUser = await res.json();
+
+        // 로컬 상태 업데이트
+        setFormData(prev => ({ ...prev, name: updatedUser.name }));
+        message.success("이름이 수정되었습니다!");
+      } catch (err) {
+        console.error(err);
+        message.error("이름 수정에 실패했습니다.");
+      } finally {
+      setLoading(false); 
+      }
     };
 
     return (
