@@ -28,7 +28,7 @@ const fetchMapData = useCallback(async () => {
     console.log('🔍 지도 API 호출 시작...');
     
     // Java 백엔드(4000 포트)에서 지도 HTML 받아오기
-    const response = await axios.get('http://34.64.120.99:4000/api/map/init', {
+    const response = await axios.get('http://mapro.cloud:4000/api/map/init', {
       timeout: 15000,
       headers: {
         'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ const fetchMapData = useCallback(async () => {
 // 서버 상태 확인 함수 (별도)
 const checkServerHealth = async () => {
   try {
-    const response = await axios.get('http://34.64.120.99:5000/health', {
+    const response = await axios.get('http://mapro.cloud:5000/health', {
       timeout: 5000
     });
     console.log('서버 상태:', response.data);
@@ -165,7 +165,7 @@ const checkServerHealth = async () => {
     setIsSearching(true);
     
     try {
-      const response = await axios.get(`http://34.64.120.99:5000/api/places/search?keyword=${encodeURIComponent(query)}&location=서울`);
+      const response = await axios.get(`http://mapro.cloud:5000/api/places/search?keyword=${encodeURIComponent(query)}&location=서울`);
       
       if (response.data.success) {
         setSearchResults(response.data.places.slice(0, 5)); // 최대 5개 결과만
@@ -437,7 +437,7 @@ const checkServerHealth = async () => {
       searchMarkersRef.current = [];
       
       // Node.js API로 각 장소의 지오코딩된 데이터 가져오기
-      const response = await axios.post('http://34.64.120.99:5000/api/chat-places', {
+      const response = await axios.post('http://mapro.cloud:5000/api/chat-places', {
         places: placesData
       });
       
