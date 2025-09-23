@@ -40,19 +40,14 @@ function preprocessAddress(address) {
 // 지오코딩 함수 - 주소를 위도경도로 변환
 async function geocodeAddress(address) {
     if (!address) {
-        console.log('❌ [지오코딩] 주소가 비어있음');
         return null;
     }
     
-    console.log(`🔍 [지오코딩 시작] 원본 주소: ${address}`);
-    
     // 주소 전처리
     const cleanedAddress = preprocessAddress(address);
-    console.log(`🔧 [주소 전처리] ${address} → ${cleanedAddress}`);
     
     try {
         // 국토교통부 VWorld 지오코더 API 사용
-        console.log(`🌐 [VWorld API 호출] ${cleanedAddress}`);
         const vworldResponse = await axios.get('http://api.vworld.kr/req/address', {
             params: {
                 service: 'address',
@@ -67,9 +62,6 @@ async function geocodeAddress(address) {
             timeout: 5000
         });
 
-        console.log(`📋 [VWorld 응답] Status: ${vworldResponse.data.response.status}`);
-        console.log(`📋 [VWorld 응답] Data:`, JSON.stringify(vworldResponse.data, null, 2));
-
         if (vworldResponse.data.response.status === 'OK' && 
             vworldResponse.data.response.result && 
             vworldResponse.data.response.result.point) {
@@ -80,11 +72,8 @@ async function geocodeAddress(address) {
                 lng: parseFloat(point.x),
                 formatted_address: cleanedAddress
             };
-            console.log(`✅ [VWorld 성공] ${cleanedAddress} -> ${result.lat}, ${result.lng}`);
             return result;
         }
-
-        console.log(`⚠️ [VWorld 실패] Nominatim으로 재시도: ${cleanedAddress}`);
 
         // 대안: Nominatim (OpenStreetMap) - 무료 지오코딩 서비스
         const nominatimResponse = await axios.get('https://nominatim.openstreetmap.org/search', {
@@ -100,11 +89,6 @@ async function geocodeAddress(address) {
             }
         });
 
-        console.log(`📋 [Nominatim 응답] 결과 수: ${nominatimResponse.data.length}`);
-        if (nominatimResponse.data.length > 0) {
-            console.log(`📋 [Nominatim 첫번째 결과]:`, nominatimResponse.data[0]);
-        }
-
         if (nominatimResponse.data && nominatimResponse.data.length > 0) {
             const result = nominatimResponse.data[0];
             const geocoded = {
@@ -112,19 +96,14 @@ async function geocodeAddress(address) {
                 lng: parseFloat(result.lon),
                 formatted_address: result.display_name
             };
-            console.log(`✅ [Nominatim 성공] ${cleanedAddress} -> ${geocoded.lat}, ${geocoded.lng}`);
             return geocoded;
         }
 
         // 지오코딩 실패시 null 반환
-        console.log(`❌ [지오코딩 완전 실패] ${cleanedAddress}`);
         return null;
 
     } catch (error) {
-        console.error(`💥 [지오코딩 오류] ${cleanedAddress}:`, error.message);
-        if (error.response) {
-            console.error(`💥 [API 응답 오류]:`, error.response.data);
-        }
+        console.error(`지오코딩 오류 (${cleanedAddress}):`, error.message);
         return null;
     }
 }
@@ -153,27 +132,18 @@ app.post('/api/chat-places', async (req, res) => {
     try {
         const { places } = req.body;
         
-        console.log('🚀 [API 호출] /api/chat-places 시작');
-        console.log('📨 [요청 데이터]', JSON.stringify(req.body, null, 2));
-        
         if (!places || !Array.isArray(places)) {
-            console.log('❌ [검증 실패] places가 배열이 아님:', places);
             return res.status(400).json({ 
                 error: '상호목록이 올바르지 않습니다.' 
             });
         }
 
-        console.log(`📍 [처리 시작] ${places.length}개 장소의 지오코딩을 시작합니다...`);
+        console.log(`📍 ${places.length}개 장소 지오코딩 시작`);
 
         // 각 장소에 대해 지오코딩 수행 (병렬 처리)
         const geocodingPromises = places.map(async (place, index) => {
-            console.log(`\n🏪 [장소 ${index + 1}/${places.length}] 처리 시작`);
-            console.log(`📋 [장소 정보]`, JSON.stringify(place, null, 2));
-            
             const address = place.location || '주소 정보 없음';
             const name = place.name || '알 수 없는 장소';
-            
-            console.log(`🔍 [지오코딩 대상] ${name} - ${address}`);
             
             // 지오코딩 수행
             const geocodedLocation = await geocodeAddress(address);
@@ -187,17 +157,12 @@ app.post('/api/chat-places', async (req, res) => {
                     lng: geocodedLocation.lng
                 };
                 finalAddress = geocodedLocation.formatted_address || address;
-                console.log(`✅ [최종 성공] ${name} -> lat: ${coordinates.lat}, lng: ${coordinates.lng}`);
             } else {
-                // 지오코딩 실패시 기본 좌표 (서울 시청 주변에 분산 배치)
-                coordinates = {
-                    lat: 37.5665 + (Math.random() - 0.5) * 0.02,
-                    lng: 126.9780 + (Math.random() - 0.5) * 0.02
-                };
-                console.log(`⚠️ [기본 좌표 사용] ${name} -> lat: ${coordinates.lat}, lng: ${coordinates.lng}`);
+                // 지오코딩 실패시 해당 장소 제외
+                return null;
             }
             
-            const result = {
+            return {
                 id: `chat-place-${index}`,
                 name: name,
                 location: place.location || '',
@@ -212,8 +177,8 @@ app.post('/api/chat-places', async (req, res) => {
                     description: place.description || `${name}에 대한 정보입니다.`,
                     features: place.feature ? place.feature.split(',').map(f => f.trim()).filter(f => f) : []
                 },
-                // 구글맵 연동
-                googleMapsUrl: createGoogleMapsUrl(name, finalAddress, coordinates),
+                // 구글맵 연동 제거
+                // googleMapsUrl: createGoogleMapsUrl(name, finalAddress, coordinates),
                 // 핀 표시 옵션
                 pinOptions: {
                     color: place.category === '음식점' ? '#FF6B6B' : 
@@ -232,19 +197,29 @@ app.post('/api/chat-places', async (req, res) => {
                           place.category === '약국' ? 'local_pharmacy' : 'place'
                 }
             };
-            
-            console.log(`📋 [최종 결과 ${index + 1}]`, JSON.stringify(result, null, 2));
-            return result;
         });
 
         // 모든 지오코딩 작업 완료 대기
-        console.log(`⏳ [병렬 처리] ${places.length}개 장소 지오코딩 대기 중...`);
-        const placeDetails = await Promise.all(geocodingPromises);
+        const placeDetails = (await Promise.all(geocodingPromises)).filter(place => place !== null);
 
-        const successCount = placeDetails.filter(p => Math.abs(p.coordinates.lat - 37.5665) > 0.01).length;
-        const failedCount = placeDetails.length - successCount;
+        const totalRequested = places.length;
+        const successCount = placeDetails.length;
+        const failedCount = totalRequested - successCount;
         
-        console.log(`🎯 [처리 완료] 성공: ${successCount}개, 실패: ${failedCount}개`);
+        console.log(`🎯 지오코딩 완료: 성공 ${successCount}개, 실패 ${failedCount}개`);
+
+        // 실패한 장소가 있으면 클라이언트에 알림
+        if (failedCount > 0) {
+            const response = {
+                success: false,
+                error: `${failedCount}개 장소의 위도경도 추출에 실패했습니다. 핀을 찍을 수 없습니다.`,
+                places: placeDetails,
+                count: placeDetails.length,
+                failed_count: failedCount,
+                source: 'chatbot'
+            };
+            return res.json(response);
+        }
 
         const response = {
             success: true,
@@ -258,12 +233,10 @@ app.post('/api/chat-places', async (req, res) => {
             }
         };
         
-        console.log(`📤 [API 응답]`, JSON.stringify(response, null, 2));
         res.json(response);
 
     } catch (error) {
-        console.error('💥 [API 오류] 챗봇 상호목록 처리 오류:', error);
-        console.error('💥 [오류 스택]', error.stack);
+        console.error('챗봇 상호목록 처리 오류:', error);
         res.status(500).json({ 
             error: '서버 오류가 발생했습니다.',
             details: error.message 
@@ -271,73 +244,7 @@ app.post('/api/chat-places', async (req, res) => {
     }
 });
 
-// 2. 지도 검색 기능 (독립적인 검색창용)
-app.get('/api/places/search', async (req, res) => {
-    try {
-        const { keyword, location } = req.query;
-        
-        if (!keyword) {
-            return res.status(400).json({ 
-                error: '검색 키워드가 필요합니다.' 
-            });
-        }
-
-        // 임시 모의 데이터 (실제 검색 결과와 유사한 형태)
-        const mockAddresses = [
-            `${location || '서울특별시'} 강남구 테헤란로 427`,
-            `${location || '서울특별시'} 서초구 서초대로 398`
-        ];
-
-        const geocodingPromises = mockAddresses.map(async (address, index) => {
-            const geocoded = await geocodeAddress(address);
-            const coordinates = geocoded ? 
-                { lat: geocoded.lat, lng: geocoded.lng } : 
-                { lat: 37.5665 + (index * 0.01), lng: 126.9780 + (index * 0.01) };
-
-            return {
-                id: `search-${index + 1}`,
-                name: `${keyword} ${index + 1}호점`,
-                category: keyword.includes('카페') ? '카페' : '음식점',
-                location: location || '서울',
-                address: geocoded ? geocoded.formatted_address : address,
-                coordinates: coordinates,
-                info: {
-                    phone: `02-${1000 + index}${2000 + index}`,
-                    rating: 4.2 + (index * 0.3),
-                    openHours: index === 0 ? '09:00 - 22:00' : '08:00 - 23:00',
-                    description: `${index === 0 ? '맛있는' : '분위기 좋은'} ${keyword}를 제공하는 곳입니다.`,
-                    features: index === 0 ? ['WiFi', '주차가능', '포장가능'] : ['24시간', 'WiFi', '배달가능']
-                },
-                googleMapsUrl: createGoogleMapsUrl(`${keyword} ${index + 1}호점`, address, coordinates),
-                pinOptions: {
-                    color: keyword.includes('카페') ? '#4ECDC4' : '#FF6B6B',
-                    icon: keyword.includes('카페') ? 'local_cafe' : 'restaurant'
-                }
-            };
-        });
-
-        const mockPlaces = await Promise.all(geocodingPromises);
-
-        res.json({
-            success: true,
-            places: mockPlaces,
-            count: mockPlaces.length,
-            keyword: keyword,
-            searchLocation: location,
-            source: 'search',
-            note: 'Mock data with real geocoding'
-        });
-
-    } catch (error) {
-        console.error('지도 검색 오류:', error);
-        res.status(500).json({ 
-            error: '검색 중 오류가 발생했습니다.',
-            details: error.message 
-        });
-    }
-});
-
-// 3. 단일 주소 지오코딩 엔드포인트
+// 2. 단일 주소 지오코딩 엔드포인트
 app.post('/api/geocoding', async (req, res) => {
     try {
         const { address } = req.body;
@@ -358,8 +265,8 @@ app.post('/api/geocoding', async (req, res) => {
                     lng: geocoded.lng
                 },
                 address: address,
-                formatted_address: geocoded.formatted_address,
-                googleMapsUrl: createGoogleMapsUrl('검색 위치', address, { lat: geocoded.lat, lng: geocoded.lng })
+                formatted_address: geocoded.formatted_address
+                // googleMapsUrl: createGoogleMapsUrl('검색 위치', address, { lat: geocoded.lat, lng: geocoded.lng })
             });
         } else {
             res.json({
@@ -377,12 +284,12 @@ app.post('/api/geocoding', async (req, res) => {
     }
 });
 
-// 4. Python에서 장소 데이터를 받는 엔드포인트 (지오코딩 적용)
+// 3. Python에서 장소 데이터를 받는 엔드포인트 (지오코딩 적용)
 app.post('/api/receive-places', async (req, res) => {
     try {
         const places = req.body;
         
-        console.log('Python에서 받은 장소 데이터:', places);
+        console.log(`📍 Python에서 ${places.length}개 장소 데이터 수신`);
         
         // 지오코딩 병렬 처리
         const geocodingPromises = places.map(async (place, index) => {
@@ -393,9 +300,14 @@ app.post('/api/receive-places', async (req, res) => {
             
             const coordinates = geocoded ? 
                 { lat: geocoded.lat, lng: geocoded.lng } : 
-                { lat: 37.5665 + (index * 0.01), lng: 126.9780 + (index * 0.01) };
+                null; // 지오코딩 실패시 null
                 
             const finalAddress = geocoded ? geocoded.formatted_address : address;
+            
+            // 지오코딩 실패시 해당 장소 제외
+            if (!coordinates) {
+                return null;
+            }
             
             return {
                 id: `python-place-${index}`,
@@ -411,7 +323,7 @@ app.post('/api/receive-places', async (req, res) => {
                     description: place.description || `${name}에 대한 정보입니다.`,
                     features: place.features || []
                 },
-                googleMapsUrl: createGoogleMapsUrl(name, finalAddress, coordinates),
+                // googleMapsUrl: createGoogleMapsUrl(name, finalAddress, coordinates),
                 pinOptions: {
                     color: place.category === '음식점' ? '#FF6B6B' : 
                            place.category === '카페' ? '#4ECDC4' : 
@@ -423,7 +335,24 @@ app.post('/api/receive-places', async (req, res) => {
             };
         });
 
-        const formattedPlaces = await Promise.all(geocodingPromises);
+        const formattedPlaces = (await Promise.all(geocodingPromises)).filter(place => place !== null);
+        const totalRequested = places.length;
+        const successCount = formattedPlaces.length;
+        const failedCount = totalRequested - successCount;
+        
+        console.log(`🎯 Python 데이터 처리 완료: 성공 ${successCount}개, 실패 ${failedCount}개`);
+
+        // 실패한 장소가 있으면 클라이언트에 알림
+        if (failedCount > 0) {
+            return res.json({
+                success: false,
+                error: `${failedCount}개 장소의 위도경도 추출에 실패했습니다. 핀을 찍을 수 없습니다.`,
+                places: formattedPlaces,
+                count: formattedPlaces.length,
+                failed_count: failedCount,
+                source: 'python'
+            });
+        }
 
         res.json({
             success: true,
@@ -433,47 +362,10 @@ app.post('/api/receive-places', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('장소 데이터 처리 오류:', error);
+        console.error('Python 장소 데이터 처리 오류:', error);
         res.status(500).json({ 
             error: '장소 데이터 처리 중 오류가 발생했습니다.',
             details: error.message 
-        });
-    }
-});
-
-// 5. 특정 장소 상세 정보 조회
-app.get('/api/place/:id', (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        // 임시 상세 정보 반환
-        const placeDetail = {
-            id: id,
-            name: '상세 정보 테스트',
-            address: '서울특별시 강남구 테헤란로 427',
-            coordinates: { lat: 37.5665, lng: 126.9780 },
-            category: '음식점',
-            info: {
-                phone: '02-1234-5678',
-                rating: 4.3,
-                openHours: '10:00 - 22:00',
-                description: '맛있는 음식을 제공하는 레스토랑입니다.',
-                features: ['WiFi', '주차가능', '포장가능', '배달가능'],
-                photos: []
-            },
-            googleMapsUrl: createGoogleMapsUrl('상세 정보 테스트', '서울특별시 강남구 테헤란로 427', { lat: 37.5665, lng: 126.9780 }),
-            reviews: []
-        };
-
-        res.json({
-            success: true,
-            place: placeDetail
-        });
-
-    } catch (error) {
-        console.error('장소 상세 정보 조회 오류:', error);
-        res.status(500).json({ 
-            error: '장소 정보를 가져올 수 없습니다.' 
         });
     }
 });
@@ -499,4 +391,5 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`🗺️  Map API Server running on port ${PORT}`);
     console.log(`🔗 Python Chat API: ${PYTHON_CHAT_API}`);
     console.log(`🔗 Java Backend API: ${JAVA_BACKEND_API}`);
-    console.log(`📍 Geocoding: VWorld (국토교통부) + Nominatim (OSM)`);});
+    console.log(`📍 Geocoding: VWorld (국토교통부) + Nominatim (OSM)`);
+});
