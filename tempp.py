@@ -392,7 +392,7 @@ def save_to_mariadb(reviews_df, keyword_df):
         # MariaDB 연결
         connection = connect_to_mariadb()
         if connection is None:
-            print("MariaDB 연결 실패로 데이터 저장을 건너뜁니다.")
+            print("MariaDB 연결 실패로 데이터 저장을 건너뛰니다.")
             return False
         
         cursor = connection.cursor()
@@ -403,11 +403,11 @@ def save_to_mariadb(reviews_df, keyword_df):
                 # 현재 시간
                 current_time = datetime.now()
                 
-                # place 테이블에 데이터 삽입
+                # place 테이블에 데이터 삽입 (위도/경도 포함)
                 insert_place_sql = """
                 INSERT INTO place 
-                (created_at, updated_at, category, name, location, feature)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                (created_at, updated_at, category, name, location, feature, latitude, longitude)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """
                 cursor.execute(insert_place_sql, (
                     current_time,  # created_at
@@ -415,7 +415,9 @@ def save_to_mariadb(reviews_df, keyword_df):
                     row['category'],  # category
                     row['place_name'],  # name
                     row['place_address'],  # location
-                    row['keywords']  # feature
+                    row['keywords'],  # feature
+                    row.get('latitude'),  # latitude
+                    row.get('longitude')  # longitude
                 ))
         
         # 변경사항 커밋
@@ -605,7 +607,7 @@ class GoogleMapsReviewCollector:
 
         params = {
             'place_id': place_id,
-            'fields': 'reviews,name,formatted_address',
+            'fields': 'reviews,name,formatted_address,geometry',
             'key': self.api_key,
             'language': 'ko'
         }
@@ -621,6 +623,14 @@ class GoogleMapsReviewCollector:
                 place_info = data['result']
                 place_name = place_info.get('name', '')
                 place_address = place_info.get('formatted_address', '')
+                
+                # 위도/경도 정보 추출
+                latitude = None
+                longitude = None
+                if 'geometry' in place_info and 'location' in place_info['geometry']:
+                    geometry = place_info['geometry']['location']
+                    latitude = geometry.get('lat')
+                    longitude = geometry.get('lng')
 
                 if 'reviews' in place_info:
                     for review in place_info['reviews']:
@@ -630,6 +640,8 @@ class GoogleMapsReviewCollector:
                             'place_id': place_id,
                             'place_name': place_name,
                             'place_address': place_address,
+                            'latitude': latitude,
+                            'longitude': longitude,
                             'review_text': review.get('text', ''),
                             'author_url': review.get('author_url', ''),
                             'language': review.get('language', '')
@@ -701,8 +713,8 @@ class GoogleMapsReviewCollector:
 
         if all_reviews:
             df = pd.DataFrame(all_reviews)
-            # 필요한 컬럼만 선택하고 정렬
-            columns = ['place_name', 'place_address', 'review_text']
+            # 필요한 컴럼만 선택하고 정렬
+            columns = ['place_name', 'place_address', 'latitude', 'longitude', 'review_text']
             df = df[columns]
 
             years_text = f" ({years_filter}년 이내)" if years_filter else ""
@@ -729,7 +741,7 @@ class GoogleMapsReviewCollector:
 
         if reviews:
             df = pd.DataFrame(reviews)
-            columns = ['place_name', 'place_address', 'review_text']
+            columns = ['place_name', 'place_address', 'latitude', 'longitude', 'review_text']
             df = df[columns]
 
             years_text = f" ({years_filter}년 이내)" if years_filter else ""
@@ -821,6 +833,11 @@ if __name__ == "__main__":
         # 매장별 키워드 요약 생성
         keyword_df = all_reviews_df.groupby(['place_name', 'place_address', 'category']).apply(aggregate_keywords, include_groups=False).reset_index()
         keyword_df.columns = ['place_name', 'place_address', 'category', 'keywords']
+
+        # 각 장소의 위도/경도 대표값(첫 값) 추출 후 병합
+        place_geo_df = (all_reviews_df[['place_name', 'place_address', 'category', 'latitude', 'longitude']]
+                        .drop_duplicates(subset=['place_name', 'place_address', 'category']))
+        keyword_df = keyword_df.merge(place_geo_df, on=['place_name', 'place_address', 'category'], how='left')
         
         print("\n매장별 키워드 요약 생성 완료!")
         
