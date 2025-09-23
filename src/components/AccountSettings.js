@@ -17,15 +17,15 @@ import {
 } from 'antd';
 import { UserOutlined, SafetyOutlined, BellOutlined, LogoutOutlined } from '@ant-design/icons';
 
-import { useAuth, logout } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
-const { Content, Header } = Layout;
+const { Content } = Layout;
 const { Title, Text } = Typography;
 
 const AccountSettings = () => {
   const { user, logout } = useAuth();
 
-  // ✅ 항상 최상위에서 useState 호출
+  // formData: 상단 카드와 실제 저장용 데이터
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -36,37 +36,26 @@ const AccountSettings = () => {
     confirmPassword: "",
   });
 
-  // ✅ 항상 최상위에서 useEffect 호출
+  const [activeTab, setActiveTab] = useState("profile");
+
+  // 유저 정보 초기화
   useEffect(() => {
     if (user) {
-      setFormData((prev) => ({
-        ...prev,
+      setFormData({
         name: user.name || "",
         email: user.email || "",
         phone: user.phone || "",
         status: user.status || "",
-      }));
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
     }
   }, [user]);
 
-  const [activeTab, setActiveTab] = useState("profile");
+  if (!user) return <div>Loading...</div>;
 
-  // ✅ 훅 호출 다 끝난 후 조건부 리턴
-  if (!user) {
-    return <div>Loading...</div>;
-  }
-
-
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleProfileSave = () => {
-    message.success('프로필이 저장되었습니다.');
-    console.log('Profile saved:', formData);
-    // 실제 API 호출 로직 추가 가능
-  };
-
+  // 비밀번호 변경
   const handlePasswordChange = () => {
     if (formData.newPassword !== formData.confirmPassword) {
       message.error('비밀번호가 일치하지 않습니다!');
@@ -74,77 +63,96 @@ const AccountSettings = () => {
     }
     message.success('비밀번호가 변경되었습니다.');
     console.log('Password changed:', formData.newPassword);
-    // 실제 API 호출 로직 추가 가능
   };
 
-  // 📌 프로필 탭
-  const ProfileTab = () => (
-    <div style={{ padding: '24px 0' }}>
-      <Card
-        title={
+  // ProfileTab 수정: Input은 로컬 state로 관리
+  const ProfileTab = () => {
+    const [nameInput, setNameInput] = useState(formData.name);
+    const [emailInput, setEmailInput] = useState(formData.email);
+    const [phoneInput, setPhoneInput] = useState(formData.phone);
+
+    useEffect(() => {
+      setNameInput(formData.name);
+      setEmailInput(formData.email);
+      setPhoneInput(formData.phone);
+    }, [formData]);
+
+    const handleProfileSave = () => {
+      setFormData(prev => ({
+        ...prev,
+        name: nameInput,
+        email: emailInput,
+        phone: phoneInput
+      }));
+      message.success('프로필 저장 완료');
+      console.log('Profile saved:', { name: nameInput, email: emailInput, phone: phoneInput });
+    };
+
+    return (
+      <div style={{ padding: '24px 0' }}>
+        <Card
+          title={
+            <Space>
+              <UserOutlined style={{ color: '#722ed1' }} />
+              <Text>개인 정보</Text>
+            </Space>
+          }
+          style={{ marginBottom: 24 }}
+        >
+          <Card style={{ marginBottom: 24, backgroundColor: '#fafafa', borderRadius: 8 }}>
+            <Row gutter={24} align="middle">
+              <Col span={6}>
+                <Avatar size={80} style={{ backgroundColor: '#d9d9d9' }} />
+              </Col>
+              <Col span={18}>
+                <Title level={4} style={{ margin: 0 }}>{formData.name || "이름 없음"}</Title>
+                <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+                  {formData.email || "이메일 없음"}
+                </Text>
+                <div>
+                  <Badge status="success" text="온라인" />
+                  <Divider type="vertical" />
+                  <Badge status="default" text="오프라인" />
+                </div>
+              </Col>
+            </Row>
+          </Card>
+
+          <div style={{ marginBottom: 24 }}>
+            <Text strong>이름 *</Text>
+            <Input
+              value={nameInput}
+              onChange={e => setNameInput(e.target.value)}
+              placeholder="이름을 입력하세요"
+              style={{ marginTop: 8, marginBottom: 16 }}
+            />
+
+            <Text strong>이메일 *</Text>
+            <Input
+              value={emailInput}
+              onChange={e => setEmailInput(e.target.value)}
+              placeholder="이메일을 입력하세요"
+              style={{ marginTop: 8, marginBottom: 16 }}
+            />
+
+            <Text strong>전화번호</Text>
+            <Input
+              value={phoneInput}
+              onChange={e => setPhoneInput(e.target.value)}
+              placeholder="전화번호를 입력하세요"
+              style={{ marginTop: 8, marginBottom: 16 }}
+            />
+          </div>
+
           <Space>
-            <UserOutlined style={{ color: '#722ed1' }} />
-            <Text>개인 정보</Text>
+            <Button type="primary" onClick={handleProfileSave}>저장</Button>
+            <Button>취소</Button>
           </Space>
-        }
-        style={{ marginBottom: 24 }}
-      >
-        <Card style={{ marginBottom: 24, backgroundColor: '#fafafa', borderRadius: 8 }}>
-          <Row gutter={24} align="middle">
-            <Col span={6}>
-              <Avatar size={80} style={{ backgroundColor: '#d9d9d9' }} />
-            </Col>
-            <Col span={18}>
-              <Title level={4} style={{ margin: 0 }}>{formData.name || "이름 없음"}</Title>
-              <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-                {formData.email || "이메일 없음"}
-              </Text>
-              <div>
-                <Badge status="success" text="온라인" />
-                <Divider type="vertical" />
-                <Badge status="default" text="오프라인" />
-              </div>
-            </Col>
-          </Row>
         </Card>
+      </div>
+    );
+  };
 
-        <div style={{ marginBottom: 24 }}>
-          <Text strong>이름 *</Text>
-          <Input
-            value={formData.name}
-            onChange={(e) => handleInputChange('name', e.target.value)}
-            placeholder="이름을 입력하세요"
-            style={{ marginTop: 8, marginBottom: 16 }}
-          />
-
-          <Text strong>이메일 *</Text>
-          <Input
-            value={formData.email}
-            onChange={(e) => handleInputChange('email', e.target.value)}
-            placeholder="이메일을 입력하세요"
-            style={{ marginTop: 8, marginBottom: 16 }}
-          />
-
-          <Text strong>전화번호</Text>
-          <Input
-            value={formData.phone}
-            onChange={(e) => handleInputChange('phone', e.target.value)}
-            placeholder="전화번호를 입력하세요"
-            style={{ marginTop: 8, marginBottom: 16 }}
-          />
-        </div>
-
-        <Space>
-          <Button type="primary" onClick={handleProfileSave}>
-            저장
-          </Button>
-          <Button>취소</Button>
-        </Space>
-      </Card>
-    </div>
-  );
-
-  // 📌 보안 탭
   const SecurityTab = () => (
     <div style={{ padding: '24px 0' }}>
       <Card
@@ -171,7 +179,7 @@ const AccountSettings = () => {
             <Text strong>현재 비밀번호 *</Text>
             <Input.Password
               value={formData.currentPassword}
-              onChange={(e) => handleInputChange('currentPassword', e.target.value)}
+              onChange={(e) => setFormData(prev => ({ ...prev, currentPassword: e.target.value }))}
               placeholder="현재 비밀번호를 입력하세요"
               style={{ marginTop: 8 }}
             />
@@ -183,7 +191,7 @@ const AccountSettings = () => {
                 <Text strong>새 비밀번호 *</Text>
                 <Input.Password
                   value={formData.newPassword}
-                  onChange={(e) => handleInputChange('newPassword', e.target.value)}
+                  onChange={(e) => setFormData(prev => ({ ...prev, newPassword: e.target.value }))}
                   placeholder="새 비밀번호를 입력하세요"
                   style={{ marginTop: 8 }}
                 />
@@ -194,7 +202,7 @@ const AccountSettings = () => {
                 <Text strong>비밀번호 확인 *</Text>
                 <Input.Password
                   value={formData.confirmPassword}
-                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                  onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                   placeholder="새 비밀번호를 다시 입력하세요"
                   style={{ marginTop: 8 }}
                 />
@@ -207,9 +215,7 @@ const AccountSettings = () => {
           </Text>
 
           <Space>
-            <Button type="primary" onClick={handlePasswordChange}>
-              비밀번호 변경
-            </Button>
+            <Button type="primary" onClick={handlePasswordChange}>비밀번호 변경</Button>
             <Button>취소</Button>
           </Space>
         </div>
@@ -239,7 +245,6 @@ const AccountSettings = () => {
     </div>
   );
 
-  // 📌 알림 탭
   const NotificationsTab = () => (
     <div style={{ padding: '24px 0' }}>
       <Card title="알림 설정">
@@ -267,7 +272,6 @@ const AccountSettings = () => {
             padding: '24px 32px',
           }}
         >
-          {/* 헤더 영역 */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <Title level={3} style={{ margin: 0, color: '#722ed1' }}>계정 설정</Title>
