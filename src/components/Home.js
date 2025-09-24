@@ -18,7 +18,7 @@ function Home({ onOpenMap }) {
 
   return (
     <Layout style={{ backgroundColor: '#f5f5f5' }}>
-      <Content style={{ padding: '0 24px 24px 24px' }}>
+      <Content>
         <div style={{ padding: 24, background: '#rgb(240, 242, 245)' }}>
           <Card
             cover={
