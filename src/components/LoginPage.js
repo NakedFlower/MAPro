@@ -13,6 +13,7 @@ import {
   Checkbox
 } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
   UserOutlined,
   LockOutlined,
@@ -33,7 +34,8 @@ import {
 const { Title, Text, Link } = Typography;
 
 const LoginPage = () => {
-  const navigate = useNavigate();  // 이 줄 추가
+  const navigate = useNavigate();
+  const { login } = useAuth(); // Auth 컨텍스트에서 login 함수 가져오기
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -67,12 +69,24 @@ const LoginPage = () => {
 
     if (response.ok) {
       const data = await response.json();
-      message.success('로그인이 성공적으로 완료되었습니다!');
-      // 로그인 성공 후 토큰 저장 등 처리
-      localStorage.setItem('token', data.token);
-      navigate('/User/MyPage/Home'); // 로그인 후 메인 대시보드로 이동
+      
+      // 백엔드 응답 구조에 맞춰 데이터 추출
+      if (data.data && data.data.token) {
+        const authData = data.data;
+        
+        // AuthContext의 login 함수 사용으로 상태 동기화
+        login(authData, authData.token);
+        
+        message.success('로그인이 성공적으로 완료되었습니다!');
+        navigate('/User/MyPage/Home'); // 로그인 후 메인 대시보드로 이동
+      } else {
+        // 예상치 못한 응답 구조
+        console.error('Unexpected response structure:', data);
+        message.error('로그인 처리 중 오류가 발생했습니다.');
+      }
     } else {
-      message.error('이메일 또는 비밀번호가 잘못되었습니다.');
+      const errorData = await response.json().catch(() => ({}));
+      message.error(errorData.message || '이메일 또는 비밀번호가 잘못되었습니다.');
     }
   } catch (error) {
     message.error('로그인 중 오류가 발생했습니다.');
