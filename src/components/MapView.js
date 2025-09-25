@@ -369,12 +369,37 @@ const fetchMapData = useCallback(async () => {
     }
   };
 
-  // 기존 마커들 제거
+  // 기존 마커들과 오버레이들 완전 제거
   const clearExistingMarkers = () => {
-    searchMarkersRef.current.forEach(marker => marker.setMap(null));
+    // 기존 마커들과 연결된 모든 오버레이 제거
+    searchMarkersRef.current.forEach(marker => {
+      // 마커 제거
+      marker.setMap(null);
+      
+      // 라벨 오버레이 제거
+      if (marker.labelOverlay) {
+        marker.labelOverlay.setMap(null);
+        marker.labelOverlay = null;
+      }
+      
+      // 아이콘 오버레이 제거
+      if (marker.iconOverlay) {
+        marker.iconOverlay.setMap(null);
+        marker.iconOverlay = null;
+      }
+    });
+    
+    // 배열 초기화
     searchMarkersRef.current = [];
-    infoWindowsRef.current.forEach(infoWindow => infoWindow.close());
+    
+    // 정보창들 닫기
+    infoWindowsRef.current.forEach(infoWindow => {
+      infoWindow.close();
+      infoWindow.setMap(null);
+    });
     infoWindowsRef.current = [];
+    
+    console.log('🧹 모든 마커와 오버레이 정리 완료');
   };
 
   // 카테고리별 아이콘 반환
@@ -393,23 +418,100 @@ const fetchMapData = useCallback(async () => {
 
   // 마커 생성 함수
   const createMarker = (place, position) => {
+    // 카테고리별 아이콘 및 색상 설정
+    const getMarkerConfig = (category) => {
+      const configs = {
+        '음식점': { icon: '🍽️', color: '#FF6B6B' },
+        '카페': { icon: '☕', color: '#4ECDC4' },
+        '병원': { icon: '🏥', color: '#45B7D1' },
+        '편의점': { icon: '🏪', color: '#96CEB4' },
+        '호텔': { icon: '🏨', color: '#9B59B6' },
+        '헤어샵': { icon: '✂️', color: '#F39C12' },
+        '약국': { icon: '💊', color: '#E74C3C' }
+      };
+      return configs[category] || { icon: '📍', color: '#4285F4' };
+    };
+
+    const config = getMarkerConfig(place.category);
+
+    // SVG 핀 마커 생성 (카테고리별 색상 + 아이콘)
+    const pinSvg = `
+      <svg width="32" height="44" viewBox="0 0 32 44" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+          </filter>
+        </defs>
+        <!-- 핀 바디 -->
+        <path d="M16 2C9.373 2 4 7.373 4 14c0 7.412 12 26 12 26s12-18.588 12-26c0-6.627-5.373-12-12-12z" 
+              fill="${config.color}" 
+              stroke="white" 
+              stroke-width="2" 
+              filter="url(#shadow)"/>
+        <!-- 내부 원 -->
+        <circle cx="16" cy="14" r="8" fill="white" opacity="0.9"/>
+      </svg>
+    `;
+
     const marker = new window.google.maps.Marker({
       position: position,
       map: mapInstanceRef.current,
       title: place.name,
       icon: {
-        path: window.google.maps.SymbolPath.CIRCLE,
-        scale: 12,
-        fillColor: '#4285F4',
-        fillOpacity: 1,
-        strokeColor: '#ffffff',
-        strokeWeight: 3
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(pinSvg),
+        scaledSize: new window.google.maps.Size(32, 44),
+        anchor: new window.google.maps.Point(16, 44), // 핀의 끝점을 정확한 위치에
+        origin: new window.google.maps.Point(0, 0)
       },
       animation: window.google.maps.Animation.DROP,
       zIndex: 100
     });
 
-    // 상호명 라벨 생성 (항상 표시)
+    // 카테고리 아이콘 오버레이 (핀 위에 표시)
+    const iconDiv = document.createElement('div');
+    iconDiv.innerHTML = `
+      <div style="
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        z-index: 200;
+      ">
+        ${config.icon}
+      </div>
+    `;
+
+    const iconOverlay = new window.google.maps.OverlayView();
+    iconOverlay.onAdd = function() {
+      const panes = this.getPanes();
+      panes.overlayMouseTarget.appendChild(iconDiv);
+    };
+
+    iconOverlay.draw = function() {
+      const projection = this.getProjection();
+      const pos = projection.fromLatLngToDivPixel(position);
+      iconDiv.style.position = 'absolute';
+      iconDiv.style.left = (pos.x - 8) + 'px';
+      iconDiv.style.top = (pos.y - 30) + 'px'; // 핀의 원형 부분에 맞춤
+    };
+
+    iconOverlay.onRemove = function() {
+      if (iconDiv.parentNode) {
+        iconDiv.parentNode.removeChild(iconDiv);
+      }
+    };
+
+    iconOverlay.setMap(mapInstanceRef.current);
+    marker.iconOverlay = iconOverlay;
+
+    // 상호명 라벨 생성 (핀 위에 표시)
     const labelDiv = document.createElement('div');
     labelDiv.innerHTML = `
       <div style="
@@ -429,7 +531,7 @@ const fetchMapData = useCallback(async () => {
         position: relative;
         z-index: 1000;
       ">
-        ${getCategoryIcon(place.category)} ${place.name}
+        ${place.name}
       </div>
     `;
 
@@ -444,7 +546,7 @@ const fetchMapData = useCallback(async () => {
       const pos = projection.fromLatLngToDivPixel(position);
       labelDiv.style.position = 'absolute';
       labelDiv.style.left = (pos.x - 75) + 'px'; // 중앙 정렬
-      labelDiv.style.top = (pos.y - 65) + 'px';  // 마커 위쪽
+      labelDiv.style.top = (pos.y - 75) + 'px';  // 핀 위쪽
     };
 
     labelOverlay.onRemove = function() {
