@@ -76,8 +76,10 @@ app.post('/api/chat-places', async (req, res) => {
                     description: place.description || `${name}에 대한 정보입니다.`,
                     features: place.feature ? place.feature.split(',').map(f => f.trim()).filter(f => f) : []
                 },
-                // 핀 표시 옵션 (상호명 라벨 포함)
+                // 핀 표시 옵션 (네이버지도 스타일 + 상호명 라벨)
                 pinOptions: {
+                    // 네이버지도 스타일 핀 디자인
+                    style: 'naver', // 네이버지도 스타일 핀
                     color: place.category === '음식점' ? '#FF6B6B' : 
                            place.category === '카페' ? '#4ECDC4' : 
                            place.category === '병원' ? '#45B7D1' : 
@@ -85,26 +87,53 @@ app.post('/api/chat-places', async (req, res) => {
                            place.category === '호텔' ? '#9B59B6' :
                            place.category === '헤어샵' ? '#F39C12' :
                            place.category === '약국' ? '#E74C3C' : '#95A5A6',
-                    icon: place.category === '음식점' ? 'restaurant' : 
-                          place.category === '카페' ? 'local_cafe' : 
-                          place.category === '병원' ? 'local_hospital' : 
-                          place.category === '편의점' ? 'store' :
-                          place.category === '호텔' ? 'hotel' :
-                          place.category === '헤어샵' ? 'content_cut' :
-                          place.category === '약국' ? 'local_pharmacy' : 'place',
-                    // 🏷️ 핀 위에 상호명 라벨 표시
+                    size: {
+                        width: 32,
+                        height: 40
+                    },
+                    icon: {
+                        type: place.category === '음식점' ? 'restaurant' : 
+                              place.category === '카페' ? 'cafe' : 
+                              place.category === '병원' ? 'hospital' : 
+                              place.category === '편의점' ? 'store' :
+                              place.category === '호텔' ? 'hotel' :
+                              place.category === '헤어샵' ? 'salon' :
+                              place.category === '약국' ? 'pharmacy' : 'default',
+                        color: '#FFFFFF', // 아이콘 색상 (흰색)
+                        size: 16
+                    },
+                    // 🏷️ 핀 위에 상호명 라벨 표시 (강화된 스타일)
                     label: {
                         text: name,
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        color: '#333333',
-                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        border: '1px solid #cccccc',
-                        offset: { x: 0, y: -10 } // 핀 위쪽에 표시
+                        visible: true, // 항상 표시
+                        position: 'top', // 핀 위쪽에 표시
+                        style: {
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            fontFamily: 'Arial, sans-serif',
+                            color: '#333333',
+                            backgroundColor: '#FFFFFF',
+                            padding: '4px 8px',
+                            borderRadius: '12px',
+                            border: '1px solid #E0E0E0',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                            whiteSpace: 'nowrap',
+                            maxWidth: '120px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                        },
+                        offset: { 
+                            x: 0, 
+                            y: -45 // 핀 위쪽으로 더 멀리
+                        },
+                        animation: {
+                            appear: 'fadeIn',
+                            duration: 300
+                        }
                     }
-                }
+                },
+                // 구글지도 연동 URL 추가
+                googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${parseFloat(latitude)},${parseFloat(longitude)}`
             };
         }).filter(place => place !== null);
 
@@ -193,25 +222,51 @@ app.post('/api/receive-places', async (req, res) => {
                     features: place.features || []
                 },
                 pinOptions: {
+                    // 네이버지도 스타일 핀 디자인
+                    style: 'naver',
                     color: place.category === '음식점' ? '#FF6B6B' : 
                            place.category === '카페' ? '#4ECDC4' : 
                            place.category === '병원' ? '#45B7D1' : '#96CEB4',
-                    icon: place.category === '음식점' ? 'restaurant' : 
-                          place.category === '카페' ? 'local_cafe' : 
-                          place.category === '병원' ? 'local_hospital' : 'place',
+                    size: {
+                        width: 32,
+                        height: 40
+                    },
+                    icon: {
+                        type: place.category === '음식점' ? 'restaurant' : 
+                              place.category === '카페' ? 'cafe' : 
+                              place.category === '병원' ? 'hospital' : 'default',
+                        color: '#FFFFFF',
+                        size: 16
+                    },
                     // 🏷️ 핀 위에 상호명 라벨 표시
                     label: {
                         text: name,
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        color: '#333333',
-                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        border: '1px solid #cccccc',
-                        offset: { x: 0, y: -10 }
+                        visible: true,
+                        position: 'top',
+                        style: {
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            fontFamily: 'Arial, sans-serif',
+                            color: '#333333',
+                            backgroundColor: '#FFFFFF',
+                            padding: '4px 8px',
+                            borderRadius: '12px',
+                            border: '1px solid #E0E0E0',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                            whiteSpace: 'nowrap',
+                            maxWidth: '120px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                        },
+                        offset: { x: 0, y: -45 },
+                        animation: {
+                            appear: 'fadeIn',
+                            duration: 300
+                        }
                     }
-                }
+                },
+                // 구글지도 연동 URL 추가
+                googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${parseFloat(latitude)},${parseFloat(longitude)}`
             };
         }).filter(place => place !== null);
 
@@ -262,19 +317,29 @@ app.get('/api/test-pins', (req, res) => {
             info: { description: '테스트용 카페입니다.' },
             pinOptions: {
                 color: '#4ECDC4',
-                icon: 'local_cafe',
+                style: 'naver',
+                size: { width: 32, height: 40 },
+                icon: { type: 'cafe', color: '#FFFFFF', size: 16 },
                 label: {
                     text: '테스트 카페',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    color: '#333333',
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                    border: '1px solid #cccccc',
-                    offset: { x: 0, y: -10 }
+                    visible: true,
+                    position: 'top',
+                    style: {
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        fontFamily: 'Arial, sans-serif',
+                        color: '#333333',
+                        backgroundColor: '#FFFFFF',
+                        padding: '4px 8px',
+                        borderRadius: '12px',
+                        border: '1px solid #E0E0E0',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                        whiteSpace: 'nowrap'
+                    },
+                    offset: { x: 0, y: -45 }
                 }
-            }
+            },
+            googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=37.3951,127.1116'
         }
     ];
 
