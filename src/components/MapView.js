@@ -16,8 +16,8 @@ function MapView({ places, onPlacesDisplayed }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const searchInputRef = useRef(null);
-  const geocoderRef = useRef(null);
   const searchMarkersRef = useRef([]);
+  const infoWindowsRef = useRef([]);
 
 // 수정된 fetchMapData 함수 - 기존 백엔드 프록시 방식 유지
 const fetchMapData = useCallback(async () => {
@@ -51,20 +51,6 @@ const fetchMapData = useCallback(async () => {
     setLoading(false);
   }
 }, []);
-
-// 서버 상태 확인 함수 (별도)
-const checkServerHealth = async () => {
-  try {
-    const response = await axios.get('http://mapro.cloud:5000/health', {
-      timeout: 5000
-    });
-    console.log('서버 상태:', response.data);
-    return response.data;
-  } catch (error) {
-    console.error('서버 상태 확인 실패:', error);
-    return null;
-  }
-};
 
   // 사용자 현재 위치 가져오기
   const getUserLocation = () => {
@@ -158,7 +144,7 @@ const checkServerHealth = async () => {
     });
   };
 
-  // Node.js API를 사용한 장소 검색 함수
+  // 장소 검색 함수 (기존 유지)
   const searchAddress = useCallback(async (query) => {
     if (!query.trim()) return;
 
@@ -168,7 +154,7 @@ const checkServerHealth = async () => {
       const response = await axios.get(`http://mapro.cloud:5000/api/places/search?keyword=${encodeURIComponent(query)}&location=서울`);
       
       if (response.data.success) {
-        setSearchResults(response.data.places.slice(0, 5)); // 최대 5개 결과만
+        setSearchResults(response.data.places.slice(0, 5));
         setShowSearchResults(true);
       } else {
         setSearchResults([]);
@@ -187,46 +173,14 @@ const checkServerHealth = async () => {
 
     const location = new window.google.maps.LatLng(result.coordinates.lat, result.coordinates.lng);
     
-    // 지도 중심 이동
     mapInstanceRef.current.setCenter(location);
     mapInstanceRef.current.setZoom(16);
 
     // 기존 검색 마커들 제거
-    searchMarkersRef.current.forEach(marker => marker.setMap(null));
-    searchMarkersRef.current = [];
+    clearExistingMarkers();
 
-    // 새 마커 추가 (카테고리별 색상 적용)
-    const marker = new window.google.maps.Marker({
-      position: location,
-      map: mapInstanceRef.current,
-      title: result.name,
-      icon: {
-        path: window.google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
-        scale: 6,
-        fillColor: result.pinOptions?.color || '#ff4444',
-        fillOpacity: 1,
-        strokeColor: '#ffffff',
-        strokeWeight: 2
-      },
-      animation: window.google.maps.Animation.DROP
-    });
-
-    // 정보창 추가
-    const infoWindow = new window.google.maps.InfoWindow({
-      content: `
-        <div style="padding: 10px; max-width: 250px;">
-          <h3 style="margin: 0 0 8px 0; color: #333;">${result.name}</h3>
-          <p style="margin: 4px 0; color: #666; font-size: 14px;">${result.address}</p>
-          <p style="margin: 4px 0; color: #666; font-size: 14px;">카테고리: ${result.category}</p>
-          ${result.info.phone ? `<p style="margin: 4px 0; color: #666; font-size: 14px;">📞 ${result.info.phone}</p>` : ''}
-        </div>
-      `
-    });
-
-    marker.addListener('click', () => {
-      infoWindow.open(mapInstanceRef.current, marker);
-    });
-
+    // 새 마커 추가
+    const marker = createMarker(result, location);
     searchMarkersRef.current.push(marker);
 
     // 검색 결과 숨기기
@@ -311,13 +265,11 @@ const checkServerHealth = async () => {
     mapInstanceRef.current.controls[window.google.maps.ControlPosition.TOP_RIGHT].push(locationButton);
   };
 
-  // 지도 HTML 처리 및 Google Maps 설정 (성능 최적화)
+  // 지도 HTML 처리 및 Google Maps 설정
   useEffect(() => {
     if (mapData?.mapHtml && mapContainerRef.current) {
-      // 미리 로딩 상태 업데이트를 방지하고 부드러운 전환을 위한 처리
       const container = mapContainerRef.current;
       
-      // 페이드 인 애니메이션을 위한 초기 스타일
       container.style.opacity = '0';
       container.style.transition = 'opacity 0.3s ease-in-out';
       
@@ -333,7 +285,6 @@ const checkServerHealth = async () => {
         );
         newScript.textContent = oldScript.textContent;
         
-        // 스크립트 로딩을 Promise로 처리
         const promise = new Promise((resolve) => {
           if (newScript.src) {
             newScript.onload = resolve;
@@ -347,20 +298,17 @@ const checkServerHealth = async () => {
         oldScript.parentNode.replaceChild(newScript, oldScript);
       });
 
-      // 모든 스크립트 로딩 완료 후 지도 설정
       Promise.all(scriptPromises).then(() => {
         const checkGoogleMaps = setInterval(() => {
           if (window.google && window.google.maps) {
             clearInterval(checkGoogleMaps);
             
-            // 지연 시간을 줄이고 requestAnimationFrame 사용
             requestAnimationFrame(() => {
               setupGoogleMap();
-              // 페이드 인 효과
               container.style.opacity = '1';
             });
           }
-        }, 50); // 체크 간격 단축
+        }, 50);
 
         setTimeout(() => {
           clearInterval(checkGoogleMaps);
@@ -369,7 +317,7 @@ const checkServerHealth = async () => {
     }
   }, [mapData]);
 
-  // Google Maps 설정 (성능 최적화)
+  // Google Maps 설정
   const setupGoogleMap = () => {
     try {
       const mapElement = mapContainerRef.current?.querySelector('#map') || 
@@ -387,7 +335,6 @@ const checkServerHealth = async () => {
           mapTypeId: window.google.maps.MapTypeId.ROADMAP,
           disableDefaultUI: true,
           gestureHandling: 'greedy',
-          // 성능 최적화 옵션 추가
           optimized: true,
           maxZoom: 20,
           minZoom: 8,
@@ -402,16 +349,13 @@ const checkServerHealth = async () => {
 
         mapInstanceRef.current = new window.google.maps.Map(mapElement, mapOptions);
         
-        // Geocoder 초기화
-        geocoderRef.current = new window.google.maps.Geocoder();
-        
         // 지도 로딩 완료 후 처리
-        const idleListener = window.google.maps.event.addListenerOnce(mapInstanceRef.current, 'idle', () => {
+        window.google.maps.event.addListenerOnce(mapInstanceRef.current, 'idle', () => {
           createLocationButton();
           console.log('✅ Google Maps 설정 완료');
         });
 
-        // 리사이즈 이벤트를 debounce 처리
+        // 리사이즈 이벤트 처리
         let resizeTimeout;
         window.google.maps.event.addListener(mapInstanceRef.current, 'bounds_changed', () => {
           clearTimeout(resizeTimeout);
@@ -425,101 +369,203 @@ const checkServerHealth = async () => {
     }
   };
 
-  // 챗봇에서 받은 장소들을 지도에 핀으로 표시 (Node.js API 직접 사용)
+  // 기존 마커들 제거
+  const clearExistingMarkers = () => {
+    searchMarkersRef.current.forEach(marker => marker.setMap(null));
+    searchMarkersRef.current = [];
+    infoWindowsRef.current.forEach(infoWindow => infoWindow.close());
+    infoWindowsRef.current = [];
+  };
+
+  // 카테고리별 아이콘 반환
+  const getCategoryIcon = (category) => {
+    const iconMap = {
+      '음식점': '🍽️',
+      '카페': '☕',
+      '병원': '🏥',
+      '편의점': '🏪',
+      '호텔': '🏨',
+      '헤어샵': '✂️',
+      '약국': '💊'
+    };
+    return iconMap[category] || '📍';
+  };
+
+  // 마커 생성 함수
+  const createMarker = (place, position) => {
+    const marker = new window.google.maps.Marker({
+      position: position,
+      map: mapInstanceRef.current,
+      title: place.name,
+      icon: {
+        path: window.google.maps.SymbolPath.CIRCLE,
+        scale: 12,
+        fillColor: '#4285F4',
+        fillOpacity: 1,
+        strokeColor: '#ffffff',
+        strokeWeight: 3
+      },
+      animation: window.google.maps.Animation.DROP,
+      zIndex: 100
+    });
+
+    // 상호명 라벨 생성 (항상 표시)
+    const labelDiv = document.createElement('div');
+    labelDiv.innerHTML = `
+      <div style="
+        background: #FFFFFF;
+        padding: 6px 10px;
+        border-radius: 16px;
+        border: 1px solid #DDDDDD;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+        font-size: 12px;
+        font-weight: 600;
+        color: #333333;
+        white-space: nowrap;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        position: relative;
+        z-index: 1000;
+      ">
+        ${getCategoryIcon(place.category)} ${place.name}
+      </div>
+    `;
+
+    const labelOverlay = new window.google.maps.OverlayView();
+    labelOverlay.onAdd = function() {
+      const panes = this.getPanes();
+      panes.overlayLayer.appendChild(labelDiv);
+    };
+
+    labelOverlay.draw = function() {
+      const projection = this.getProjection();
+      const pos = projection.fromLatLngToDivPixel(position);
+      labelDiv.style.position = 'absolute';
+      labelDiv.style.left = (pos.x - 75) + 'px'; // 중앙 정렬
+      labelDiv.style.top = (pos.y - 65) + 'px';  // 마커 위쪽
+    };
+
+    labelOverlay.onRemove = function() {
+      if (labelDiv.parentNode) {
+        labelDiv.parentNode.removeChild(labelDiv);
+      }
+    };
+
+    labelOverlay.setMap(mapInstanceRef.current);
+    marker.labelOverlay = labelOverlay;
+
+    // 팝업 인포윈도우 생성 (구글맵 버튼 포함)
+    const infoWindow = new window.google.maps.InfoWindow({
+      content: `
+        <div style="padding: 12px; max-width: 300px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <h3 style="margin: 0 0 8px 0; color: #333; font-size: 16px; font-weight: 600;">${place.name}</h3>
+          <p style="margin: 4px 0; color: #666; font-size: 14px;">📍 ${place.address || place.location}</p>
+          <p style="margin: 4px 0; color: #666; font-size: 14px;">🏷️ ${place.category}</p>
+          ${place.info?.features && place.info.features.length > 0 ? 
+            `<p style="margin: 4px 0; color: #666; font-size: 14px;">✨ ${place.info.features.join(', ')}</p>` : ''}
+          ${place.pinData?.popupContent?.googleMapsUrl ? `
+            <button onclick="window.open('${place.pinData.popupContent.googleMapsUrl}', '_blank')" 
+                    style="
+                      background: #4285F4; 
+                      color: white; 
+                      padding: 8px 16px; 
+                      border: none; 
+                      border-radius: 8px; 
+                      cursor: pointer;
+                      font-size: 14px;
+                      font-weight: 500;
+                      margin-top: 8px;
+                      transition: background-color 0.2s;
+                    "
+                    onmouseover="this.style.backgroundColor='#3367D6'"
+                    onmouseout="this.style.backgroundColor='#4285F4'">
+              📍 구글지도에서 보기
+            </button>
+          ` : ''}
+        </div>
+      `
+    });
+
+    marker.addListener('click', () => {
+      // 다른 정보창들 닫기
+      infoWindowsRef.current.forEach(iw => iw.close());
+      infoWindow.open(mapInstanceRef.current, marker);
+    });
+
+    infoWindowsRef.current.push(infoWindow);
+    return marker;
+  };
+
+  // 챗봇에서 받은 장소들을 지도에 핀으로 표시 (위도/경도 직접 사용)
   const displayChatbotPlaces = useCallback(async (placesData) => {
     if (!placesData || !mapInstanceRef.current || !window.google) return;
     
-    console.log('📍 챗봇 장소들을 지도에 표시:', placesData);
+    console.log('📍 챗봇 장소들을 지도에 표시 (위도/경도 직접 사용):', placesData);
     
     try {
-      // 기존 검색 마커들 제거
-      searchMarkersRef.current.forEach(marker => marker.setMap(null));
-      searchMarkersRef.current = [];
+      // 기존 마커들 제거
+      clearExistingMarkers();
       
-      // Node.js API로 각 장소의 지오코딩된 데이터 가져오기
-      const response = await axios.post('http://mapro.cloud:5000/api/chat-places', {
-        places: placesData
+      const validPlaces = placesData.filter(place => 
+        place.latitude && place.longitude && 
+        place.latitude !== 0 && place.longitude !== 0
+      );
+
+      if (validPlaces.length === 0) {
+        console.warn('⚠️ 유효한 위도/경도를 가진 장소가 없습니다.');
+        alert('표시할 수 있는 장소의 위치 정보가 없습니다.');
+        return;
+      }
+
+      // 각 장소에 대해 마커 생성
+      validPlaces.forEach((place, index) => {
+        const position = {
+          lat: parseFloat(place.latitude),
+          lng: parseFloat(place.longitude)
+        };
+
+        // 장소 데이터를 표준 형식으로 변환
+        const formattedPlace = {
+          name: place.name || '알 수 없는 장소',
+          category: place.category || '기타',
+          address: place.location || '주소 정보 없음',
+          location: place.location,
+          coordinates: position,
+          info: {
+            features: place.feature ? place.feature.split(',').map(f => f.trim()).filter(f => f) : []
+          },
+          pinData: {
+            popupContent: {
+              googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${position.lat},${position.lng}`
+            }
+          }
+        };
+
+        const marker = createMarker(formattedPlace, position);
+        searchMarkersRef.current.push(marker);
       });
       
-      if (response.data.success && response.data.places) {
-        const geocodedPlaces = response.data.places;
-        
-        // 지오코딩 실패한 장소가 있으면 사용자에게 알림
-        if (!response.data.success && response.data.error) {
-          alert(response.data.error);
-        }
-        
-        // 각 장소에 대해 마커 생성
-        geocodedPlaces.forEach((place, index) => {
-          if (!place.coordinates) return;
-          
-          const marker = new window.google.maps.Marker({
-            position: place.coordinates,
-            map: mapInstanceRef.current,
-            title: place.name,
-            icon: {
-              path: window.google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
-              scale: 8,
-              fillColor: place.pinOptions?.color || '#FF6B6B',
-              fillOpacity: 1,
-              strokeColor: '#ffffff',
-              strokeWeight: 2
-            },
-            animation: window.google.maps.Animation.DROP
-          });
-
-          // 정보창 추가
-          const infoWindow = new window.google.maps.InfoWindow({
-            content: `
-              <div style="padding: 12px; max-width: 280px;">
-                <h3 style="margin: 0 0 8px 0; color: #333; font-size: 16px;">${place.name}</h3>
-                <p style="margin: 4px 0; color: #666; font-size: 14px;">📍 ${place.address}</p>
-                <p style="margin: 4px 0; color: #666; font-size: 14px;">🏷️ ${place.category}</p>
-                ${place.info.phone ? `<p style="margin: 4px 0; color: #666; font-size: 14px;">📞 ${place.info.phone}</p>` : ''}
-                ${place.info.features && place.info.features.length > 0 ? 
-                  `<p style="margin: 4px 0; color: #666; font-size: 14px;">✨ ${place.info.features.join(', ')}</p>` : ''}
-              </div>
-            `
-          });
-
-          marker.addListener('click', () => {
-            // 다른 정보창들 닫기
-            searchMarkersRef.current.forEach(m => {
-              if (m.infoWindow) m.infoWindow.close();
-            });
-            infoWindow.open(mapInstanceRef.current, marker);
-          });
-
-          marker.infoWindow = infoWindow;
-          searchMarkersRef.current.push(marker);
+      // 모든 마커가 보이도록 지도 범위 조정
+      if (searchMarkersRef.current.length > 0) {
+        const bounds = new window.google.maps.LatLngBounds();
+        searchMarkersRef.current.forEach(marker => {
+          bounds.extend(marker.getPosition());
         });
+        mapInstanceRef.current.fitBounds(bounds);
         
-        // 모든 마커가 보이도록 지도 범위 조정
-        if (searchMarkersRef.current.length > 0) {
-          const bounds = new window.google.maps.LatLngBounds();
-          searchMarkersRef.current.forEach(marker => {
-            bounds.extend(marker.getPosition());
-          });
-          mapInstanceRef.current.fitBounds(bounds);
-          
-          // 줌이 너무 클 경우 제한 (단일 장소일 때는 적절한 줌 레벨 설정)
-          const listener = window.google.maps.event.addListenerOnce(mapInstanceRef.current, 'bounds_changed', () => {
-            if (searchMarkersRef.current.length === 1) {
-              mapInstanceRef.current.setZoom(16);
-            } else if (mapInstanceRef.current.getZoom() > 16) {
-              mapInstanceRef.current.setZoom(16);
-            }
-          });
-        }
-        
-        console.log(`✅ ${geocodedPlaces.length}개 장소 핀 표시 완료`);
-        
-      } else {
-        console.error('지오코딩 API 응답 오류:', response.data);
-        if (response.data.error) {
-          alert(response.data.error);
-        }
+        // 줌 레벨 조정
+        const listener = window.google.maps.event.addListenerOnce(mapInstanceRef.current, 'bounds_changed', () => {
+          if (searchMarkersRef.current.length === 1) {
+            mapInstanceRef.current.setZoom(16);
+          } else if (mapInstanceRef.current.getZoom() > 16) {
+            mapInstanceRef.current.setZoom(16);
+          }
+        });
       }
+      
+      console.log(`✅ ${validPlaces.length}개 장소 핀 표시 완료 (위도/경도 직접 사용)`);
       
     } catch (error) {
       console.error('❌ 챗봇 장소 표시 오류:', error);
@@ -534,7 +580,7 @@ const checkServerHealth = async () => {
   // 챗봇에서 전달된 장소들 처리
   useEffect(() => {
     if (places && mapInstanceRef.current) {
-      console.log('📨 챗봇에서 전달된 장소들:', places);
+      console.log('📨 챗봇에서 전달된 장소들 (위도/경도 직접 사용):', places);
       displayChatbotPlaces(places);
       
       // 장소 표시 완료 후 상태 초기화
