@@ -182,6 +182,13 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
       // 장소 데이터가 있으면 저장하고 메시지에 추가
       if (Array.isArray(data.places) && data.places.length > 0) {
         setCurrentPlaces(data.places); // 전체 장소 데이터 저장
+        
+        // 🎯 자동으로 지도에 핀 표시 (Node.js에서 받은 위도/경도 사용)
+        if (onShowPlacesOnMap) {
+          console.log('🗺️ 자동으로 지도에 핀 표시:', data.places.length, '개 장소');
+          onShowPlacesOnMap(data.places);
+        }
+        
         const placeNames = data.places.slice(0, 5).map(p => p.name).filter(Boolean);
         if (placeNames.length > 0) {
           nextMessages.push({ 
@@ -226,6 +233,13 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
       // 장소 데이터가 있으면 저장하고 메시지에 추가
       if (Array.isArray(data.places) && data.places.length > 0) {
         setCurrentPlaces(data.places); // 전체 장소 데이터 저장
+        
+        // 🎯 자동으로 지도에 핀 표시 (지역 선택 후에도)
+        if (onShowPlacesOnMap) {
+          console.log('🗺️ 지역 선택 후 자동으로 지도에 핀 표시:', data.places.length, '개 장소');
+          onShowPlacesOnMap(data.places);
+        }
+        
         const placeNames = data.places.slice(0, 5).map(p => p.name).filter(Boolean);
         if (placeNames.length > 0) {
           nextMessages.push({ 
@@ -251,24 +265,25 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
     }
   };
 
-  // 개별 상호 클릭 핸들러
+  // 개별 상호 클릭 핸들러 (개별 장소만 표시)
   const handlePlaceClick = (placeName, placesData) => {
-    console.log('상호 클릭:', placeName);
+    console.log('🏪 개별 상호 클릭:', placeName);
     
     // 클릭된 상호의 데이터 찾기
     const selectedPlace = placesData.find(place => place.name === placeName);
     
     if (selectedPlace && onShowPlacesOnMap) {
-      // 선택된 장소만 지도에 표시
+      // 선택된 장소만 지도에 표시 (기존 핀들은 지워짐)
+      console.log('🎯 개별 장소 지도 표시:', selectedPlace.name);
       onShowPlacesOnMap([selectedPlace]);
     } else {
       console.error('선택된 장소 데이터를 찾을 수 없습니다:', placeName);
     }
   };
 
-  // 전체 상호 목록 클릭 핸들러 (기존 기능 유지)
+  // 전체 상호 목록 클릭 핸들러 (전체 장소 다시 표시)
   const handleAllPlacesClick = (placesData) => {
-    console.log('전체 상호 목록 클릭');
+    console.log('🗺️ 전체 상호 목록 클릭 - 모든 핀 다시 표시');
     if (placesData && onShowPlacesOnMap) {
       onShowPlacesOnMap(placesData);
     }
@@ -413,6 +428,15 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
                     maxWidth: '85%'
                   }}
                 >
+                  <div style={{
+                    fontSize: '13px', 
+                    color: theme.textSecondary,
+                    marginBottom: '8px',
+                    fontWeight: 500
+                  }}>
+                    📍 자동으로 지도에 표시되었습니다
+                  </div>
+                  
                   {msg.places.map((place, index) => (
                     <div 
                       key={index}
@@ -437,7 +461,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
                         e.target.style.backgroundColor = 'transparent';
                       }}
                     >
-                      📍 {place}
+                      🏪 {place}
                     </div>
                   ))}
                   
@@ -471,7 +495,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap }) {
                           e.target.style.backgroundColor = 'transparent';
                         }}
                       >
-                        🗺️ 전체 {msg.places.length}곳 지도에서 보기
+                        🗺️ 전체 {msg.places.length}곳 다시 보기
                       </div>
                     </>
                   )}
