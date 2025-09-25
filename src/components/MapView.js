@@ -499,7 +499,7 @@ const fetchMapData = useCallback(async () => {
       const pos = projection.fromLatLngToDivPixel(position);
       iconDiv.style.position = 'absolute';
       iconDiv.style.left = (pos.x - 8) + 'px';
-      iconDiv.style.top = (pos.y - 30) + 'px'; // 핀의 원형 부분에 맞춤
+      iconDiv.style.top = (pos.y - 14) + 'px'; // 핀의 원형 부분에 맞춤
     };
 
     iconOverlay.onRemove = function() {
@@ -640,7 +640,7 @@ const fetchMapData = useCallback(async () => {
           },
           pinData: {
             popupContent: {
-              googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${position.lat},${position.lng}`
+              googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + place.address)}`
             }
           }
         };
