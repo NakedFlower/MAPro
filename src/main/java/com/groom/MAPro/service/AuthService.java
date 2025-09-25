@@ -67,4 +67,12 @@ public class AuthService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
     }
+    
+    public boolean validateToken(String token) {
+        try {
+            return jwtUtil.validateToken(token) && !jwtUtil.isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

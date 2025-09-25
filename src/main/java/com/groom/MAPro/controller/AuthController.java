@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,7 +20,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "http://mapro.cloud:3000"})
 public class AuthController {
     
     @Autowired
@@ -45,5 +46,22 @@ public class AuthController {
     @GetMapping("/test")
     public ResponseEntity<ApiResponse<String>> test() {
         return ResponseEntity.ok(ApiResponse.success("API 서버가 정상적으로 동작중입니다.", "MAPro Backend Server"));
+    }
+    
+    @GetMapping("/validate")
+    public ResponseEntity<ApiResponse<String>> validateToken(@RequestHeader("Authorization") String token) {
+        try {
+            // "Bearer " 제거
+            String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
+            
+            // 토큰 유효성 검증
+            if (authService.validateToken(jwtToken)) {
+                return ResponseEntity.ok(ApiResponse.success("토큰이 유효합니다.", "Valid token"));
+            } else {
+                return ResponseEntity.status(401).body(ApiResponse.error("유효하지 않은 토큰입니다."));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(ApiResponse.error("토큰 검증 중 오류가 발생했습니다."));
+        }
     }
 }
