@@ -1037,8 +1037,8 @@ def query_places(query: dict) -> list:
             "location": f"%{location}%"
         }
 
-        # SQL 쿼리 생성
-        base_sql = "SELECT place_id, category, name, location, feature FROM place WHERE "
+        # SQL 쿼리 생성 - 위도/경도 필드 추가 🗺️
+        base_sql = "SELECT place_id, category, name, location, feature, latitude, longitude FROM place WHERE "
         sql_query = base_sql + " AND ".join(where_clauses)
         sql_query += " ORDER BY updated_at DESC, created_at DESC LIMIT 30"
         
@@ -1086,7 +1086,6 @@ def query_places(query: dict) -> list:
     except Exception as e:
         print(f"DB 조회 오류: {e}") # 디버깅을 위한 로그 추가
         return []
-
 
 # ------------------ 응답 생성 ------------------
 def build_reply(query: dict, places: list) -> str:
