@@ -76,60 +76,62 @@ app.post('/api/chat-places', async (req, res) => {
                     description: place.description || `${name}에 대한 정보입니다.`,
                     features: place.feature ? place.feature.split(',').map(f => f.trim()).filter(f => f) : []
                 },
-                // 핀 표시 옵션 (네이버지도 스타일 + 상호명 라벨)
+                // 핀 표시 옵션 (카테고리별 아이콘 + 상호명 라벨)
                 pinOptions: {
-                    // 네이버지도 스타일 핀 디자인
-                    style: 'naver', // 네이버지도 스타일 핀
-                    color: place.category === '음식점' ? '#FF6B6B' : 
-                           place.category === '카페' ? '#4ECDC4' : 
-                           place.category === '병원' ? '#45B7D1' : 
-                           place.category === '편의점' ? '#96CEB4' :
-                           place.category === '호텔' ? '#9B59B6' :
-                           place.category === '헤어샵' ? '#F39C12' :
-                           place.category === '약국' ? '#E74C3C' : '#95A5A6',
+                    // 일반 핀 디자인 (네이버 스타일 제거)
+                    style: 'default', // 기본 핀 스타일
+                    color: '#4285F4', // 구글맵 스타일 파란색으로 통일
                     size: {
-                        width: 32,
+                        width: 40,
                         height: 40
                     },
+                    // 카테고리별 아이콘 표시
                     icon: {
-                        type: place.category === '음식점' ? 'restaurant' : 
-                              place.category === '카페' ? 'cafe' : 
-                              place.category === '병원' ? 'hospital' : 
-                              place.category === '편의점' ? 'store' :
-                              place.category === '호텔' ? 'hotel' :
-                              place.category === '헤어샵' ? 'salon' :
-                              place.category === '약국' ? 'pharmacy' : 'default',
-                        color: '#FFFFFF', // 아이콘 색상 (흰색)
-                        size: 16
+                        type: place.category === '음식점' ? '🍽️' : 
+                              place.category === '카페' ? '☕' : 
+                              place.category === '병원' ? '🏥' : 
+                              place.category === '편의점' ? '🏪' :
+                              place.category === '호텔' ? '🏨' :
+                              place.category === '헤어샵' ? '✂️' :
+                              place.category === '약국' ? '💊' : '📍',
+                        size: 20,
+                        color: '#FFFFFF'
                     },
-                    // 🏷️ 핀 위에 상호명 라벨 표시 (강화된 스타일)
+                    // 🏷️ 핀 위에 상호명 라벨 표시 (항상 보이게)
                     label: {
                         text: name,
                         visible: true, // 항상 표시
                         position: 'top', // 핀 위쪽에 표시
+                        alwaysShow: true, // 강제로 항상 표시
                         style: {
-                            fontSize: '11px',
+                            fontSize: '12px',
                             fontWeight: '600',
-                            fontFamily: 'Arial, sans-serif',
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                             color: '#333333',
                             backgroundColor: '#FFFFFF',
-                            padding: '4px 8px',
-                            borderRadius: '12px',
-                            border: '1px solid #E0E0E0',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                            padding: '6px 10px',
+                            borderRadius: '16px',
+                            border: '1px solid #DDDDDD',
+                            boxShadow: '0 3px 8px rgba(0,0,0,0.15)',
                             whiteSpace: 'nowrap',
-                            maxWidth: '120px',
+                            maxWidth: '150px',
                             overflow: 'hidden',
-                            textOverflow: 'ellipsis'
+                            textOverflow: 'ellipsis',
+                            zIndex: 1000
                         },
                         offset: { 
                             x: 0, 
-                            y: -45 // 핀 위쪽으로 더 멀리
+                            y: -55 // 핀 위쪽으로 충분히 멀리
                         },
                         animation: {
-                            appear: 'fadeIn',
-                            duration: 300
+                            appear: 'fadeInUp',
+                            duration: 400
                         }
+                    },
+                    // 핀 클릭 시 동작 설정
+                    onClick: {
+                        action: 'openGoogleMaps', // 구글맵 열기
+                        url: `https://www.google.com/maps/search/?api=1&query=${parseFloat(latitude)},${parseFloat(longitude)}`
                     }
                 },
                 // 구글지도 연동 URL 추가
@@ -222,47 +224,53 @@ app.post('/api/receive-places', async (req, res) => {
                     features: place.features || []
                 },
                 pinOptions: {
-                    // 네이버지도 스타일 핀 디자인
-                    style: 'naver',
-                    color: place.category === '음식점' ? '#FF6B6B' : 
-                           place.category === '카페' ? '#4ECDC4' : 
-                           place.category === '병원' ? '#45B7D1' : '#96CEB4',
+                    // 일반 핀 디자인
+                    style: 'default',
+                    color: '#4285F4', // 구글맵 스타일 파란색
                     size: {
-                        width: 32,
+                        width: 40,
                         height: 40
                     },
+                    // 카테고리별 아이콘 표시
                     icon: {
-                        type: place.category === '음식점' ? 'restaurant' : 
-                              place.category === '카페' ? 'cafe' : 
-                              place.category === '병원' ? 'hospital' : 'default',
-                        color: '#FFFFFF',
-                        size: 16
+                        type: place.category === '음식점' ? '🍽️' : 
+                              place.category === '카페' ? '☕' : 
+                              place.category === '병원' ? '🏥' : 'default',
+                        size: 20,
+                        color: '#FFFFFF'
                     },
                     // 🏷️ 핀 위에 상호명 라벨 표시
                     label: {
                         text: name,
                         visible: true,
                         position: 'top',
+                        alwaysShow: true,
                         style: {
-                            fontSize: '11px',
+                            fontSize: '12px',
                             fontWeight: '600',
-                            fontFamily: 'Arial, sans-serif',
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                             color: '#333333',
                             backgroundColor: '#FFFFFF',
-                            padding: '4px 8px',
-                            borderRadius: '12px',
-                            border: '1px solid #E0E0E0',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                            padding: '6px 10px',
+                            borderRadius: '16px',
+                            border: '1px solid #DDDDDD',
+                            boxShadow: '0 3px 8px rgba(0,0,0,0.15)',
                             whiteSpace: 'nowrap',
-                            maxWidth: '120px',
+                            maxWidth: '150px',
                             overflow: 'hidden',
-                            textOverflow: 'ellipsis'
+                            textOverflow: 'ellipsis',
+                            zIndex: 1000
                         },
-                        offset: { x: 0, y: -45 },
+                        offset: { x: 0, y: -55 },
                         animation: {
-                            appear: 'fadeIn',
-                            duration: 300
+                            appear: 'fadeInUp',
+                            duration: 400
                         }
+                    },
+                    // 핀 클릭 시 구글맵 열기
+                    onClick: {
+                        action: 'openGoogleMaps',
+                        url: `https://www.google.com/maps/search/?api=1&query=${parseFloat(latitude)},${parseFloat(longitude)}`
                     }
                 },
                 // 구글지도 연동 URL 추가
@@ -316,27 +324,33 @@ app.get('/api/test-pins', (req, res) => {
             category: '카페',
             info: { description: '테스트용 카페입니다.' },
             pinOptions: {
-                color: '#4ECDC4',
-                style: 'naver',
-                size: { width: 32, height: 40 },
-                icon: { type: 'cafe', color: '#FFFFFF', size: 16 },
+                color: '#4285F4',
+                style: 'default',
+                size: { width: 40, height: 40 },
+                icon: { type: '☕', size: 20, color: '#FFFFFF' },
                 label: {
                     text: '테스트 카페',
                     visible: true,
                     position: 'top',
+                    alwaysShow: true,
                     style: {
-                        fontSize: '11px',
+                        fontSize: '12px',
                         fontWeight: '600',
-                        fontFamily: 'Arial, sans-serif',
+                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                         color: '#333333',
                         backgroundColor: '#FFFFFF',
-                        padding: '4px 8px',
-                        borderRadius: '12px',
-                        border: '1px solid #E0E0E0',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                        whiteSpace: 'nowrap'
+                        padding: '6px 10px',
+                        borderRadius: '16px',
+                        border: '1px solid #DDDDDD',
+                        boxShadow: '0 3px 8px rgba(0,0,0,0.15)',
+                        whiteSpace: 'nowrap',
+                        zIndex: 1000
                     },
-                    offset: { x: 0, y: -45 }
+                    offset: { x: 0, y: -55 }
+                },
+                onClick: {
+                    action: 'openGoogleMaps',
+                    url: 'https://www.google.com/maps/search/?api=1&query=37.3951,127.1116'
                 }
             },
             googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=37.3951,127.1116'
