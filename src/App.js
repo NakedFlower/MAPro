@@ -1,5 +1,5 @@
 //App.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -19,11 +19,10 @@ import ChatbotPanel from './components/ChatbotPanel';
 import Main from './components/Main';
 
 import LoginPage from './components/LoginPage';
-import RegisterPage from './components/RegisterPage'; // 새로 추가
+import RegisterPage from './components/RegisterPage';
 import ProfileSettingsPage from './components/ProfileSettingsPage';
 import FindAccountPage from './components/FindAccountPage';
 import AccountSettings from './components/AccountSettings';
-
 
 import { AuthProvider } from './context/AuthContext';
 
@@ -33,8 +32,53 @@ function AppContent() {
   const [showChatbot, setShowChatbot] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [mapPlaces, setMapPlaces] = useState(null);
+  
+  // 채팅 이력 상태 추가
+  const [chatMessages, setChatMessages] = useState(() => {
+    // localStorage에서 채팅 이력 복원
+    try {
+      const savedMessages = localStorage.getItem('mapro_chat_messages');
+      if (savedMessages) {
+        return JSON.parse(savedMessages);
+      }
+    } catch (error) {
+      console.error('채팅 이력 복원 실패:', error);
+    }
+    
+    // 기본 환영 메시지
+    return [
+      { 
+        role: 'bot', 
+        text: `안녕하세요! MAPro 챗봇입니다. 🏪
+
+원하시는 매장을 찾아드릴게요!
+
+📝 입력 예시:
+• "강남구 분위기좋은 카페"
+• "판교 24시간 편의점" 
+
+💡 팁: 지역 + 특성 + 매장종류 순으로 입력하시면 
+        더 정확한 결과를 얻을 수 있어요!`, 
+        timestamp: new Date().toLocaleTimeString('ko-KR', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: false 
+        })
+      }
+    ];
+  });
+
   const navigate = useNavigate();
   const location = useLocation();
+
+  // 채팅 메시지 변경 시 localStorage에 저장
+  useEffect(() => {
+    try {
+      localStorage.setItem('mapro_chat_messages', JSON.stringify(chatMessages));
+    } catch (error) {
+      console.error('채팅 이력 저장 실패:', error);
+    }
+  }, [chatMessages]);
 
   // 독립 페이지들 (사이드바 없는 페이지)
   const isStandalonePage = ['/main', '/login', '/register', '/find/account', '/profile/edit'].includes(location.pathname);
@@ -76,16 +120,46 @@ function AppContent() {
   };
 
   // 홈에서 지도로 이동
-// 홈에서 지도로 이동
   const handleOpenMap = () => {
     navigate('/map');
   };
 
-  // 챗봇에서 장소 데이터를 받아서 지도로 이동
+  // 챗봇에서 장소 데이터를 받아서 지도로 이동 (챗봇 패널 유지)
   const handleShowPlacesOnMap = (places) => {
+    console.log('📍 App.js: 장소 데이터 받음, 지도로 이동 (챗봇 유지)');
     setMapPlaces(places);
-    setShowChatbot(false); // 챗봇 닫기
+    // 챗봇 패널을 닫지 않음 - 사용자가 계속 검색할 수 있도록
     navigate('/map'); // 지도 페이지로 이동
+  };
+
+  // 채팅 메시지 업데이트 핸들러
+  const handleUpdateChatMessages = (newMessages) => {
+    setChatMessages(newMessages);
+  };
+
+  // 채팅 초기화 핸들러
+  const handleResetChat = () => {
+    const initialMessage = {
+      role: 'bot', 
+      text: `안녕하세요! MAPro 챗봇입니다. 🏪
+
+원하시는 매장을 찾아드릴게요!
+
+📝 입력 예시:
+• "강남구 분위기좋은 카페"
+• "판교 24시간 편의점" 
+
+💡 팁: 지역 + 특성 + 매장종류 순으로 입력하시면 
+        더 정확한 결과를 얻을 수 있어요!`, 
+      timestamp: new Date().toLocaleTimeString('ko-KR', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+      })
+    };
+    
+    setChatMessages([initialMessage]);
+    console.log('🔄 채팅 이력 초기화됨');
   };
 
   // 사이드바 토글 함수
@@ -102,10 +176,6 @@ function AppContent() {
   const handleCloseChatbot = () => {
     setShowChatbot(false);
   };
-
-
-
-
 
   // 독립 페이지들은 각각의 컴포넌트만 렌더링
   if (isStandalonePage) {
@@ -200,7 +270,6 @@ function AppContent() {
                 justifyContent: 'center',
                 cursor: 'pointer',
                 zIndex: 1000,
-                // 항상 강화된 hover 스타일 적용 (그림자 제거)
                 boxShadow: 'none',
                 transform: 'scale(1.15)',
                 border: '2px solid rgba(255, 255, 255, 0.2)',
@@ -212,12 +281,10 @@ function AppContent() {
               }}
               onClick={() => setShowChatbot((v) => !v)}
               onMouseEnter={(e) => {
-                // hover 시에도 동일한 스타일 유지 (약간만 더 강화)
                 e.currentTarget.style.transform = 'scale(1.18)';
                 e.currentTarget.style.boxShadow = 'none';
               }}
               onMouseLeave={(e) => {
-                // 원래 강화된 상태로 복귀
                 e.currentTarget.style.transform = 'scale(1.15)';
                 e.currentTarget.style.boxShadow = 'none';
               }}
@@ -269,6 +336,9 @@ function AppContent() {
               <ChatbotPanel 
                 onClose={handleCloseChatbot} 
                 onShowPlacesOnMap={handleShowPlacesOnMap}
+                messages={chatMessages}
+                onUpdateMessages={handleUpdateChatMessages}
+                onResetChat={handleResetChat}
               />
             )}
           </div>
