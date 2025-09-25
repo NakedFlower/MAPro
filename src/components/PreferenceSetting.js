@@ -1,20 +1,49 @@
 import React, { useState, useEffect } from "react";
 import { Layout, Card, Typography, Checkbox, Button, message, Spin, Modal } from "antd";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
 
 function PreferenceSettings() {
+  const navigate = useNavigate();
+  const { token, isAuthenticated, checkTokenValidity, logout } = useAuth();
   const [categories, setCategories] = useState({});
   const [selected, setSelected] = useState({});
   const [loading, setLoading] = useState(false); // 로딩 상태
   const [saving, setSaving] = useState(false);   // 저장 상태
 
+  // 인증 상태 확인 및 리다이렉트
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (!isAuthenticated || !token) {
+        message.error('로그인이 필요합니다.');
+        navigate('/login');
+        return;
+      }
+      
+      const isValid = await checkTokenValidity();
+      if (!isValid) {
+        message.error('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
+        navigate('/login');
+        return;
+      }
+    };
+    
+    checkAuth();
+  }, [isAuthenticated, token, checkTokenValidity, navigate]);
+
   const fetchCategories = async () => {
+    if (!token) {
+      message.error('로그인이 필요합니다.');
+      navigate('/login');
+      return;
+    }
+    
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
       const res = await axios.get("http://mapro.cloud:4000/api/user/pfr", {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
       });
@@ -30,16 +59,29 @@ function PreferenceSettings() {
       setSelected(sel);
     } catch (err) {
       console.error("카테고리 로딩 실패", err);
-      Modal.error({ title: "데이터 로딩 실패", content: "카테고리를 불러오지 못했습니다." });
+      
+      // 401 에러의 경우 로그인 페이지로 리다이렉트
+      if (err.response && err.response.status === 401) {
+        message.error('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
+        logout();
+        navigate('/login');
+      } else {
+        Modal.error({ title: "데이터 로딩 실패", content: "카테고리를 불러오지 못했습니다." });
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const fetchUserPreferences = async () => {
+    if (!token) {
+      message.error('로그인이 필요합니다.');
+      navigate('/login');
+      return;
+    }
+    
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
       const res = await axios.post("http://mapro.cloud:4000/api/user/pfr", null, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
       });
@@ -52,7 +94,15 @@ function PreferenceSettings() {
       setSelected(newSelected);
     } catch (err) {
       console.error("성향 불러오기 실패", err);
-      Modal.error({ title: "성향 조회 실패", content: "사용자 성향을 불러오지 못했습니다." });
+      
+      // 401 에러의 경우 로그인 페이지로 리다이렉트
+      if (err.response && err.response.status === 401) {
+        message.error('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
+        logout();
+        navigate('/login');
+      } else {
+        Modal.error({ title: "성향 조회 실패", content: "사용자 성향을 불러오지 못했습니다." });
+      }
     } finally {
       setLoading(false);
     }
@@ -63,9 +113,14 @@ function PreferenceSettings() {
   };
 
   const handleSave = async () => {
+    if (!token) {
+      message.error('로그인이 필요합니다.');
+      navigate('/login');
+      return;
+    }
+    
     setSaving(true);
     try {
-      const token = localStorage.getItem("token");
       const optionIds = Object.values(selected).flat().map(o => o.id);
       await axios.post("http://mapro.cloud:4000/api/user/pfr/save", optionIds, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
@@ -73,7 +128,15 @@ function PreferenceSettings() {
       message.success("성향이 저장되었습니다!");
     } catch (err) {
       console.error("성향 저장 실패", err);
-      Modal.error({ title: "성향 저장 실패", content: "성향 저장에 실패했습니다." });
+      
+      // 401 에러의 경우 로그인 페이지로 리다이렉트
+      if (err.response && err.response.status === 401) {
+        message.error('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
+        logout();
+        navigate('/login');
+      } else {
+        Modal.error({ title: "성향 저장 실패", content: "성향 저장에 실패했습니다." });
+      }
     } finally {
       setSaving(false);
     }
