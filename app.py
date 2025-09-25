@@ -741,7 +741,7 @@ def chat_endpoint(req: ChatRequest):
                 # 🔥🔥 Node.js로도 전송 (후속 요청)
                 try:
                     node_response = requests.post(
-                        "http://34.64.120.99:5000/api/chat-places",
+                        "http://mapro.cloud:5000/api/chat-places",
                         json={"places": matched_places[:5]},
                         timeout=3
                     )
@@ -817,7 +817,7 @@ def chat_endpoint(req: ChatRequest):
             # 🔥🔥 Node.js로도 전송 (메인 응답)
             try:
                 node_response = requests.post(
-                    "http://34.64.120.99:5000/api/chat-places",
+                    "http://mapro.cloud:5000/api/chat-places",
                     json={"places": matched_places[:5]},
                     timeout=3
                 )
@@ -886,7 +886,7 @@ def send_places_to_map(places: List[dict]):
     try:
         import requests
         response = requests.post(
-            "http://34.64.120.99:5000/api/chat-places",
+            "http://mapro.cloud:5000/api/chat-places",
             json={"places": places},
             timeout=5
         )
