@@ -22,6 +22,8 @@ import com.groom.MAPro.service.AuthService;
 
 import jakarta.validation.Valid;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = {"http://localhost:3000", "http://mapro.cloud:3000"})
@@ -51,7 +53,7 @@ public class AuthController {
     }
     
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest loginRequest) throws IOException {
         AuthResponse authResponse = authService.login(loginRequest);
         User findUser = userRepository.findById(authResponse.getUserId()).get();
         activityLogger.log(findUser.getUserId(), findUser.getUsername(), "LOGIN", "로그인했습니다.");

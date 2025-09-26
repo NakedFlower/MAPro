@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.swing.text.html.Option;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +58,7 @@ public class UserPreferenceController {
     // 로그인한 사용자의 성향 저장
     @PostMapping("/save")
     public ResponseEntity<?> savePreferences(@AuthenticationPrincipal UserDetails userDetails,
-                                             @RequestBody List<Long> optionIds) {
+                                             @RequestBody List<Long> optionIds) throws IOException {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
