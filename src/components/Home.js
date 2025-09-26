@@ -18,8 +18,8 @@ function Home({ onOpenMap }) {
 
   return (
     <Layout style={{ backgroundColor: '#f5f5f5' }}>
-      <Content>
-        <div style={{ padding: 24, background: '#rgb(240, 242, 245)' }}>
+      <Content style={{display:"flex", justifyContent:"center", padding: 24}}>
+        <div style={{ background: '#rgb(240, 242, 245)', width:"100%", maxWidth:"1000px" }}>
           <Card
             cover={
               <div style={{ padding: '40px 0', textAlign: 'center' }}>
