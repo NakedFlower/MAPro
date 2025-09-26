@@ -31,7 +31,7 @@ public class UserController {
 
     @GetMapping("/logs/{id}")
     public Page<ActivityLog> getLogs(
-            @RequestParam Long userId,
+            @PathVariable("id") Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
