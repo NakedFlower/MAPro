@@ -45,16 +45,13 @@ public class ElasticsearchConfig {
                 .build();
 
         // 인증 정보
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+        HttpHost httpHost = new HttpHost(host, 9200, "https");
 
-        RestClientBuilder builder = RestClient.builder(new HttpHost(host, port, "https"))
+        RestClientBuilder builder = RestClient.builder(httpHost)
                 .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
                         .setSSLContext(sslContext)
-                        .setSSLHostnameVerifier((s, sslSession) -> true) // 테스트용
-                        .setDefaultCredentialsProvider(credentialsProvider)
+                        .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
                 );
-
         return builder.build();
     }
 
