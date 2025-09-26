@@ -5,6 +5,7 @@ import com.groom.MAPro.entity.User;
 import com.groom.MAPro.entity.UserPreference;
 import com.groom.MAPro.repository.PreferenceOptionRepository;
 import com.groom.MAPro.repository.UserPreferenceRepository;
+import com.groom.MAPro.util.ActivityLogger;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -40,6 +41,8 @@ public class UserPreferenceService {
             userPref.setUser(user);
             userPref.setOption(option);
             userPref.setIsSelected(true);
+
+            ActivityLogger.log(user, "UPDATE", "사용자 성향이 변경되었습니다.");
 
             userPreferenceRepository.save(userPref);
         }
