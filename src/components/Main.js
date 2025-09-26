@@ -69,7 +69,7 @@ const MaProLandingPage = () => {
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent'
                 }}>
-                  🚀 서비스 기능 소개
+                  서비스 기능 소개
                 </Title>
                 <Title level={3} style={{ 
                   color: '#666', 
@@ -312,7 +312,7 @@ const MaProLandingPage = () => {
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent'
                 }}>
-                  💰 요금제 추천
+                  요금제 추천
                 </Title>
                 <Title level={3} style={{ 
                   color: '#666', 
@@ -655,63 +655,6 @@ const MaProLandingPage = () => {
                   </Card>
                 </Col>
               </Row>
-
-              {/* FAQ Section */}
-              <div style={{ marginTop: '100px', textAlign: 'center' }}>
-                <Title level={2} style={{ marginBottom: '2rem' }}>
-                  자주 묻는 질문
-                </Title>
-                <Row gutter={[32, 24]} justify="center">
-                  <Col xs={24} md={12} lg={8}>
-                    <Card
-                      style={{
-                        borderRadius: '12px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
-                      }}
-                      bodyStyle={{ padding: '24px' }}
-                    >
-                      <Title level={4} style={{ color: '#1890ff', marginBottom: '12px' }}>
-                        플랜 변경은 언제든 가능한가요?
-                      </Title>
-                      <Paragraph style={{ color: '#666', margin: 0 }}>
-                        네, 언제든 업그레이드 또는 다운그레이드가 가능합니다.
-                      </Paragraph>
-                    </Card>
-                  </Col>
-                  <Col xs={24} md={12} lg={8}>
-                    <Card
-                      style={{
-                        borderRadius: '12px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
-                      }}
-                      bodyStyle={{ padding: '24px' }}
-                    >
-                      <Title level={4} style={{ color: '#1890ff', marginBottom: '12px' }}>
-                        무료 체험 기간이 있나요?
-                      </Title>
-                      <Paragraph style={{ color: '#666', margin: 0 }}>
-                        무료 플랜으로 기본 기능을 체험해볼 수 있습니다.
-                      </Paragraph>
-                    </Card>
-                  </Col>
-                  <Col xs={24} md={12} lg={8}>
-                    <Card
-                      style={{
-                        borderRadius: '12px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
-                      }}
-                      bodyStyle={{ padding: '24px' }}
-                    >
-                      <Title level={4} style={{ color: '#1890ff', marginBottom: '12px' }}>
-                        환불 정책은 어떻게 되나요?
-                      </Title>
-                      <Paragraph style={{ color: '#666', margin: 0 }}>
-                        30일 내 100% 환불 가능합니다. (사용량 무관)
-                      </Paragraph>
-                    </Card>
-                  </Col>
-                </Row>
-              </div>
             </div>
           </div>
         );
@@ -732,7 +675,7 @@ const MaProLandingPage = () => {
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent'
                 }}>
-                  📩 문의(고객지원)
+                  문의(고객지원)
                 </Title>
                 <Title level={3} style={{ 
                   color: '#666', 
@@ -815,77 +758,6 @@ const MaProLandingPage = () => {
                   </Card>
                 </Col>
 
-                {/* 챗봇 문의 연결 */}
-                <Col xs={24} md={12}>
-                  <Card
-                    style={{
-                      height: '100%',
-                      borderRadius: '16px',
-                      border: 'none',
-                      boxShadow: '0 8px 24px rgba(82, 196, 26, 0.12)',
-                      overflow: 'hidden'
-                    }}
-                    bodyStyle={{ padding: '40px 32px' }}
-                    hoverable
-                  >
-                    <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                      <div style={{
-                        width: '80px',
-                        height: '80px',
-                        borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #52c41a 0%, #95de64 100%)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        margin: '0 auto 24px',
-                        fontSize: '2rem'
-                      }}>
-                        🤖
-                      </div>
-                      <Title level={3} style={{ marginBottom: '16px', color: '#52c41a' }}>
-                        챗봇 문의 연결
-                      </Title>
-                    </div>
-                    
-                    <div style={{ textAlign: 'left' }}>
-                      <Paragraph style={{ color: '#666', fontSize: '16px', lineHeight: '1.7', marginBottom: '20px' }}>
-                        사용 중 문제 → <strong style={{color: '#52c41a'}}>바로 챗봇 통해 해결</strong><br /><br />
-                        매장 추천부터 기술 지원까지 빠른 도움을 받으세요.
-                      </Paragraph>
-                      
-                      <div style={{ 
-                        background: 'linear-gradient(135deg, #f6ffed 0%, #f0f9ed 100%)',
-                        padding: '16px',
-                        borderRadius: '8px',
-                        border: '1px solid #b7eb8f',
-                        marginBottom: '20px'
-                      }}>
-                        <Paragraph style={{ margin: 0, fontSize: '14px', color: '#666' }}>
-                          🔥 <strong>실시간 소통:</strong><br />
-                          대화하듯 쉽고 빠르게 문제 해결
-                        </Paragraph>
-                      </div>
-                      
-                      <Button 
-                        type="primary" 
-                        size="large"
-                        block
-                        style={{ 
-                          borderRadius: '8px',
-                          height: '48px',
-                          fontSize: '16px',
-                          fontWeight: '500',
-                          background: '#52c41a'
-                        }}
-                      >
-                        챗봇 연결
-                      </Button>
-                    </div>
-                  </Card>
-                </Col>
-              </Row>
-
-              <Row gutter={[32, 32]}>
                 {/* 이메일 문의 */}
                 <Col xs={24} md={12}>
                   <Card
