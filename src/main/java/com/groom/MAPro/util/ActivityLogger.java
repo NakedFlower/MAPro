@@ -1,32 +1,27 @@
 package com.groom.MAPro.util;
 
 import com.groom.MAPro.entity.ActivityLog;
-import com.groom.MAPro.entity.User;
 import com.groom.MAPro.repository.ActivityLogRepository;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
+@Component
 public class ActivityLogger {
-    private static ActivityLogRepository activityLogRepository;
+    private final ActivityLogRepository repo;
 
-    // Spring Bean 초기화 시 호출
-    public static void init(ActivityLogRepository repository) {
-        activityLogRepository = repository;
+    public ActivityLogger(ActivityLogRepository repo) {
+        this.repo = repo;
     }
 
-    public static void log(User user, String actionType, String detail) {
-        if (activityLogRepository == null) {
-            throw new IllegalStateException("ActivityLogRepository is not initialized");
-        }
-
-        ActivityLog log = new ActivityLog(
-                user.getUserId(),
-                user.getUsername(),
-                actionType,
-                detail,
-                LocalDateTime.now()
-        );
-
-        activityLogRepository.save(log);
+    public void log(Long userId, String username, String action, String s) {
+        ActivityLog log = ActivityLog.builder()
+                .userId(userId)
+                .username(username)
+                .actionType(action)
+                .createdAt(LocalDateTime.parse(LocalDateTime.now().toString()))
+                .detail(s)
+                .build();
+        repo.save(log);
     }
 }

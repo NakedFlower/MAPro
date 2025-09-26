@@ -26,7 +26,11 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = {"http://localhost:3000", "http://mapro.cloud:3000"})
 public class AuthController {
-    
+
+    @Autowired
+    private ActivityLogger activityLogger;
+
+
     @Autowired
     private AuthService authService;
     @Autowired
@@ -50,7 +54,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
         AuthResponse authResponse = authService.login(loginRequest);
         User findUser = userRepository.findById(authResponse.getUserId()).get();
-        ActivityLogger.log(findUser, "LOGIN", "로그인했습니다.");
+        activityLogger.log(findUser.getUserId(), findUser.getUsername(), "LOGIN", "로그인했습니다.");
         return ResponseEntity.ok(ApiResponse.success("로그인이 성공적으로 완료되었습니다.", authResponse));
     }
     

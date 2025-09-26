@@ -16,12 +16,14 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     @Autowired
     UserService userService;
+    @Autowired
+    private ActivityLogger activityLogger;
 
     // PATCH /api/users/{id}
     @PatchMapping("/{id}")
     public ResponseEntity<User> updateUserName(@PathVariable Long id, @RequestBody NameUpdateRequest request) {
         User updatedUser = userService.updateUserName(id, request.getName());
-        ActivityLogger.log(updatedUser, "UPDATE", "사용자 정보가 변경되었습니다.");
+        activityLogger.log(updatedUser.getUserId(), updatedUser.getUsername(), "UPDATE", "사용자 정보가 변경되었습니다.");
         return ResponseEntity.ok(updatedUser);
     }
 

@@ -29,6 +29,9 @@ public class UserPreferenceController {
     @Autowired
     private PreferenceCategoryRepository preferenceCategoryRepository;
 
+    @Autowired
+    ActivityLogger activityLogger;
+
     public UserPreferenceController(UserRepository userRepository, UserPreferenceService preferenceService) {
         this.userRepository = userRepository;
         this.preferenceService = preferenceService;
@@ -60,7 +63,7 @@ public class UserPreferenceController {
 
         preferenceService.savePreferences(user, optionIds);
 
-        ActivityLogger.log(user, "UPDATE", "사용자 성향이 변경되었습니다.");
+        activityLogger.log(user.getUserId(), user.getUsername(), "UPDATE", "사용자 성향이 변경되었습니다.");
 
         return ResponseEntity.ok(ApiResponse.success("사용자 성향이 저장되었습니다.", null));
     }

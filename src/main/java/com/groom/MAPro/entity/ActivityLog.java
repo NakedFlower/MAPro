@@ -2,6 +2,7 @@ package com.groom.MAPro.entity;
 
 import java.time.LocalDateTime;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.elasticsearch.annotations.Document;
 
@@ -18,6 +19,7 @@ public class ActivityLog {
     private String detail;
     private LocalDateTime createdAt;
 
+    @Builder
     public ActivityLog(Long userId, String username, String actionType, String detail, LocalDateTime createdAt) {
         this.userId = userId;
         this.username = username;
