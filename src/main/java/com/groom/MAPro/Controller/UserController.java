@@ -4,6 +4,7 @@ import com.groom.MAPro.dto.NameUpdateRequest;
 import com.groom.MAPro.entity.ActivityLog;
 import com.groom.MAPro.entity.User;
 import com.groom.MAPro.service.UserService;
+import com.groom.MAPro.util.ActivityLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ public class UserController {
     @PatchMapping("/{id}")
     public ResponseEntity<User> updateUserName(@PathVariable Long id, @RequestBody NameUpdateRequest request) {
         User updatedUser = userService.updateUserName(id, request.getName());
+        ActivityLogger.log(updatedUser, "UPDATE", "사용자 정보가 변경되었습니다.");
         return ResponseEntity.ok(updatedUser);
     }
 

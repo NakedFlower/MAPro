@@ -42,8 +42,6 @@ public class UserPreferenceService {
             userPref.setOption(option);
             userPref.setIsSelected(true);
 
-            ActivityLogger.log(user, "UPDATE", "사용자 성향이 변경되었습니다.");
-
             userPreferenceRepository.save(userPref);
         }
     }

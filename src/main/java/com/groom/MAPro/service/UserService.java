@@ -21,8 +21,6 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setName(newName);
-        ActivityLogger.log(user, "UPDATE", "사용자 정보가 변경되었습니다.");
-
         return user;
     }
 

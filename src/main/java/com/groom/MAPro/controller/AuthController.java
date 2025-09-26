@@ -1,5 +1,9 @@
 package com.groom.MAPro.Controller;
 
+import com.groom.MAPro.entity.User;
+import com.groom.MAPro.repository.UserRepository;
+import com.groom.MAPro.service.UserService;
+import com.groom.MAPro.util.ActivityLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -25,7 +29,11 @@ public class AuthController {
     
     @Autowired
     private AuthService authService;
-    
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private UserRepository userRepository;
+
     @GetMapping("/")
     public ResponseEntity<ApiResponse<String>> home() {
         return ResponseEntity.ok(ApiResponse.success("MAPro API 서버가 실행중입니다.", "API 문서는 /api/auth/test를 참조하세요."));
@@ -34,12 +42,15 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<AuthResponse>> signUp(@Valid @RequestBody SignUpRequest signUpRequest) {
         AuthResponse authResponse = authService.signUp(signUpRequest);
+
         return ResponseEntity.ok(ApiResponse.success("회원가입이 성공적으로 완료되었습니다.", authResponse));
     }
     
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
         AuthResponse authResponse = authService.login(loginRequest);
+        User findUser = userRepository.findById(authResponse.getUserId()).get();
+        ActivityLogger.log(findUser, "LOGIN", "로그인했습니다.");
         return ResponseEntity.ok(ApiResponse.success("로그인이 성공적으로 완료되었습니다.", authResponse));
     }
     

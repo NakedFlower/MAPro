@@ -43,9 +43,6 @@ public class AuthService {
         
         // JWT 토큰 생성
         String token = jwtUtil.generateToken(savedUser.getUsername(), savedUser.getUserId());
-
-        ActivityLogger.log(user, "SIGNUP", "회원가입이 완료되었습니다.");
-
         return new AuthResponse(token, savedUser.getUserId(), savedUser.getUsername(), savedUser.getName());
     }
     
@@ -61,7 +58,6 @@ public class AuthService {
         
         // JWT 토큰 생성
         String token = jwtUtil.generateToken(user.getUsername(), user.getUserId());
-        ActivityLogger.log(user, "LOGIN", "로그인했습니다.");
 
         return new AuthResponse(token, user.getUserId(), user.getUsername(), user.getName());
     }

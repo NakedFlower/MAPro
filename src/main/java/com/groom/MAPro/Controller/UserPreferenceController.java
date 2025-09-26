@@ -6,6 +6,7 @@ import com.groom.MAPro.entity.UserPreference;
 import com.groom.MAPro.repository.PreferenceCategoryRepository;
 import com.groom.MAPro.repository.UserRepository;
 import com.groom.MAPro.service.UserPreferenceService;
+import com.groom.MAPro.util.ActivityLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -58,6 +59,9 @@ public class UserPreferenceController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         preferenceService.savePreferences(user, optionIds);
+
+        ActivityLogger.log(user, "UPDATE", "사용자 성향이 변경되었습니다.");
+
         return ResponseEntity.ok(ApiResponse.success("사용자 성향이 저장되었습니다.", null));
     }
 
