@@ -22,6 +22,10 @@ import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 
 @Configuration
 public class ElasticsearchConfig {
@@ -40,14 +44,23 @@ public class ElasticsearchConfig {
     @Bean
     public RestClient restClient() throws Exception {
         // SSLContext 생성 (인증서 없으면 Noop로 테스트 가능)
-        SSLContext sslContext = SSLContextBuilder.create()
-                //.loadTrustMaterial(Paths.get("classpath:elasticsearch.crt").toFile(), null)
-                .build();
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(
+                null,
+                new TrustManager[]{ new X509TrustManager() {
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] certs, String authType) {}
 
-        // 인증 정보
-        HttpHost httpHost = new HttpHost(host, 9200, "https");
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] certs, String authType) {}
 
-        RestClientBuilder builder = RestClient.builder(httpHost)
+                    @Override
+                    public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+                }},
+                new SecureRandom()
+        );
+
+        RestClientBuilder builder = RestClient.builder(new HttpHost("34.64.120.99", 9200, "https"))
                 .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
                         .setSSLContext(sslContext)
                         .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
