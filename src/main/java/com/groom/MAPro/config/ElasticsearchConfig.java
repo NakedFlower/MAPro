@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -29,6 +30,7 @@ import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 
 @Configuration
+@EnableElasticsearchRepositories(basePackages = "com.groom.MAPro.repository")
 public class ElasticsearchConfig {
     @Value("${spring.elasticsearch.uris}")  // application.yml에 설정
     private String host;
