@@ -8,6 +8,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.message.BasicHeader;
@@ -60,20 +61,25 @@ public class ElasticsearchConfig {
                 new SecureRandom()
         );
 
-        RestClientBuilder builder = RestClient.builder(new HttpHost("34.64.120.99", 9200, "https"))
+        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(AuthScope.ANY,
+                new UsernamePasswordCredentials("dev", "Dev1010**"));
+
+        return RestClient.builder(new HttpHost(host, 9200, "https"))
                 .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
                         .setSSLContext(sslContext)
                         .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-                );
-        return builder.build();
+                        .setDefaultCredentialsProvider(credentialsProvider)
+                ).build();
     }
 
 
     @Bean
-    public ElasticsearchClient elasticsearchClient(RestClient restClient) {
-        return new ElasticsearchClient(
-                new RestClientTransport(restClient, new JacksonJsonpMapper())
-        );
+    public ElasticsearchClient elasticsearchClient(RestClientBuilder builder) {
+        RestClient restClient = builder.build();
+        RestClientTransport transport = new RestClientTransport(
+                restClient, new JacksonJsonpMapper());
+        return new ElasticsearchClient(transport);
     }
 
 }
