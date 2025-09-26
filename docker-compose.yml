@@ -10,14 +10,18 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://${GCP_VM_IP}:${GCP_SPRING_DATASOURCE_PORT}/${GCP_SPRING_DATASOURCE_DBNAME}
       SPRING_DATASOURCE_USERNAME: ${GCP_SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${GCP_SPRING_DATASOURCE_PASSWORD}
+      SPRING_ELASTICSEARCH_HOSTS: https://localhost:${GCP_ES_DATASOURCE_PORT}
+      SPRING_ELASTICSEARCH_USERNAME: ${GCP_SPRING_DATASOURCE_USERNAME}
+      SPRING_ELASTICSEARCH_PASSWORD: ${GCP_SPRING_DATASOURCE_PASSWORD}
     depends_on:
       - db
+      - elasticsearch
 
   frontend:
     build:
       context: ./frontend
     ports:
-      - "3000:80"   # 브라우저 접근용
+      - "3000:80"
     restart: always
     depends_on:
       - backend
@@ -31,3 +35,15 @@ services:
       - "3306:3306"
     restart: always
     command: --default-authentication-plugin=mysql_native_password
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - ELASTIC_PASSWORD=changeme
+    ports:
+      - "${GCP_ES_DATASOURCE_PORT}:${GCP_ES_DATASOURCE_PORT}"
+      - "${GCP_ES_NODE_PORT}:${GCP_ES_NODE_PORT}"
+    restart: always
