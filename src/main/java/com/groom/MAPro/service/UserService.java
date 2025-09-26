@@ -1,9 +1,13 @@
 package com.groom.MAPro.service;
 
+import com.groom.MAPro.entity.ActivityLog;
 import com.groom.MAPro.entity.User;
+import com.groom.MAPro.repository.ActivityLogRepository;
 import com.groom.MAPro.repository.UserRepository;
 import com.groom.MAPro.util.ActivityLogger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,5 +24,12 @@ public class UserService {
         ActivityLogger.log(user, "UPDATE", "사용자 정보가 변경되었습니다.");
 
         return user;
+    }
+
+    @Autowired
+    private ActivityLogRepository activityLogRepositoryrepository;
+
+    public Page<ActivityLog> getUserLogs(String username, int page, int size) {
+        return activityLogRepositoryrepository.findByUsername(username, PageRequest.of(page, size));
     }
 }

@@ -1,9 +1,11 @@
 package com.groom.MAPro.Controller;
 
 import com.groom.MAPro.dto.NameUpdateRequest;
+import com.groom.MAPro.entity.ActivityLog;
 import com.groom.MAPro.entity.User;
 import com.groom.MAPro.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,5 +22,15 @@ public class UserController {
         User updatedUser = userService.updateUserName(id, request.getName());
         return ResponseEntity.ok(updatedUser);
     }
+
+    @GetMapping("/logs/{id}")
+    public Page<ActivityLog> getLogs(
+            @RequestParam String username,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return userService.getUserLogs(username, page, size);
+    }
+
 
 }
