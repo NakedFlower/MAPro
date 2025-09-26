@@ -2,7 +2,7 @@ package com.groom.MAPro.entity;
 
 import java.time.LocalDateTime;
 
-import com.groom.MAPro.util.LongToLocalDateTimeConverter;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
@@ -20,8 +20,13 @@ public class ActivityLog {
     private String actionType;
     private String detail;
 
-    @Convert(converter = LongToLocalDateTimeConverter.class)
     private LocalDateTime createdAt;
+
+    // Optional: JSON 포맷 지정
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 
     @Builder
     public ActivityLog(Long userId, String username, String actionType, String detail, LocalDateTime createdAt) {
