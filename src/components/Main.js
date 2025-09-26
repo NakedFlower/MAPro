@@ -55,49 +55,974 @@ const MaProLandingPage = () => {
       case 'features':
         return (
           <div style={{ 
-            textAlign: 'center', 
-            padding: '100px 0', 
-            background: '#f0f2f5',
+            padding: '80px 0', 
+            background: 'linear-gradient(135deg, #f6f9fc 0%, #e9f3ff 100%)',
             minHeight: 'calc(100vh - 64px)'
           }}>
-            <Title level={1} style={{ marginBottom: '2rem' }}>
-              여기는 기능 탭입니다
-            </Title>
-            <Paragraph style={{ fontSize: '1.2rem', color: '#666' }}>
-              기능 관련 내용이 여기에 표시됩니다.
-            </Paragraph>
+            <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+              {/* Hero Section */}
+              <div style={{ textAlign: 'center', marginBottom: '80px' }}>
+                <Title level={1} style={{ 
+                  fontSize: '3rem', 
+                  marginBottom: '1rem',
+                  background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}>
+                  서비스 기능 소개
+                </Title>
+                <Title level={3} style={{ 
+                  color: '#666', 
+                  fontWeight: 'normal',
+                  maxWidth: '800px',
+                  margin: '0 auto',
+                  lineHeight: '1.6'
+                }}>
+                  "당신의 취향을 알아보고, 최적의 매장을 콕 집어 추천해주는<br />맞춤형 매장 탐색 플랫폼"
+                </Title>
+              </div>
+
+              {/* Main Features */}
+              <Row gutter={[40, 40]}>
+                {/* 개인 맞춤 매장 추천 */}
+                <Col xs={24} lg={8}>
+                  <Card
+                    style={{
+                      height: '100%',
+                      borderRadius: '16px',
+                      border: 'none',
+                      boxShadow: '0 8px 24px rgba(24, 144, 255, 0.12)',
+                      overflow: 'hidden'
+                    }}
+                    bodyStyle={{ padding: '40px 32px' }}
+                    hoverable
+                  >
+                    <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                      <div style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #1890ff 0%, #69c0ff 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 24px',
+                        fontSize: '2rem'
+                      }}>
+                        🎯
+                      </div>
+                      <Title level={3} style={{ marginBottom: '16px', color: '#1890ff' }}>
+                        개인 맞춤 매장 추천
+                      </Title>
+                    </div>
+                    
+                    <div style={{ textAlign: 'left' }}>
+                      <Paragraph style={{ color: '#666', fontSize: '16px', lineHeight: '1.7', marginBottom: '20px', minHeight: '84px' }}>
+                        음식점, 카페, 편의점, 약국, 펜션, 헤어샵, 병원 등 <strong style={{color: '#1890ff'}}>8개 업종</strong>에 대해 사람들이 실제로 중요하게 생각하는 <strong style={{color: '#1890ff'}}>특징(Feature)</strong>을 기반으로 추천합니다.
+                      </Paragraph>
+                      
+                      <div style={{ 
+                        background: 'linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%)',
+                        padding: '16px',
+                        borderRadius: '8px',
+                        border: '1px solid #b3e5fc'
+                      }}>
+                        <Paragraph style={{ margin: 0, fontSize: '14px', color: '#666' }}>
+                          💡 <strong>추천 예시:</strong><br />
+                          "조용한 카페", "24시간 약국", "가성비 좋은 음식점" 등 개인 취향 반영
+                        </Paragraph>
+                      </div>
+                    </div>
+                  </Card>
+                </Col>
+
+                {/* 스마트 챗봇 도입 */}
+                <Col xs={24} lg={8}>
+                  <Card
+                    style={{
+                      height: '100%',
+                      borderRadius: '16px',
+                      border: 'none',
+                      boxShadow: '0 8px 24px rgba(82, 196, 26, 0.12)',
+                      overflow: 'hidden'
+                    }}
+                    bodyStyle={{ padding: '40px 32px' }}
+                    hoverable
+                  >
+                    <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                      <div style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #52c41a 0%, #95de64 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 24px',
+                        fontSize: '2rem'
+                      }}>
+                        🤖
+                      </div>
+                      <Title level={3} style={{ marginBottom: '16px', color: '#52c41a' }}>
+                        스마트 챗봇 도입
+                      </Title>
+                    </div>
+                    
+                    <div style={{ textAlign: 'left' }}>
+                      <Paragraph style={{ color: '#666', fontSize: '16px', lineHeight: '1.7', marginBottom: '20px', minHeight: '84px' }}>
+                        추천받은 매장에 대한 <strong style={{color: '#52c41a'}}>빠른 질의응답</strong> 가능하며, 위치·운영시간·메뉴/서비스 같은 정보도 <strong style={{color: '#52c41a'}}>대화형으로 확인</strong>할 수 있습니다.
+                      </Paragraph>
+                      
+                      <div style={{ 
+                        background: 'linear-gradient(135deg, #f6ffed 0%, #f0f9ed 100%)',
+                        padding: '16px',
+                        borderRadius: '8px',
+                        border: '1px solid #b7eb8f'
+                      }}>
+                        <Paragraph style={{ margin: 0, fontSize: '14px', color: '#666' }}>
+                          💬 <strong>대화 예시:</strong><br />
+                          단순 검색이 아니라, 친구처럼 대화하면서 탐색
+                        </Paragraph>
+                      </div>
+                    </div>
+                  </Card>
+                </Col>
+
+                {/* 데이터 기반 학습 */}
+                <Col xs={24} lg={8}>
+                  <Card
+                    style={{
+                      height: '100%',
+                      borderRadius: '16px',
+                      border: 'none',
+                      boxShadow: '0 8px 24px rgba(114, 46, 209, 0.12)',
+                      overflow: 'hidden'
+                    }}
+                    bodyStyle={{ padding: '40px 32px' }}
+                    hoverable
+                  >
+                    <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                      <div style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #722ed1 0%, #b37feb 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 24px',
+                        fontSize: '2rem'
+                      }}>
+                        📊
+                      </div>
+                      <Title level={3} style={{ marginBottom: '16px', color: '#722ed1' }}>
+                        데이터 기반 학습
+                      </Title>
+                    </div>
+                    
+                    <div style={{ textAlign: 'left' }}>
+                      <Paragraph style={{ color: '#666', fontSize: '16px', lineHeight: '1.7', marginBottom: '20px', minHeight: '84px' }}>
+                        <strong style={{color: '#722ed1'}}>리뷰·평점·실사용 데이터</strong> 기반으로 추천 정확도를 업그레이드하며, 사용할수록 <strong style={{color: '#722ed1'}}>개인화 알고리즘</strong>으로 더 정확한 매장을 찾아드립니다.
+                      </Paragraph>
+                      
+                      <div style={{ 
+                        background: 'linear-gradient(135deg, #f9f0ff 0%, #f4e8ff 100%)',
+                        padding: '16px',
+                        borderRadius: '8px',
+                        border: '1px solid #d3adf7'
+                      }}>
+                        <Paragraph style={{ margin: 0, fontSize: '14px', color: '#666' }}>
+                          📈 <strong>학습 효과:</strong><br />
+                          사용할수록 더욱 정확한 맞춤 추천
+                        </Paragraph>
+                      </div>
+                    </div>
+                  </Card>
+                </Col>
+              </Row>
+
+              {/* Chat Screenshots Section */}
+              <div style={{ marginTop: '100px', textAlign: 'center' }}>
+                <Title level={2} style={{ marginBottom: '2rem' }}>
+                  실제 서비스 화면
+                </Title>
+                <Paragraph style={{ fontSize: '1.2rem', color: '#666', marginBottom: '3rem' }}>
+                  MAPro 챗봇과의 실제 대화 예시를 확인해보세요.
+                </Paragraph>
+                
+                <Row gutter={[32, 32]} justify="center">
+                  <Col xs={24} md={12}>
+                    <Card
+                      style={{
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                        overflow: 'hidden'
+                      }}
+                      bodyStyle={{ padding: '0' }}
+                    >
+                      <div style={{ position: 'relative' }}>
+                        <img 
+                          src="/stories/assets/chatbotimage.png" 
+                          alt="챗봇 대화 시작 화면"
+                          style={{
+                            width: '100%',
+                            height: '300px',
+                            objectFit: 'cover'
+                          }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'block';
+                          }}
+                        />
+                        <div style={{
+                          display: 'none',
+                          height: '300px',
+                          backgroundColor: '#f0f2f5',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '4rem'
+                        }}>
+                          💬
+                        </div>
+                      </div>
+                      <div style={{ padding: '24px' }}>
+                        <Title level={4} style={{ marginBottom: '16px', color: '#1890ff' }}>
+                          💬 챗봇 대화 시작
+                        </Title>
+                        <Paragraph style={{ color: '#666', lineHeight: '1.6' }}>
+                          "안녕하세요! MAPro 챗봇입니다"로 시작하는<br />
+                          친근한 대화형 인터페이스
+                        </Paragraph>
+                      </div>
+                    </Card>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Card
+                      style={{
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                        overflow: 'hidden'
+                      }}
+                      bodyStyle={{ padding: '0' }}
+                    >
+                      <div style={{ position: 'relative' }}>
+                        <img 
+                          src="/stories/assets/recommend.png" 
+                          alt="지도 연동 추천 화면"
+                          style={{
+                            width: '100%',
+                            height: '300px',
+                            objectFit: 'cover'
+                          }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'block';
+                          }}
+                        />
+                        <div style={{
+                          display: 'none',
+                          height: '300px',
+                          backgroundColor: '#f0f2f5',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '4rem'
+                        }}>
+                          🗺️
+                        </div>
+                      </div>
+                      <div style={{ padding: '24px' }}>
+                        <Title level={4} style={{ marginBottom: '16px', color: '#52c41a' }}>
+                          🗺️ 지도 연동 추천
+                        </Title>
+                        <Paragraph style={{ color: '#666', lineHeight: '1.6' }}>
+                          대화를 통해 찾은 매장들을<br />
+                          실시간으로 지도에 표시
+                        </Paragraph>
+                      </div>
+                    </Card>
+                  </Col>
+                </Row>
+              </div>
+            </div>
           </div>
         );
       case 'pricing':
         return (
           <div style={{ 
-            textAlign: 'center', 
-            padding: '100px 0', 
-            background: '#f0f2f5',
+            padding: '80px 0', 
+            background: 'linear-gradient(135deg, #f6f9fc 0%, #e9f3ff 100%)',
             minHeight: 'calc(100vh - 64px)'
           }}>
-            <Title level={1} style={{ marginBottom: '2rem' }}>
-              여기는 요금 탭입니다
-            </Title>
-            <Paragraph style={{ fontSize: '1.2rem', color: '#666' }}>
-              요금 관련 내용이 여기에 표시됩니다.
-            </Paragraph>
+            <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
+              {/* Hero Section */}
+              <div style={{ textAlign: 'center', marginBottom: '80px' }}>
+                <Title level={1} style={{ 
+                  fontSize: '3rem', 
+                  marginBottom: '1rem',
+                  background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}>
+                  요금제 추천
+                </Title>
+                <Title level={3} style={{ 
+                  color: '#666', 
+                  fontWeight: 'normal',
+                  maxWidth: '800px',
+                  margin: '0 auto',
+                  lineHeight: '1.6'
+                }}>
+                  MAPro에 맞춤 단계별 차별화 요금제
+                </Title>
+              </div>
+
+              {/* Pricing Cards */}
+              <Row gutter={[24, 32]} justify="center">
+                {/* 무료 (Demo) */}
+                <Col xs={24} sm={12} lg={6}>
+                  <Card
+                    style={{
+                      height: '100%',
+                      borderRadius: '16px',
+                      border: '2px solid #f0f0f0',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                      position: 'relative',
+                      overflow: 'hidden'
+                    }}
+                    bodyStyle={{ padding: '32px 24px' }}
+                  >
+                    <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                      <div style={{
+                        width: '60px',
+                        height: '60px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #f0f0f0 0%, #d9d9d9 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 16px',
+                        fontSize: '1.5rem'
+                      }}>
+                        🌱
+                      </div>
+                      <Title level={3} style={{ marginBottom: '8px', color: '#666' }}>
+                        무료 (Demo)
+                      </Title>
+                      <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#666', marginBottom: '8px' }}>
+                        $0
+                      </div>
+                      <div style={{ color: '#999', fontSize: '14px' }}>/ month</div>
+                    </div>
+                    
+                    <div style={{ marginBottom: '32px' }}>
+                      <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#52c41a', marginRight: '8px' }}>✓</span>
+                        <span style={{ fontSize: '14px', color: '#666' }}>기본 업종별 매장 추천 (최대 3개 업종)</span>
+                      </div>
+                      <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#52c41a', marginRight: '8px' }}>✓</span>
+                        <span style={{ fontSize: '14px', color: '#666' }}>챗봇 Q&A 제한 (일 5회)</span>
+                      </div>
+                      <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#ff4d4f', marginRight: '8px' }}>✗</span>
+                        <span style={{ fontSize: '14px', color: '#999' }}>광고 노출 있음</span>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      size="large" 
+                      block 
+                      style={{ 
+                        borderRadius: '8px',
+                        height: '48px',
+                        fontSize: '16px',
+                        fontWeight: '500'
+                      }}
+                    >
+                      시작하기
+                    </Button>
+                  </Card>
+                </Col>
+
+                {/* Intermediate */}
+                <Col xs={24} sm={12} lg={6}>
+                  <Card
+                    style={{
+                      height: '100%',
+                      borderRadius: '16px',
+                      border: '2px solid #1890ff',
+                      boxShadow: '0 8px 24px rgba(24, 144, 255, 0.15)',
+                      position: 'relative',
+                      overflow: 'hidden'
+                    }}
+                    bodyStyle={{ padding: '32px 24px' }}
+                  >
+                    <div style={{
+                      position: 'absolute',
+                      top: '0',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      background: '#1890ff',
+                      color: 'white',
+                      padding: '4px 16px',
+                      borderRadius: '0 0 8px 8px',
+                      fontSize: '12px',
+                      fontWeight: '600'
+                    }}>
+                      인기
+                    </div>
+                    
+                    <div style={{ textAlign: 'center', marginBottom: '24px', marginTop: '16px' }}>
+                      <div style={{
+                        width: '60px',
+                        height: '60px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #1890ff 0%, #69c0ff 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 16px',
+                        fontSize: '1.5rem'
+                      }}>
+                        🚀
+                      </div>
+                      <Title level={3} style={{ marginBottom: '8px', color: '#1890ff' }}>
+                        Intermediate
+                      </Title>
+                      <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#1890ff', marginBottom: '8px' }}>
+                        $3
+                      </div>
+                      <div style={{ color: '#999', fontSize: '14px' }}>/ month</div>
+                    </div>
+                    
+                    <div style={{ marginBottom: '32px' }}>
+                      <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#52c41a', marginRight: '8px' }}>✓</span>
+                        <span style={{ fontSize: '14px', color: '#666' }}>모든 업종(8개) 매장 추천</span>
+                      </div>
+                      <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#52c41a', marginRight: '8px' }}>✓</span>
+                        <span style={{ fontSize: '14px', color: '#666' }}>챗봇 무제한 사용 가능</span>
+                      </div>
+                      <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#52c41a', marginRight: '8px' }}>✓</span>
+                        <span style={{ fontSize: '14px', color: '#666' }}>즐겨찾기 & 히스토리 저장</span>
+                      </div>
+                      <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#52c41a', marginRight: '8px' }}>✓</span>
+                        <span style={{ fontSize: '14px', color: '#666' }}>맞춤 키워드 필터링</span>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      type="primary" 
+                      size="large" 
+                      block 
+                      style={{ 
+                        borderRadius: '8px',
+                        height: '48px',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        background: '#1890ff'
+                      }}
+                    >
+                      선택하기
+                    </Button>
+                  </Card>
+                </Col>
+
+                {/* Advanced */}
+                <Col xs={24} sm={12} lg={6}>
+                  <Card
+                    style={{
+                      height: '100%',
+                      borderRadius: '16px',
+                      border: '2px solid #722ed1',
+                      boxShadow: '0 8px 24px rgba(114, 46, 209, 0.15)',
+                      position: 'relative',
+                      overflow: 'hidden'
+                    }}
+                    bodyStyle={{ padding: '32px 24px' }}
+                  >
+                    <div style={{
+                      position: 'absolute',
+                      top: '0',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      background: '#722ed1',
+                      color: 'white',
+                      padding: '4px 16px',
+                      borderRadius: '0 0 8px 8px',
+                      fontSize: '12px',
+                      fontWeight: '600'
+                    }}>
+                      추천
+                    </div>
+                    
+                    <div style={{ textAlign: 'center', marginBottom: '24px', marginTop: '16px' }}>
+                      <div style={{
+                        width: '60px',
+                        height: '60px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #722ed1 0%, #b37feb 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 16px',
+                        fontSize: '1.5rem'
+                      }}>
+                        ⭐
+                      </div>
+                      <Title level={3} style={{ marginBottom: '8px', color: '#722ed1' }}>
+                        Advanced
+                      </Title>
+                      <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#722ed1', marginBottom: '8px' }}>
+                        $5
+                      </div>
+                      <div style={{ color: '#999', fontSize: '14px' }}>/ month</div>
+                    </div>
+                    
+                    <div style={{ marginBottom: '32px' }}>
+                      <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#52c41a', marginRight: '8px' }}>✓</span>
+                        <span style={{ fontSize: '14px', color: '#666' }}>AI 기반 개인화 고도화 추천</span>
+                      </div>
+                      <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#52c41a', marginRight: '8px' }}>✓</span>
+                        <span style={{ fontSize: '14px', color: '#666' }}>광고 제거</span>
+                      </div>
+                      <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#52c41a', marginRight: '8px' }}>✓</span>
+                        <span style={{ fontSize: '14px', color: '#666' }}>지도 기반 실시간 주변 매장 추천</span>
+                      </div>
+                      <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#52c41a', marginRight: '8px' }}>✓</span>
+                        <span style={{ fontSize: '14px', color: '#666' }}>프리미엄 데이터 제공</span>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      type="primary" 
+                      size="large" 
+                      block 
+                      style={{ 
+                        borderRadius: '8px',
+                        height: '48px',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        background: '#722ed1'
+                      }}
+                    >
+                      선택하기
+                    </Button>
+                  </Card>
+                </Col>
+
+                {/* Max */}
+                <Col xs={24} sm={12} lg={6}>
+                  <Card
+                    style={{
+                      height: '100%',
+                      borderRadius: '16px',
+                      border: '2px solid #fa8c16',
+                      boxShadow: '0 8px 24px rgba(250, 140, 22, 0.15)',
+                      position: 'relative',
+                      overflow: 'hidden'
+                    }}
+                    bodyStyle={{ padding: '32px 24px' }}
+                  >
+                    <div style={{
+                      position: 'absolute',
+                      top: '0',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      background: 'linear-gradient(135deg, #fa8c16 0%, #ffc53d 100%)',
+                      color: 'white',
+                      padding: '4px 16px',
+                      borderRadius: '0 0 8px 8px',
+                      fontSize: '12px',
+                      fontWeight: '600'
+                    }}>
+                      프리미엄
+                    </div>
+                    
+                    <div style={{ textAlign: 'center', marginBottom: '24px', marginTop: '16px' }}>
+                      <div style={{
+                        width: '60px',
+                        height: '60px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #fa8c16 0%, #ffc53d 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 16px',
+                        fontSize: '1.5rem'
+                      }}>
+                        👑
+                      </div>
+                      <Title level={3} style={{ marginBottom: '8px', color: '#fa8c16' }}>
+                        Max
+                      </Title>
+                      <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#fa8c16', marginBottom: '8px' }}>
+                        $10
+                      </div>
+                      <div style={{ color: '#999', fontSize: '14px' }}>/ month</div>
+                    </div>
+                    
+                    <div style={{ marginBottom: '32px' }}>
+                      <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#52c41a', marginRight: '8px' }}>✓</span>
+                        <span style={{ fontSize: '14px', color: '#666' }}>Advanced 기능 모두 포함</span>
+                      </div>
+                      <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#52c41a', marginRight: '8px' }}>✓</span>
+                        <span style={{ fontSize: '14px', color: '#666' }}>패밀리/팀 계정 (최대 4명)</span>
+                      </div>
+                      <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#52c41a', marginRight: '8px' }}>✓</span>
+                        <span style={{ fontSize: '14px', color: '#666' }}>우선순위 고객 지원</span>
+                      </div>
+                      <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: '#52c41a', marginRight: '8px' }}>✓</span>
+                        <span style={{ fontSize: '14px', color: '#666' }}>특별 맞춤형 리포트</span>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      type="primary" 
+                      size="large" 
+                      block 
+                      style={{ 
+                        borderRadius: '8px',
+                        height: '48px',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        background: 'linear-gradient(135deg, #fa8c16 0%, #ffc53d 100%)',
+                        border: 'none'
+                      }}
+                    >
+                      선택하기
+                    </Button>
+                  </Card>
+                </Col>
+              </Row>
+            </div>
           </div>
         );
       case 'contact':
         return (
           <div style={{ 
-            textAlign: 'center', 
-            padding: '100px 0', 
-            background: '#f0f2f5',
+            padding: '80px 0', 
+            background: 'linear-gradient(135deg, #f6f9fc 0%, #e9f3ff 100%)',
             minHeight: 'calc(100vh - 64px)'
           }}>
-            <Title level={1} style={{ marginBottom: '2rem' }}>
-              여기는 문의 탭입니다
-            </Title>
-            <Paragraph style={{ fontSize: '1.2rem', color: '#666' }}>
-              문의 관련 내용이 여기에 표시됩니다.
-            </Paragraph>
+            <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+              {/* Hero Section */}
+              <div style={{ textAlign: 'center', marginBottom: '80px' }}>
+                <Title level={1} style={{ 
+                  fontSize: '3rem', 
+                  marginBottom: '1rem',
+                  background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}>
+                  문의(고객지원)
+                </Title>
+                <Title level={3} style={{ 
+                  color: '#666', 
+                  fontWeight: 'normal',
+                  maxWidth: '800px',
+                  margin: '0 auto',
+                  lineHeight: '1.6'
+                }}>
+                  다양한 방법으로 MAPro 팀과 소통하세요
+                </Title>
+              </div>
+
+              {/* Contact Methods */}
+              <Row gutter={[24, 32]} style={{ marginBottom: '80px' }}>
+                {/* FAQ 자동 응답 */}
+                <Col xs={24} md={8}>
+                  <Card
+                    style={{
+                      height: '100%',
+                      borderRadius: '16px',
+                      border: 'none',
+                      boxShadow: '0 8px 24px rgba(24, 144, 255, 0.12)',
+                      overflow: 'hidden'
+                    }}
+                    bodyStyle={{ padding: '32px 24px' }}
+                    hoverable
+                  >
+                    <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                      <div style={{
+                        width: '60px',
+                        height: '60px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #1890ff 0%, #69c0ff 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 16px',
+                        fontSize: '1.5rem'
+                      }}>
+                        ❓
+                      </div>
+                      <Title level={4} style={{ marginBottom: '12px', color: '#1890ff' }}>
+                        FAQ 자동 응답
+                      </Title>
+                    </div>
+                    
+                    <div style={{ textAlign: 'left' }}>
+                      <Paragraph style={{ color: '#666', fontSize: '14px', lineHeight: '1.6', marginBottom: '16px' }}>
+                        요금제/환불/추천 원리 관련 <strong style={{color: '#1890ff'}}>자주 묻는 질문</strong>을 정리해두었습니다.
+                      </Paragraph>
+                      
+                      <div style={{ 
+                        background: 'linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%)',
+                        padding: '12px',
+                        borderRadius: '6px',
+                        border: '1px solid #b3e5fc',
+                        marginBottom: '16px'
+                      }}>
+                        <Paragraph style={{ margin: 0, fontSize: '12px', color: '#666' }}>
+                          🔍 <strong>즉시 이용 가능:</strong><br />
+                          가장 빠른 답변
+                        </Paragraph>
+                      </div>
+                      
+                      <Button 
+                        type="primary" 
+                        size="large"
+                        block
+                        style={{ 
+                          borderRadius: '6px',
+                          height: '40px',
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          background: '#1890ff'
+                        }}
+                      >
+                        FAQ 보기
+                      </Button>
+                    </div>
+                  </Card>
+                </Col>
+
+                {/* 이메일 문의 */}
+                <Col xs={24} md={8}>
+                  <Card
+                    style={{
+                      height: '100%',
+                      borderRadius: '16px',
+                      border: 'none',
+                      boxShadow: '0 8px 24px rgba(114, 46, 209, 0.12)',
+                      overflow: 'hidden'
+                    }}
+                    bodyStyle={{ padding: '40px 32px' }}
+                    hoverable
+                  >
+                    <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                      <div style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #722ed1 0%, #b37feb 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 24px',
+                        fontSize: '2rem'
+                      }}>
+                        📧
+                      </div>
+                      <Title level={3} style={{ marginBottom: '16px', color: '#722ed1' }}>
+                        이메일 문의
+                      </Title>
+                    </div>
+                    
+                    <div style={{ textAlign: 'left' }}>
+                      <Paragraph style={{ color: '#666', fontSize: '16px', lineHeight: '1.7', marginBottom: '20px' }}>
+                        <strong style={{color: '#722ed1'}}>자세한 피드백, 제안 사항 접수</strong><br /><br />
+                        새로운 기능 요청, 개선 사항 등 상세한 의견을 보내주세요.
+                      </Paragraph>
+                      
+                      <div style={{ 
+                        background: 'linear-gradient(135deg, #f9f0ff 0%, #f4e8ff 100%)',
+                        padding: '16px',
+                        borderRadius: '8px',
+                        border: '1px solid #d3adf7',
+                        marginBottom: '20px'
+                      }}>
+                        <Paragraph style={{ margin: 0, fontSize: '14px', color: '#666' }}>
+                          ✉️ <strong>support@mapro.com</strong><br />
+                          24-48시간 내 답변 드립니다
+                        </Paragraph>
+                      </div>
+                      
+                      <Button 
+                        type="primary" 
+                        size="large"
+                        block
+                        style={{ 
+                          borderRadius: '8px',
+                          height: '48px',
+                          fontSize: '16px',
+                          fontWeight: '500',
+                          background: '#722ed1'
+                        }}
+                      >
+                        이메일 보내기
+                      </Button>
+                    </div>
+                  </Card>
+                </Col>
+
+                {/* 긴급 지원 */}
+                <Col xs={24} md={8}>
+                  <Card
+                    style={{
+                      height: '100%',
+                      borderRadius: '16px',
+                      border: 'none',
+                      boxShadow: '0 8px 24px rgba(250, 140, 22, 0.12)',
+                      overflow: 'hidden'
+                    }}
+                    bodyStyle={{ padding: '40px 32px' }}
+                    hoverable
+                  >
+                    <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                      <div style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #fa8c16 0%, #ffc53d 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 24px',
+                        fontSize: '2rem'
+                      }}>
+                        ⚡
+                      </div>
+                      <Title level={3} style={{ marginBottom: '16px', color: '#fa8c16' }}>
+                        긴급 지원
+                      </Title>
+                      <div style={{
+                        background: 'linear-gradient(135deg, #fa8c16 0%, #ffc53d 100%)',
+                        color: 'white',
+                        padding: '4px 12px',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        display: 'inline-block'
+                      }}>
+                        Max 이상 전용
+                      </div>
+                    </div>
+                    
+                    <div style={{ textAlign: 'left' }}>
+                      <Paragraph style={{ color: '#666', fontSize: '16px', lineHeight: '1.7', marginBottom: '20px' }}>
+                        <strong style={{color: '#fa8c16'}}>1:1 빠른 상담 (우선순위)</strong><br /><br />
+                        중요한 서비스 장애나 긴급 문제 시 우선 지원해드립니다.
+                      </Paragraph>
+                      
+                      <div style={{ 
+                        background: 'linear-gradient(135deg, #fff7e6 0%, #ffecc7 100%)',
+                        padding: '16px',
+                        borderRadius: '8px',
+                        border: '1px solid #ffd591',
+                        marginBottom: '20px'
+                      }}>
+                        <Paragraph style={{ margin: 0, fontSize: '14px', color: '#666' }}>
+                          📞 <strong>응답 시간:</strong><br />
+                          평균 1시간 내 우선 상담 연결
+                        </Paragraph>
+                      </div>
+                      
+                      <Button 
+                        type="primary" 
+                        size="large"
+                        block
+                        style={{ 
+                          borderRadius: '8px',
+                          height: '48px',
+                          fontSize: '16px',
+                          fontWeight: '500',
+                          background: 'linear-gradient(135deg, #fa8c16 0%, #ffc53d 100%)',
+                          border: 'none'
+                        }}
+                      >
+                        긴급 지원 요청
+                      </Button>
+                    </div>
+                  </Card>
+                </Col>
+              </Row>
+
+              {/* Contact Information */}
+              <div style={{ marginTop: '100px' }}>
+                <Card 
+                  style={{ 
+                    borderRadius: '16px',
+                    border: 'none',
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08)',
+                    background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)'
+                  }}
+                  bodyStyle={{ padding: '40px' }}
+                >
+                  <div style={{ textAlign: 'center' }}>
+                    <Title level={2} style={{ marginBottom: '2rem', color: '#1890ff' }}>
+                      연락처 정보
+                    </Title>
+                    
+                    <Row gutter={[48, 32]} justify="center">
+                      <Col xs={24} sm={8}>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{
+                            fontSize: '2rem',
+                            marginBottom: '12px',
+                            color: '#1890ff'
+                          }}>
+                            📧
+                          </div>
+                          <Title level={4} style={{ marginBottom: '8px' }}>이메일</Title>
+                          <Paragraph style={{ color: '#666', margin: 0 }}>support@mapro.com</Paragraph>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={8}>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{
+                            fontSize: '2rem',
+                            marginBottom: '12px',
+                            color: '#52c41a'
+                          }}>
+                            📞
+                          </div>
+                          <Title level={4} style={{ marginBottom: '8px' }}>전화</Title>
+                          <Paragraph style={{ color: '#666', margin: 0 }}>02-1234-5678</Paragraph>
+                        </div>
+                      </Col>
+                      <Col xs={24} sm={8}>
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{
+                            fontSize: '2rem',
+                            marginBottom: '12px',
+                            color: '#722ed1'
+                          }}>
+                            🕰️
+                          </div>
+                          <Title level={4} style={{ marginBottom: '8px' }}>운영 시간</Title>
+                          <Paragraph style={{ color: '#666', margin: 0 }}>평일 09:00 - 18:00</Paragraph>
+                        </div>
+                      </Col>
+                    </Row>
+                  </div>
+                </Card>
+              </div>
+            </div>
           </div>
         );
       default: // 'home' case
