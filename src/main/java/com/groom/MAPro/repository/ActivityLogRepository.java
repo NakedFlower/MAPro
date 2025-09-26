@@ -11,5 +11,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ActivityLogRepository extends ElasticsearchRepository<ActivityLog, String> {
     Page<ActivityLog> findByUsername(String username, Pageable pageable);
+    Page<ActivityLog> findByUserId(Long userId, Pageable pageable);
 
 }

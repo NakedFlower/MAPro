@@ -31,11 +31,11 @@ public class UserController {
 
     @GetMapping("/logs/{id}")
     public Page<ActivityLog> getLogs(
-            @RequestParam String username,
+            @RequestParam Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return userService.getUserLogs(username, page, size);
+        return userService.getUserLogs(userId, page, size);
     }
 
 

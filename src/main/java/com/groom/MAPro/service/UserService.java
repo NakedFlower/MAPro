@@ -27,7 +27,7 @@ public class UserService {
     @Autowired
     private ActivityLogRepository activityLogRepositoryrepository;
 
-    public Page<ActivityLog> getUserLogs(String username, int page, int size) {
-        return activityLogRepositoryrepository.findByUsername(username, PageRequest.of(page, size));
+    public Page<ActivityLog> getUserLogs(Long userId, int page, int size) {
+        return activityLogRepositoryrepository.findByUserId(userId, PageRequest.of(page, size));
     }
 }
