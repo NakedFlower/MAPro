@@ -49,6 +49,474 @@ const MaProLandingPage = () => {
     { key: 'contact', label: '문의' }
   ];
 
+  // 탭에 따른 콘텐츠 렌더링 함수
+  const renderTabContent = () => {
+    switch(current) {
+      case 'features':
+        return (
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '100px 0', 
+            background: '#f0f2f5',
+            minHeight: 'calc(100vh - 64px)'
+          }}>
+            <Title level={1} style={{ marginBottom: '2rem' }}>
+              여기는 기능 탭입니다
+            </Title>
+            <Paragraph style={{ fontSize: '1.2rem', color: '#666' }}>
+              기능 관련 내용이 여기에 표시됩니다.
+            </Paragraph>
+          </div>
+        );
+      case 'pricing':
+        return (
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '100px 0', 
+            background: '#f0f2f5',
+            minHeight: 'calc(100vh - 64px)'
+          }}>
+            <Title level={1} style={{ marginBottom: '2rem' }}>
+              여기는 요금 탭입니다
+            </Title>
+            <Paragraph style={{ fontSize: '1.2rem', color: '#666' }}>
+              요금 관련 내용이 여기에 표시됩니다.
+            </Paragraph>
+          </div>
+        );
+      case 'contact':
+        return (
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '100px 0', 
+            background: '#f0f2f5',
+            minHeight: 'calc(100vh - 64px)'
+          }}>
+            <Title level={1} style={{ marginBottom: '2rem' }}>
+              여기는 문의 탭입니다
+            </Title>
+            <Paragraph style={{ fontSize: '1.2rem', color: '#666' }}>
+              문의 관련 내용이 여기에 표시됩니다.
+            </Paragraph>
+          </div>
+        );
+      default: // 'home' case
+        return (
+          <>
+            {/* Hero Section */}
+            <div style={{ 
+              background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)',
+              color: 'white',
+              padding: '100px 0',
+              textAlign: 'center',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              {/* 배경 장식 요소 */}
+              <div style={{
+                position: 'absolute',
+                top: '-50%',
+                left: '-50%',
+                width: '200%',
+                height: '200%',
+                background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
+                animation: 'float 6s ease-in-out infinite'
+              }} />
+              
+              <div style={{ 
+                maxWidth: '800px', 
+                margin: '0 auto', 
+                padding: '0 2rem',
+                position: 'relative',
+                zIndex: 2
+              }}>
+                <Title 
+                  style={{ 
+                    color: 'white', 
+                    fontSize: '3.5rem', 
+                    fontWeight: 700,
+                    marginBottom: '1rem'
+                  }}
+                >
+                  당신만을 위한<br />완벽한 장소를 찾아드립니다
+                </Title>
+                
+                <Paragraph 
+                  style={{ 
+                    color: 'rgba(255,255,255,0.9)', 
+                    fontSize: '1.2rem',
+                    marginBottom: '2rem',
+                    maxWidth: '600px',
+                    margin: '0 auto 2rem'
+                  }}
+                >
+                  수백만 개의 실제 리뷰를 분석하여 <br />개인의 취향과 선호도에 맞는 맞춤형 장소를 추천하는 서비스입니다.
+                </Paragraph>
+                
+                <Space size="large">
+                  <Button 
+                    type="primary" 
+                    size="large"
+                    onClick={handleGoToRegister} // 로그인 페이지로 변경
+                    style={{ 
+                      background: 'white',
+                      color: '#1890ff',
+                      border: 'none',
+                      borderRadius: '25px',
+                      padding: '0.8rem 2.5rem',
+                      height: 'auto',
+                      fontSize: '1.1rem',
+                      fontWeight: 600
+                    }}
+                  >
+                    지금 시작하기
+                  </Button>
+                  
+                  <Button 
+                    type="default"
+                    size="large"
+                    icon={<PlayCircleOutlined />}
+                    onClick={() => navigate('/map')} // 맵 페이지로 직접 이동
+                    style={{ 
+                      background: 'transparent',
+                      color: 'white',
+                      border: '2px solid white',
+                      borderRadius: '25px',
+                      padding: '0.8rem 2.5rem',
+                      height: 'auto',
+                      fontSize: '1.1rem',
+                      fontWeight: 600
+                    }}
+                  >
+                    데모 보기
+                  </Button>
+                </Space>
+              </div>
+            </div>
+
+            {/* Features Section */}
+            <div style={{ padding: '80px 0', background: '#fff' }}>
+              <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+                <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+                  <Title level={2} style={{ marginBottom: '1rem' }}>
+                    왜 MAPro를 선택해야 할까요?
+                  </Title>
+                  <Paragraph style={{ fontSize: '1.2rem', color: '#666' }}>
+                    더욱 정확하고 개인화된 장소 추천을 경험하세요.
+                  </Paragraph>
+                </div>
+                
+                <Row gutter={[32, 32]}>
+                  {features.map((feature, index) => (
+                    <Col xs={24} md={8} key={index}>
+                      <Card
+                        style={{ 
+                          height: '100%',
+                          textAlign: 'center',
+                          border: '1px solid #f0f0f0',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                        }}
+                        bodyStyle={{ padding: '40px 24px' }}
+                      >
+                        <div style={{ marginBottom: '20px' }}>
+                          {feature.icon}
+                        </div>
+                        <Title level={4} style={{ marginBottom: '16px' }}>
+                          {feature.title}
+                        </Title>
+                        <Paragraph style={{ color: '#666', lineHeight: '1.6' }}>
+                          {feature.description}
+                        </Paragraph>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              </div>
+            </div>
+
+            {/* Stats Section */}
+            <div style={{ 
+              padding: '80px 0', 
+              background: 'linear-gradient(135deg, #f6f9fc 0%, #e9f3ff 100%)'
+            }}>
+              <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+                <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+                  <Title level={2}>MAPro의 성장</Title>
+                  <Paragraph style={{ fontSize: '1.2rem', color: '#666' }}>
+                    많은 사용자들이 MAPro를 신뢰하고 있습니다.
+                  </Paragraph>
+                </div>
+                
+                <Row gutter={[24, 32]} justify="center">
+                  <Col xs={24} sm={12} lg={6}>
+                    <Card 
+                      style={{ 
+                        textAlign: 'center', 
+                        borderRadius: '16px',
+                        border: 'none',
+                        boxShadow: '0 8px 24px rgba(24, 144, 255, 0.12)',
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer'
+                      }}
+                      bodyStyle={{ padding: '32px 24px' }}
+                      hoverable
+                    >
+                      <div style={{ 
+                        background: 'linear-gradient(135deg, #1890ff 0%, #69c0ff 100%)',
+                        borderRadius: '50%',
+                        width: '60px',
+                        height: '60px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 20px',
+                        color: 'white',
+                        fontSize: '24px'
+                      }}>
+                        👥
+                      </div>
+                      <Statistic
+                        title={<span style={{ color: '#666', fontSize: '14px', fontWeight: '500' }}>누적 사용자</span>}
+                        value={320000}
+                        formatter={(value) => <CountUp end={Number(value)} />}
+                        suffix="+"
+                        valueStyle={{ color: '#1890ff', fontSize: '2.5rem', fontWeight: '700', lineHeight: '1.2' }}
+                      />
+                      <div style={{ color: '#999', fontSize: '12px', marginTop: '8px' }}>
+                        매월 +15% 증가
+                      </div>
+                    </Card>
+                  </Col>
+                  
+                  <Col xs={24} sm={12} lg={6}>
+                    <Card 
+                      style={{ 
+                        textAlign: 'center', 
+                        borderRadius: '16px',
+                        border: 'none',
+                        boxShadow: '0 8px 24px rgba(82, 196, 26, 0.12)',
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer'
+                      }}
+                      bodyStyle={{ padding: '32px 24px' }}
+                      hoverable
+                    >
+                      <div style={{ 
+                        background: 'linear-gradient(135deg, #52c41a 0%, #95de64 100%)',
+                        borderRadius: '50%',
+                        width: '60px',
+                        height: '60px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 20px',
+                        color: 'white',
+                        fontSize: '24px'
+                      }}>
+                        💬
+                      </div>
+                      <Statistic
+                        title={<span style={{ color: '#666', fontSize: '11px', fontWeight: '500' }}>분석된 리뷰</span>}
+                        value={8700000}
+                        formatter={(value) => <CountUp end={Number(value)} />}
+                        suffix="개"
+                        valueStyle={{ color: '#52c41a', fontSize: '2.0rem', fontWeight: '700', lineHeight: '1.2' }}
+                      />
+                      <div style={{ color: '#999', fontSize: '12px', marginTop: '8px' }}>
+                        실시간 업데이트
+                      </div>
+                    </Card>
+                  </Col>
+                  
+                  <Col xs={24} sm={12} lg={6}>
+                    <Card 
+                      style={{ 
+                        textAlign: 'center', 
+                        borderRadius: '16px',
+                        border: 'none',
+                        boxShadow: '0 8px 24px rgba(114, 46, 209, 0.12)',
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer'
+                      }}
+                      bodyStyle={{ padding: '32px 24px' }}
+                      hoverable
+                    >
+                      <div style={{ 
+                        background: 'linear-gradient(135deg, #722ed1 0%, #b37feb 100%)',
+                        borderRadius: '50%',
+                        width: '60px',
+                        height: '60px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 20px',
+                        color: 'white',
+                        fontSize: '24px'
+                      }}>
+                        🎯
+                      </div>
+                      <Statistic
+                        title={<span style={{ color: '#666', fontSize: '14px', fontWeight: '500' }}>추천 정확도</span>}
+                        value={94.8}
+                        formatter={(value) => <CountUp end={Number(value)} decimals={1} />}
+                        suffix="%"
+                        valueStyle={{ color: '#722ed1', fontSize: '2.5rem', fontWeight: '700', lineHeight: '1.2' }}
+                      />
+                      <div style={{ color: '#999', fontSize: '12px', marginTop: '8px' }}>
+                        실제 리뷰 기반
+                      </div>
+                    </Card>
+                  </Col>
+                  
+                  <Col xs={24} sm={12} lg={6}>
+                    <Card 
+                      style={{ 
+                        textAlign: 'center', 
+                        borderRadius: '16px',
+                        border: 'none',
+                        boxShadow: '0 8px 24px rgba(250, 140, 22, 0.12)',
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer'
+                      }}
+                      bodyStyle={{ padding: '32px 24px' }}
+                      hoverable
+                    >
+                      <div style={{ 
+                        background: 'linear-gradient(135deg, #fa8c16 0%, #ffc53d 100%)',
+                        borderRadius: '50%',
+                        width: '60px',
+                        height: '60px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 20px',
+                        color: 'white',
+                        fontSize: '24px'
+                      }}>
+                        ⭐
+                      </div>
+                      <Statistic
+                        title={<span style={{ color: '#666', fontSize: '14px', fontWeight: '500' }}>평균 만족도</span>}
+                        value={4.9}
+                        formatter={(value) => <CountUp end={Number(value)} decimals={1} />}
+                        suffix="/5.0"
+                        valueStyle={{ color: '#fa8c16', fontSize: '2.5rem', fontWeight: '700', lineHeight: '1.2' }}
+                      />
+                      <div style={{ color: '#999', fontSize: '12px', marginTop: '8px' }}>
+                        12만+ 리뷰 기준
+                      </div>
+                    </Card>
+                  </Col>
+                </Row>
+              </div>
+            </div>
+
+            {/* Testimonials Section */}
+            <div style={{ padding: '80px 0', background: '#fff' }}>
+              <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+                <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+                  <Title level={2}>사용자 후기</Title>
+                  <Paragraph style={{ fontSize: '1.2rem', color: '#666' }}>
+                    실제 사용자들의 생생한 후기를 확인해보세요.
+                  </Paragraph>
+                </div>
+                
+                <Row gutter={[32, 32]}>
+                  {testimonials.map((testimonial, index) => (
+                    <Col xs={24} md={8} key={index}>
+                      <Card
+                        style={{ 
+                          height: '100%',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                        }}
+                        bodyStyle={{ padding: '32px' }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                          <div style={{ fontSize: '3rem', marginRight: '16px' }}>
+                            {testimonial.avatar}
+                          </div>
+                          <div>
+                            <Title level={5} style={{ margin: 0 }}>
+                              {testimonial.name}
+                            </Title>
+                            <Rate disabled defaultValue={testimonial.rating} style={{ fontSize: '14px' }} />
+                          </div>
+                        </div>
+                        <Paragraph style={{ color: '#666', lineHeight: '1.6', fontStyle: 'italic' }}>
+                          "{testimonial.comment}"
+                        </Paragraph>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              </div>
+            </div>
+
+            {/* CTA Section */}
+            <div style={{ 
+              padding: '60px 0', 
+              background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)',
+              color: 'white',
+              textAlign: 'center' 
+            }}>
+              <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 2rem' }}>
+                <Title level={2} style={{ color: 'white', marginBottom: '1rem' }}>
+                  지금 바로 시작해보세요!
+                </Title>
+                
+                <Paragraph style={{ 
+                  fontSize: '1.2rem', 
+                  color: 'rgba(255,255,255,0.9)', 
+                  marginBottom: '2rem' 
+                }}>
+                  당신만의 완벽한 장소를 찾는 여정을 MAPro와 함께 시작하세요.
+                </Paragraph>
+                
+                <Space size="large">
+                  <Button 
+                    type="primary" 
+                    size="large"
+                    onClick={handleGoToLogin} // 로그인 페이지로 변경
+                    style={{ 
+                      background: 'white',
+                      color: '#1890ff',
+                      border: 'none',
+                      borderRadius: '25px',
+                      padding: '0.8rem 2.5rem',
+                      height: 'auto',
+                      fontSize: '1.1rem',
+                      fontWeight: 600
+                    }}
+                  >
+                    지금 시작하기
+                  </Button>
+                  
+                  <Button 
+                    type="default"
+                    size="large"
+                    style={{ 
+                      background: 'transparent',
+                      color: 'white',
+                      border: '2px solid white',
+                      borderRadius: '25px',
+                      padding: '0.8rem 2.5rem',
+                      height: 'auto',
+                      fontSize: '1.1rem',
+                      fontWeight: 600
+                    }}
+                  >
+                    더 알아보기
+                  </Button>
+                </Space>
+              </div>
+            </div>
+          </>
+        );
+    }
+  };
+
   const features = [
     {
       icon: <StarOutlined style={{ fontSize: '2rem', color: '#1890ff' }} />,
@@ -167,415 +635,7 @@ const MaProLandingPage = () => {
       </Header>
 
       <Content style={{ marginTop: '64px' }}>
-        {/* Hero Section */}
-        <div style={{ 
-          background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)',
-          color: 'white',
-          padding: '100px 0',
-          textAlign: 'center',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          {/* 배경 장식 요소 */}
-          <div style={{
-            position: 'absolute',
-            top: '-50%',
-            left: '-50%',
-            width: '200%',
-            height: '200%',
-            background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
-            animation: 'float 6s ease-in-out infinite'
-          }} />
-          
-          <div style={{ 
-            maxWidth: '800px', 
-            margin: '0 auto', 
-            padding: '0 2rem',
-            position: 'relative',
-            zIndex: 2
-          }}>
-            <Title 
-              style={{ 
-                color: 'white', 
-                fontSize: '3.5rem', 
-                fontWeight: 700,
-                marginBottom: '1rem'
-              }}
-            >
-              당신만을 위한<br />완벽한 장소를 찾아드립니다
-            </Title>
-            
-            <Paragraph 
-              style={{ 
-                color: 'rgba(255,255,255,0.9)', 
-                fontSize: '1.2rem',
-                marginBottom: '2rem',
-                maxWidth: '600px',
-                margin: '0 auto 2rem'
-              }}
-            >
-              수백만 개의 실제 리뷰를 분석하여 <br />개인의 취향과 선호도에 맞는 맞춤형 장소를 추천하는 서비스입니다.
-            </Paragraph>
-            
-            <Space size="large">
-              <Button 
-                type="primary" 
-                size="large"
-                onClick={handleGoToRegister} // 로그인 페이지로 변경
-                style={{ 
-                  background: 'white',
-                  color: '#1890ff',
-                  border: 'none',
-                  borderRadius: '25px',
-                  padding: '0.8rem 2.5rem',
-                  height: 'auto',
-                  fontSize: '1.1rem',
-                  fontWeight: 600
-                }}
-              >
-                지금 시작하기
-              </Button>
-              
-              <Button 
-                type="default"
-                size="large"
-                icon={<PlayCircleOutlined />}
-                onClick={() => navigate('/map')} // 맵 페이지로 직접 이동
-                style={{ 
-                  background: 'transparent',
-                  color: 'white',
-                  border: '2px solid white',
-                  borderRadius: '25px',
-                  padding: '0.8rem 2.5rem',
-                  height: 'auto',
-                  fontSize: '1.1rem',
-                  fontWeight: 600
-                }}
-              >
-                데모 보기
-              </Button>
-            </Space>
-          </div>
-        </div>
-
-        {/* Features Section */}
-        <div style={{ padding: '80px 0', background: '#fff' }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
-            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-              <Title level={2} style={{ marginBottom: '1rem' }}>
-                왜 MAPro를 선택해야 할까요?
-              </Title>
-              <Paragraph style={{ fontSize: '1.2rem', color: '#666' }}>
-                더욱 정확하고 개인화된 장소 추천을 경험하세요.
-              </Paragraph>
-            </div>
-            
-            <Row gutter={[32, 32]}>
-              {features.map((feature, index) => (
-                <Col xs={24} md={8} key={index}>
-                  <Card
-                    style={{ 
-                      height: '100%',
-                      textAlign: 'center',
-                      border: '1px solid #f0f0f0',
-                      borderRadius: '12px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-                    }}
-                    bodyStyle={{ padding: '40px 24px' }}
-                  >
-                    <div style={{ marginBottom: '20px' }}>
-                      {feature.icon}
-                    </div>
-                    <Title level={4} style={{ marginBottom: '16px' }}>
-                      {feature.title}
-                    </Title>
-                    <Paragraph style={{ color: '#666', lineHeight: '1.6' }}>
-                      {feature.description}
-                    </Paragraph>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
-          </div>
-        </div>
-
-        {/* Stats Section */}
-        <div style={{ 
-          padding: '80px 0', 
-          background: 'linear-gradient(135deg, #f6f9fc 0%, #e9f3ff 100%)'
-        }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
-            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-              <Title level={2}>MAPro의 성장</Title>
-              <Paragraph style={{ fontSize: '1.2rem', color: '#666' }}>
-                많은 사용자들이 MAPro를 신뢰하고 있습니다.
-              </Paragraph>
-            </div>
-            
-            <Row gutter={[24, 32]} justify="center">
-              <Col xs={24} sm={12} lg={6}>
-                <Card 
-                  style={{ 
-                    textAlign: 'center', 
-                    borderRadius: '16px',
-                    border: 'none',
-                    boxShadow: '0 8px 24px rgba(24, 144, 255, 0.12)',
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer'
-                  }}
-                  bodyStyle={{ padding: '32px 24px' }}
-                  hoverable
-                >
-                  <div style={{ 
-                    background: 'linear-gradient(135deg, #1890ff 0%, #69c0ff 100%)',
-                    borderRadius: '50%',
-                    width: '60px',
-                    height: '60px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 20px',
-                    color: 'white',
-                    fontSize: '24px'
-                  }}>
-                    👥
-                  </div>
-                  <Statistic
-                    title={<span style={{ color: '#666', fontSize: '14px', fontWeight: '500' }}>누적 사용자</span>}
-                    value={320000}
-                    formatter={(value) => <CountUp end={Number(value)} />}
-                    suffix="+"
-                    valueStyle={{ color: '#1890ff', fontSize: '2.5rem', fontWeight: '700', lineHeight: '1.2' }}
-                  />
-                  <div style={{ color: '#999', fontSize: '12px', marginTop: '8px' }}>
-                    매월 +15% 증가
-                  </div>
-                </Card>
-              </Col>
-              
-              <Col xs={24} sm={12} lg={6}>
-                <Card 
-                  style={{ 
-                    textAlign: 'center', 
-                    borderRadius: '16px',
-                    border: 'none',
-                    boxShadow: '0 8px 24px rgba(82, 196, 26, 0.12)',
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer'
-                  }}
-                  bodyStyle={{ padding: '32px 24px' }}
-                  hoverable
-                >
-                  <div style={{ 
-                    background: 'linear-gradient(135deg, #52c41a 0%, #95de64 100%)',
-                    borderRadius: '50%',
-                    width: '60px',
-                    height: '60px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 20px',
-                    color: 'white',
-                    fontSize: '24px'
-                  }}>
-                    💬
-                  </div>
-                  <Statistic
-                    title={<span style={{ color: '#666', fontSize: '11px', fontWeight: '500' }}>분석된 리뷰</span>}
-                    value={8700000}
-                    formatter={(value) => <CountUp end={Number(value)} />}
-                    suffix="개"
-                    valueStyle={{ color: '#52c41a', fontSize: '2.0rem', fontWeight: '700', lineHeight: '1.2' }}
-                  />
-                  <div style={{ color: '#999', fontSize: '12px', marginTop: '8px' }}>
-                    실시간 업데이트
-                  </div>
-                </Card>
-              </Col>
-              
-              <Col xs={24} sm={12} lg={6}>
-                <Card 
-                  style={{ 
-                    textAlign: 'center', 
-                    borderRadius: '16px',
-                    border: 'none',
-                    boxShadow: '0 8px 24px rgba(114, 46, 209, 0.12)',
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer'
-                  }}
-                  bodyStyle={{ padding: '32px 24px' }}
-                  hoverable
-                >
-                  <div style={{ 
-                    background: 'linear-gradient(135deg, #722ed1 0%, #b37feb 100%)',
-                    borderRadius: '50%',
-                    width: '60px',
-                    height: '60px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 20px',
-                    color: 'white',
-                    fontSize: '24px'
-                  }}>
-                    🎯
-                  </div>
-                  <Statistic
-                    title={<span style={{ color: '#666', fontSize: '14px', fontWeight: '500' }}>추천 정확도</span>}
-                    value={94.8}
-                    formatter={(value) => <CountUp end={Number(value)} decimals={1} />}
-                    suffix="%"
-                    valueStyle={{ color: '#722ed1', fontSize: '2.5rem', fontWeight: '700', lineHeight: '1.2' }}
-                  />
-                  <div style={{ color: '#999', fontSize: '12px', marginTop: '8px' }}>
-                    실제 리뷰 기반
-                  </div>
-                </Card>
-              </Col>
-              
-              <Col xs={24} sm={12} lg={6}>
-                <Card 
-                  style={{ 
-                    textAlign: 'center', 
-                    borderRadius: '16px',
-                    border: 'none',
-                    boxShadow: '0 8px 24px rgba(250, 140, 22, 0.12)',
-                    transition: 'all 0.3s ease',
-                    cursor: 'pointer'
-                  }}
-                  bodyStyle={{ padding: '32px 24px' }}
-                  hoverable
-                >
-                  <div style={{ 
-                    background: 'linear-gradient(135deg, #fa8c16 0%, #ffc53d 100%)',
-                    borderRadius: '50%',
-                    width: '60px',
-                    height: '60px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 20px',
-                    color: 'white',
-                    fontSize: '24px'
-                  }}>
-                    ⭐
-                  </div>
-                  <Statistic
-                    title={<span style={{ color: '#666', fontSize: '14px', fontWeight: '500' }}>평균 만족도</span>}
-                    value={4.9}
-                    formatter={(value) => <CountUp end={Number(value)} decimals={1} />}
-                    suffix="/5.0"
-                    valueStyle={{ color: '#fa8c16', fontSize: '2.5rem', fontWeight: '700', lineHeight: '1.2' }}
-                  />
-                  <div style={{ color: '#999', fontSize: '12px', marginTop: '8px' }}>
-                    12만+ 리뷰 기준
-                  </div>
-                </Card>
-              </Col>
-            </Row>
-          </div>
-        </div>
-
-        {/* Testimonials Section */}
-        <div style={{ padding: '80px 0', background: '#fff' }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
-            <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-              <Title level={2}>사용자 후기</Title>
-              <Paragraph style={{ fontSize: '1.2rem', color: '#666' }}>
-                실제 사용자들의 생생한 후기를 확인해보세요.
-              </Paragraph>
-            </div>
-            
-            <Row gutter={[32, 32]}>
-              {testimonials.map((testimonial, index) => (
-                <Col xs={24} md={8} key={index}>
-                  <Card
-                    style={{ 
-                      height: '100%',
-                      borderRadius: '12px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-                    }}
-                    bodyStyle={{ padding: '32px' }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-                      <div style={{ fontSize: '3rem', marginRight: '16px' }}>
-                        {testimonial.avatar}
-                      </div>
-                      <div>
-                        <Title level={5} style={{ margin: 0 }}>
-                          {testimonial.name}
-                        </Title>
-                        <Rate disabled defaultValue={testimonial.rating} style={{ fontSize: '14px' }} />
-                      </div>
-                    </div>
-                    <Paragraph style={{ color: '#666', lineHeight: '1.6', fontStyle: 'italic' }}>
-                      "{testimonial.comment}"
-                    </Paragraph>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
-          </div>
-        </div>
-
-        {/* CTA Section */}
-        <div style={{ 
-          padding: '60px 0', 
-          background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)',
-          color: 'white',
-          textAlign: 'center' 
-        }}>
-          <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 2rem' }}>
-            <Title level={2} style={{ color: 'white', marginBottom: '1rem' }}>
-              지금 바로 시작해보세요!
-            </Title>
-            
-            <Paragraph style={{ 
-              fontSize: '1.2rem', 
-              color: 'rgba(255,255,255,0.9)', 
-              marginBottom: '2rem' 
-            }}>
-              당신만의 완벽한 장소를 찾는 여정을 MAPro와 함께 시작하세요.
-            </Paragraph>
-            
-            <Space size="large">
-              <Button 
-                type="primary" 
-                size="large"
-                onClick={handleGoToLogin} // 로그인 페이지로 변경
-                style={{ 
-                  background: 'white',
-                  color: '#1890ff',
-                  border: 'none',
-                  borderRadius: '25px',
-                  padding: '0.8rem 2.5rem',
-                  height: 'auto',
-                  fontSize: '1.1rem',
-                  fontWeight: 600
-                }}
-              >
-                지금 시작하기
-              </Button>
-              
-              <Button 
-                type="default"
-                size="large"
-                style={{ 
-                  background: 'transparent',
-                  color: 'white',
-                  border: '2px solid white',
-                  borderRadius: '25px',
-                  padding: '0.8rem 2.5rem',
-                  height: 'auto',
-                  fontSize: '1.1rem',
-                  fontWeight: 600
-                }}
-              >
-                더 알아보기
-              </Button>
-            </Space>
-          </div>
-        </div>
+        {renderTabContent()}
       </Content>
 
       {/* Footer */}
