@@ -67,7 +67,7 @@ public class ElasticsearchConfig {
         credentialsProvider.setCredentials(AuthScope.ANY,
                 new UsernamePasswordCredentials("dev", "Dev1010**"));
 
-        return RestClient.builder(new HttpHost(host, 9200, "https"))
+        return RestClient.builder(new HttpHost("34.64.120.99", 9200, "https"))
                 .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
                         .setSSLContext(sslContext)
                         .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
