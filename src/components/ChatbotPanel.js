@@ -122,13 +122,11 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap, messages, onUpdateMessages, 
 
   // 메시지 관리
   const addMessage = (newMessage) => {
-    const updatedMessages = [...messages, newMessage];
-    onUpdateMessages(updatedMessages);
+    onUpdateMessages((prev) => [...prev, newMessage]);
   };
 
   const addMessages = (newMessages) => {
-    const updatedMessages = [...messages, ...newMessages];
-    onUpdateMessages(updatedMessages);
+    onUpdateMessages((prev) => [...prev, ...newMessages]);
   };
 
   // 메시지 전송

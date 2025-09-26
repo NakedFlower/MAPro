@@ -133,8 +133,10 @@ function AppContent() {
   };
 
   // 채팅 메시지 업데이트 핸들러
-  const handleUpdateChatMessages = (newMessages) => {
-    setChatMessages(newMessages);
+  const handleUpdateChatMessages = (updater) => {
+    setChatMessages((prev) => 
+      typeof updater === 'function' ? updater(prev) : updater
+    );
   };
 
   // 채팅 초기화 핸들러
