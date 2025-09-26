@@ -49,7 +49,7 @@ public class User {
     @Column(name = "uscrol", length = 45)  // 새로 추가된 필드
     private String uscrol;
 
-    @JsonManagedReference
+    @JsonManagedReference @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<UserPreference> userPreferences;
 
