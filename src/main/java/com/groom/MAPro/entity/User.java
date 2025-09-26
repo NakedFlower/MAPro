@@ -56,10 +56,6 @@ public class User {
     // 기본 생성자
     public User() {}
 
-    @JsonManagedReference @JsonIgnore
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<ActivityLog> activityLogs;
-
     // 생성자 (uscrol 포함)
     public User(String username, String password, String name, String uscrol) {
         this.username = username;
