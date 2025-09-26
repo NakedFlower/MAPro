@@ -8,6 +8,15 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true); // 초기 로딩 상태를 true로 변경
 
+
+
+  // AuthProvider 내부
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
+
   // 토큰 유효성 검증 함수
   const validateToken = async (tokenToValidate) => {
     try {
@@ -124,6 +133,7 @@ export function AuthProvider({ children }) {
       login, 
       logout, 
       checkTokenValidity,
+      updateUser,      // 여기에 추가
       isAuthenticated: !!user && !!token 
     }}>
       {children}
@@ -134,3 +144,4 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
+

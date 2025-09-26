@@ -11,6 +11,7 @@ import {
   Row,
   Col,
   Space,
+  Spin,
   Alert,
   Divider,
   message
@@ -23,12 +24,14 @@ const { Content } = Layout;
 const { Title, Text } = Typography;
 
 const AccountSettings = () => {
-  const { user, logout } = useAuth();
+  const { user, updateUser, logout } = useAuth();
+
+  const [loading, setLoading] = useState(false);
 
   // formData: 상단 카드와 실제 저장용 데이터
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
+    username: "", //email
     phone: "",
     status: "",
     currentPassword: "",
@@ -43,7 +46,7 @@ const AccountSettings = () => {
     if (user) {
       setFormData({
         name: user.name || "",
-        email: user.email || "",
+        username: user.username || "",
         phone: user.phone || "",
         status: user.status || "",
         currentPassword: "",
@@ -68,13 +71,13 @@ const AccountSettings = () => {
   // ProfileTab 수정: Input은 로컬 state로 관리
   const ProfileTab = () => {
     const [nameInput, setNameInput] = useState(formData.name);
-    const [emailInput, setEmailInput] = useState(formData.email);
+    const [usernameInput, setUsernameInput] = useState(formData.username);
     const [phoneInput, setPhoneInput] = useState(formData.phone);
-    const [loading, setLoading] = useState(false);
+
 
     useEffect(() => {
       setNameInput(formData.name);
-      // setEmailInput(formData.email);
+      setUsernameInput(formData.username);
       // setPhoneInput(formData.phone);
     }, [formData]);
 
@@ -93,7 +96,7 @@ const AccountSettings = () => {
           },
           body: JSON.stringify({
             name: nameInput,
-            // email: emailInput,
+            username: usernameInput,
             // phone: phoneInput
           }),
         });
@@ -101,6 +104,7 @@ const AccountSettings = () => {
         if (!res.ok) throw new Error("이름 수정 실패");
 
         const updatedUser = await res.json();
+        updateUser(updatedUser);        // AuthContext에 반영
 
         // 로컬 상태 업데이트
         setFormData(prev => ({ ...prev, name: updatedUser.name }));
@@ -109,7 +113,7 @@ const AccountSettings = () => {
         console.error(err);
         message.error("이름 수정에 실패했습니다.");
       } finally {
-      setLoading(false); 
+        setLoading(false); 
       }
     };
 
@@ -132,7 +136,7 @@ const AccountSettings = () => {
               <Col span={18}>
                 <Title level={4} style={{ margin: 0 }}>{formData.name || "이름 없음"}</Title>
                 <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-                  {formData.email || "이메일 없음"}
+                  {formData.username || "이메일 없음"}
                 </Text>
                 <div>
                   <Badge status="success" text="온라인" />
@@ -154,10 +158,11 @@ const AccountSettings = () => {
 
             <Text strong>이메일 *</Text>
             <Input
-              value={emailInput}
-              onChange={e => setEmailInput(e.target.value)}
+              value={usernameInput}
+              onChange={e => setUsernameInput(e.target.value)}
               placeholder="이메일을 입력하세요"
               style={{ marginTop: 8, marginBottom: 16 }}
+              disabled
             />
 
             <Text strong>전화번호</Text>
@@ -170,8 +175,8 @@ const AccountSettings = () => {
           </div>
 
           <Space>
-            <Button type="primary" onClick={handleProfileSave}>저장</Button>
-            <Button>취소</Button>
+            <Button type="primary" onClick={handleProfileSave} loading={loading}>저장</Button>
+            <Button loading={loading}>취소</Button>
           </Space>
         </Card>
       </div>
