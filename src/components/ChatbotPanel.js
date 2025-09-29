@@ -1,8 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 function ChatbotPanel({ onClose, onShowPlacesOnMap, messages, onUpdateMessages, onResetChat }) {
   const PANEL_WIDTH = 480;
   const PANEL_HEIGHT = 640;
+  
+  // Auth 관련
+  const { token, isAuthenticated } = useAuth();
 
   // 상태 관리
   const panelRef = useRef(null);
@@ -264,6 +269,92 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap, messages, onUpdateMessages, 
       onResetChat();
       console.log('🆕 새 세션 시작');
     }
+  };
+
+  // 사용자 성향 정보 가져오기
+  const fetchUserPreferences = async () => {
+    if (!isAuthenticated || !token) {
+      addMessage({ 
+        role: 'bot', 
+        text: '로그인이 필요한 기능입니다. 로그인 후 이용해주세요.', 
+        timestamp: getCurrentTime() 
+      });
+      return;
+    }
+
+    try {
+      // 카테고리 정보 가져오기
+      const categoriesRes = await axios.get("http://mapro.cloud:4000/api/user/pfr", {
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
+      });
+
+      const categories = {};
+      categoriesRes.data.forEach(cat => {
+        categories[cat.name] = cat.options.map(o => ({ id: o.id, name: o.name }));
+      });
+
+      // 사용자 성향 정보 가져오기
+      const preferencesRes = await axios.post("http://mapro.cloud:4000/api/user/pfr", null, {
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
+      });
+
+      const optionIds = preferencesRes.data.data;
+      const userPreferences = {};
+      
+      Object.keys(categories).forEach(cat => {
+        const selectedOptions = categories[cat].filter(opt => optionIds.includes(opt.id));
+        if (selectedOptions.length > 0) {
+          userPreferences[cat] = selectedOptions;
+        }
+      });
+
+      // 성향 정보를 채팅으로 표시
+      displayPreferences(userPreferences);
+      
+    } catch (err) {
+      console.error('성향 조회 실패:', err);
+      addMessage({ 
+        role: 'bot', 
+        text: '성향 정보를 불러오는 중 오류가 발생했어요. 다시 시도해주세요.', 
+        timestamp: getCurrentTime() 
+      });
+    }
+  };
+
+  // 성향 정보를 채팅 메시지로 표시
+  const displayPreferences = (preferences) => {
+    if (Object.keys(preferences).length === 0) {
+      addMessage({ 
+        role: 'bot', 
+        text: '아직 설정된 성향이 없습니다.\n\n프로필 설정에서 성향을 설정해보세요!', 
+        timestamp: getCurrentTime() 
+      });
+      return;
+    }
+
+    let messageText = '🎯 회원님의 취향 정보\n\n';
+    
+    Object.keys(preferences).forEach(category => {
+      messageText += `📋 ${category}\n`;
+      preferences[category].forEach(option => {
+        messageText += `   ✓ ${option.name}\n`;
+      });
+      messageText += '\n';
+    });
+
+    messageText += '💡 이 정보를 바탕으로 맞춤 장소를 추천해드릴게요!';
+
+    addMessage({ 
+      role: 'bot', 
+      text: messageText, 
+      timestamp: getCurrentTime() 
+    });
+  };
+
+  // 취향 버튼 클릭 핸들러
+  const handlePreferencesClick = () => {
+    console.log('🎯 취향 버튼 클릭');
+    fetchUserPreferences();
   };
 
   return (
@@ -689,6 +780,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap, messages, onUpdateMessages, 
             padding: '4px',
             transition: 'all 0.2s ease'
           }}
+          onClick={handlePreferencesClick}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{marginBottom: '6px'}}>
             <path 
