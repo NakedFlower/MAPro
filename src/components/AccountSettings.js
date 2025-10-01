@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Layout,
   Tabs,
@@ -14,8 +14,11 @@ import {
   Spin,
   Alert,
   Divider,
-  message
+  message,
+  Timeline
 } from 'antd';
+import dayjs from "dayjs";
+
 import { UserOutlined, SafetyOutlined, BellOutlined, LogoutOutlined } from '@ant-design/icons';
 
 import { useAuth } from "../context/AuthContext";
@@ -28,10 +31,9 @@ const AccountSettings = () => {
 
   const [loading, setLoading] = useState(false);
 
-  // formData: 상단 카드와 실제 저장용 데이터
   const [formData, setFormData] = useState({
     name: "",
-    username: "", //email
+    username: "",
     phone: "",
     status: "",
     currentPassword: "",
@@ -41,7 +43,6 @@ const AccountSettings = () => {
 
   const [activeTab, setActiveTab] = useState("profile");
 
-  // 유저 정보 초기화
   useEffect(() => {
     if (user) {
       setFormData({
@@ -58,7 +59,6 @@ const AccountSettings = () => {
 
   if (!user) return <div>Loading...</div>;
 
-  // 비밀번호 변경
   const handlePasswordChange = () => {
     if (formData.newPassword !== formData.confirmPassword) {
       message.error('비밀번호가 일치하지 않습니다!');
@@ -68,24 +68,19 @@ const AccountSettings = () => {
     console.log('Password changed:', formData.newPassword);
   };
 
-  // ProfileTab 수정: Input은 로컬 state로 관리
   const ProfileTab = () => {
     const [nameInput, setNameInput] = useState(formData.name);
     const [usernameInput, setUsernameInput] = useState(formData.username);
     const [phoneInput, setPhoneInput] = useState(formData.phone);
 
-
     useEffect(() => {
       setNameInput(formData.name);
       setUsernameInput(formData.username);
-      // setPhoneInput(formData.phone);
     }, [formData]);
 
     const handleProfileSave = async () => {
       try {
-        setLoading(true); 
-
-        // 백엔드 API 호출 (예: PATCH /api/users/{id}/name)
+        setLoading(true);
         const token = localStorage.getItem("token");
         const user = JSON.parse(localStorage.getItem("user"));
         const res = await fetch(`http://mapro.cloud:4000/api/user/${user.userId}`, {
@@ -97,23 +92,20 @@ const AccountSettings = () => {
           body: JSON.stringify({
             name: nameInput,
             username: usernameInput,
-            // phone: phoneInput
           }),
         });
 
         if (!res.ok) throw new Error("이름 수정 실패");
 
         const updatedUser = await res.json();
-        updateUser(updatedUser);        // AuthContext에 반영
-
-        // 로컬 상태 업데이트
+        updateUser(updatedUser);
         setFormData(prev => ({ ...prev, name: updatedUser.name }));
         message.success("이름이 수정되었습니다!");
       } catch (err) {
         console.error(err);
         message.error("이름 수정에 실패했습니다.");
       } finally {
-        setLoading(false); 
+        setLoading(false);
       }
     };
 
@@ -275,13 +267,81 @@ const AccountSettings = () => {
     </div>
   );
 
-  const NotificationsTab = () => (
-    <div style={{ padding: '24px 0' }}>
-      <Card title="알림 설정">
-        <Text>알림 설정 내용이 여기에 표시됩니다.</Text>
+  // ----------------------- NotificationsTab 수정 -----------------------
+  const NotificationsTab = () => {
+    const [logs, setLogs] = useState([]);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+    const [loadingLogs, setLoadingLogs] = useState(false);
+
+    const fetchLogs = useCallback(async (pageNumber = 0) => {
+      try {
+        setLoadingLogs(true);
+        const token = localStorage.getItem("token");
+        const user = JSON.parse(localStorage.getItem("user"));
+
+        const res = await fetch(`http://mapro.cloud:4000/api/user/logs/${user.userId}?page=${pageNumber}&size=10`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) throw new Error("로그 가져오기 실패");
+
+        const data = await res.json();
+        console.log(data)
+        setLogs(data.content);
+        setTotalPages(data.totalPages);
+        setPage(data.number);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingLogs(false);
+      }
+    }, []);
+
+    useEffect(() => { fetchLogs(0); }, [fetchLogs]);
+
+      return (
+    <div style={{ padding: "24px 0" }}>
+      <Card title="사용자 활동 로그">
+        <Spin spinning={loadingLogs}>
+          <Timeline>
+            {logs.map((log) => (
+              <Timeline.Item key={log.id}>
+                <Space direction="vertical" size={2}>
+                  <Text strong>{log.username} {log.detail}</Text>
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    {dayjs(log.createdAt).format("YYYY-MM-DD HH:mm")}
+                  </Text>
+                  <Text>{log.description}</Text>
+                </Space>
+              </Timeline.Item>
+            ))}
+          </Timeline>
+
+          <div style={{ marginTop: 16, textAlign: "center" }}>
+            <Button
+              disabled={page <= 0}
+              onClick={() => fetchLogs(page - 1)}
+              style={{ marginRight: 8 }}
+            >
+              이전
+            </Button>
+            <Button
+              disabled={page >= totalPages - 1}
+              onClick={() => fetchLogs(page + 1)}
+            >
+              다음
+            </Button>
+          </div>
+        </Spin>
       </Card>
     </div>
   );
+  };
 
   const tabItems = [
     { key: 'profile', label: '프로필', content: <ProfileTab /> },
