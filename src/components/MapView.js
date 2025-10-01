@@ -145,27 +145,31 @@ const fetchMapData = useCallback(async () => {
   };
 
   // 장소 검색 함수 (기존 유지)
+// 기존 searchAddress 함수 찾아서 수정
   const searchAddress = useCallback(async (query) => {
-    if (!query.trim()) return;
+      if (!query.trim()) return;
 
-    setIsSearching(true);
-    
-    try {
-      const response = await axios.get(`http://mapro.cloud:5000/api/places/search?keyword=${encodeURIComponent(query)}&location=서울`);
+      setIsSearching(true);
       
-      if (response.data.success) {
-        setSearchResults(response.data.places.slice(0, 5));
-        setShowSearchResults(true);
-      } else {
+      try {
+        // Node.js(5000) 대신 Node.js를 통해 Java(4000)로 프록시
+        const response = await axios.get(
+          `http://mapro.cloud:5000/api/places/search?keyword=${encodeURIComponent(query)}&location=서울`
+        );
+        
+        if (response.data.success) {
+          setSearchResults(response.data.places.slice(0, 5));
+          setShowSearchResults(true);
+        } else {
+          setSearchResults([]);
+        }
+      } catch (error) {
+        console.error('장소 검색 오류:', error);
         setSearchResults([]);
+      } finally {
+        setIsSearching(false);
       }
-    } catch (error) {
-      console.error('장소 검색 오류:', error);
-      setSearchResults([]);
-    } finally {
-      setIsSearching(false);
-    }
-}, []);
+  }, []);
 
   // 검색 결과 선택
   const selectSearchResult = (result) => {
