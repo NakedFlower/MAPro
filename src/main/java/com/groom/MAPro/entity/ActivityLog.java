@@ -1,6 +1,8 @@
 package com.groom.MAPro.entity;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
@@ -24,16 +26,17 @@ public class ActivityLog {
     private String detail;
 
     @Field(type = FieldType.Date, format = DateFormat.epoch_millis)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
-    // Optional: JSON 포맷 지정
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     public LocalDateTime getCreatedAt() {
-        return createdAt;
+        return createdAt != null
+                ? LocalDateTime.ofInstant(createdAt, ZoneId.systemDefault())
+                : null;
     }
 
     @Builder
-    public ActivityLog(Long userId, String username, String actionType, String detail, LocalDateTime createdAt) {
+    public ActivityLog(Long userId, String username, String actionType, String detail, Instant createdAt) {
         this.userId = userId;
         this.username = username;
         this.actionType = actionType;
