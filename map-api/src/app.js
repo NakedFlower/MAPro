@@ -365,31 +365,7 @@ app.get('/api/test-pins', (req, res) => {
     });
 });
 
-// 에러 핸들링 미들웨어
-app.use((error, req, res, next) => {
-    console.error('서버 오류:', error);
-    res.status(500).json({ 
-        error: '내부 서버 오류',
-        timestamp: new Date().toISOString()
-    });
-});
-
-// 404 핸들링
-app.use('*', (req, res) => {
-    res.status(404).json({ 
-        error: '엔드포인트를 찾을 수 없습니다.',
-        path: req.originalUrl
-    });
-});
-
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🗺️  Map API Server running on port ${PORT}`);
-    console.log(`🔗 Python Chat API: ${PYTHON_CHAT_API}`);
-    console.log(`🔗 Java Backend API: ${JAVA_BACKEND_API}`);
-    console.log(`📍 Data Source: Python DB (직접 위도/경도 사용)`);
-});
-
-
+// ✅ 이렇게 수정하세요
 app.get('/api/places/search', async (req, res) => {
     try {
         const { keyword, location } = req.query;
@@ -423,4 +399,28 @@ app.get('/api/places/search', async (req, res) => {
             details: error.message 
         });
     }
+});
+
+// 에러 핸들링 미들웨어
+app.use((error, req, res, next) => {
+    console.error('서버 오류:', error);
+    res.status(500).json({ 
+        error: '내부 서버 오류',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// ⭐ 404 핸들링은 맨 마지막에!
+app.use('*', (req, res) => {
+    res.status(404).json({ 
+        error: '엔드포인트를 찾을 수 없습니다.',
+        path: req.originalUrl
+    });
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🗺️  Map API Server running on port ${PORT}`);
+    console.log(`🔗 Python Chat API: ${PYTHON_CHAT_API}`);
+    console.log(`🔗 Java Backend API: ${JAVA_BACKEND_API}`);
+    console.log(`📍 Data Source: Python DB (직접 위도/경도 사용)`);
 });
