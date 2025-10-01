@@ -388,3 +388,39 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`🔗 Java Backend API: ${JAVA_BACKEND_API}`);
     console.log(`📍 Data Source: Python DB (직접 위도/경도 사용)`);
 });
+
+
+app.get('/api/places/search', async (req, res) => {
+    try {
+        const { keyword, location } = req.query;
+        
+        if (!keyword) {
+            return res.status(400).json({ 
+                success: false,
+                error: '검색 키워드가 필요합니다.' 
+            });
+        }
+
+        console.log(`🔍 주소 검색 프록시: "${keyword}" in ${location || '서울'}`);
+
+        // Java 백엔드의 /api/map/places/search로 프록시
+        const response = await axios.get(`${JAVA_BACKEND_API}/api/map/places/search`, {
+            params: { 
+                keyword, 
+                location: location || '서울' 
+            },
+            timeout: 10000
+        });
+
+        console.log(`✅ 검색 결과: ${response.data.count}개`);
+        res.json(response.data);
+
+    } catch (error) {
+        console.error('❌ 주소 검색 프록시 오류:', error.message);
+        res.status(500).json({ 
+            success: false,
+            error: '주소 검색 중 오류가 발생했습니다.',
+            details: error.message 
+        });
+    }
+});
