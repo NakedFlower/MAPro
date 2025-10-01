@@ -6,7 +6,10 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 @Document(indexName = "activity_logs")
 @Data
@@ -20,6 +23,7 @@ public class ActivityLog {
     private String actionType;
     private String detail;
 
+    @Field(type = FieldType.Date, format = DateFormat.epoch_millis)
     private LocalDateTime createdAt;
 
     // Optional: JSON 포맷 지정
