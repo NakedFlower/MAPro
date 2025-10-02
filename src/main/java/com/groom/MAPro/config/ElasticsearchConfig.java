@@ -30,7 +30,7 @@ import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 
 @Configuration
-@EnableElasticsearchRepositories(basePackages = "com.groom.MAPro.repository.elasticsearch")
+// @EnableElasticsearchRepositories(basePackages = "com.groom.MAPro.repository.elasticsearch")
 public class ElasticsearchConfig {
     @Value("${spring.elasticsearch.uris}")  // application.yml에 설정
     private String host;
