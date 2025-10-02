@@ -30,13 +30,10 @@ import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 
 @Configuration
-@EnableElasticsearchRepositories(basePackages = "com.groom.MAPro.repository.elasticsearch")
+// @EnableElasticsearchRepositories(basePackages = "com.groom.MAPro.repository.elasticsearch")  // Bean 중복 방지를 위해 주석 처리
 public class ElasticsearchConfig {
-    @Value("${spring.elasticsearch.uris}")  // application.yml에 설정
-    private String host;
-
-    @Value("${spring.elasticsearch.port:9200}")
-    private int port;
+    @Value("${spring.elasticsearch.uris}")
+    private String elasticsearchUrl;
 
     @Value("${spring.elasticsearch.username}")
     private String username;
@@ -45,32 +42,18 @@ public class ElasticsearchConfig {
     private String password;
 
     @Bean
-    public RestClient restClient() throws Exception {
-        // SSLContext 생성 (인증서 없으면 Noop로 테스트 가능)
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(
-                null,
-                new TrustManager[]{ new X509TrustManager() {
-                    @Override
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-
-                    @Override
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-
-                    @Override
-                    public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
-                }},
-                new SecureRandom()
-        );
+    public RestClient restClient() {
+        // Docker 환경에서는 HTTP 사용 (SSL 불필요)
+        String[] urlParts = elasticsearchUrl.replace("http://", "").split(":");
+        String host = urlParts[0];
+        int port = urlParts.length > 1 ? Integer.parseInt(urlParts[1]) : 9200;
 
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(AuthScope.ANY,
-                new UsernamePasswordCredentials("dev", "Dev1010**"));
+                new UsernamePasswordCredentials(username, password));
 
-        return RestClient.builder(new HttpHost("34.64.120.99", 9200, "https"))
+        return RestClient.builder(new HttpHost(host, port, "http"))
                 .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
-                        .setSSLContext(sslContext)
-                        .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
                         .setDefaultCredentialsProvider(credentialsProvider)
                 ).build();
     }
