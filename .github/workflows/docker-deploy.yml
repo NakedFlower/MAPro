@@ -1,4 +1,4 @@
-name: Build and Push Docker Image, Deploy to GCP VM
+name: Build and Push Main Backend Image
 
 on:
   push:
@@ -7,18 +7,18 @@ on:
     branches: [ "main" ] 
 
 jobs:
-  build-and-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
@@ -30,22 +30,4 @@ jobs:
           IMAGE_NAME=asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-java-sign_upin:latest
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
-
-      - name: Deploy to GCP VM
-        uses: appleboy/ssh-action@v0.1.5
-        with:
-          host: ${{ secrets.GCP_VM_IP }}
-          username: ${{ secrets.NF_GCP_VM_USER }}
-          key: ${{ secrets.NF_GCP_SSH_KEY }}
-          port: 22
-          script: |
-            IMAGE_NAME=asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-java-sign_upin:latest
-            gcloud auth configure-docker asia-northeast3-docker.pkg.dev
-            docker pull $IMAGE_NAME
-            docker stop mapro-container || true
-            docker rm mapro-container || true
-            docker run -d --name mapro-container -p 4000:4000 \
-              -e SPRING_DATASOURCE_URL="jdbc:mysql://${{ secrets.GCP_VM_IP }}:${{ secrets.GCP_SPRING_DATASOURCE_PORT }}/${{ secrets.GCP_SPRING_DATASOURCE_DBNAME }}" \
-              -e SPRING_DATASOURCE_USERNAME="${{ secrets.GCP_SPRING_DATASOURCE_USERNAME }}" \
-              -e SPRING_DATASOURCE_PASSWORD="${{ secrets.GCP_SPRING_DATASOURCE_PASSWORD }}" \
-              $IMAGE_NAME
+          echo "✅ Main backend image built and pushed successfully!"

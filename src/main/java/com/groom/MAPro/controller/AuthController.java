@@ -1,7 +1,7 @@
 package com.groom.MAPro.Controller;
 
 import com.groom.MAPro.entity.User;
-import com.groom.MAPro.repository.UserRepository;
+import com.groom.MAPro.repository.jpa.UserRepository;
 import com.groom.MAPro.service.UserService;
 import com.groom.MAPro.util.ActivityLogger;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -2,8 +2,8 @@ package com.groom.MAPro.service;
 
 import com.groom.MAPro.entity.ActivityLog;
 import com.groom.MAPro.entity.User;
-import com.groom.MAPro.repository.ActivityLogRepository;
-import com.groom.MAPro.repository.UserRepository;
+import com.groom.MAPro.repository.elasticsearch.ActivityLogRepository;
+import com.groom.MAPro.repository.jpa.UserRepository;
 import com.groom.MAPro.util.ActivityLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

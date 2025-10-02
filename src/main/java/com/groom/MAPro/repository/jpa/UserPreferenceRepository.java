@@ -1,4 +1,4 @@
-package com.groom.MAPro.repository;
+package com.groom.MAPro.repository.jpa;
 
 import com.groom.MAPro.entity.PreferenceOption;
 import com.groom.MAPro.entity.User;
