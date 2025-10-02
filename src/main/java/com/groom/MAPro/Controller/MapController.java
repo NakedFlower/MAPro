@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,9 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.google.cloud.secretmanager.v1.AccessSecretVersionResponse;
-import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
-import com.google.cloud.secretmanager.v1.SecretVersionName;
 import com.groom.MAPro.dto.MapResponse;
 import com.groom.MAPro.service.MapService;
 
@@ -36,9 +32,6 @@ public class MapController {
 
     @Autowired
     private MapService mapService;
-
-    @Value("${spring.cloud.gcp.project-id}")
-    private String projectId;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -69,19 +62,54 @@ public class MapController {
         return ResponseEntity.ok("백엔드 서버가 정상적으로 작동중입니다!");
     }
 
-    // 🆕 주소 검색 엔드포인트 추가
+    // 🧪 API 키 테스트 엔드포인트
+    @GetMapping("/test-apikey")
+    public ResponseEntity<?> testApiKey() {
+        try {
+            String apiKey = mapService.getApiKeyForTest();
+            
+            if (apiKey == null) {
+                return ResponseEntity.ok(Map.of(
+                    "status", "error",
+                    "message", "API 키를 가져올 수 없습니다"
+                ));
+            }
+            
+            // API 키 일부만 표시 (보안)
+            String maskedKey = apiKey.substring(0, Math.min(10, apiKey.length())) + "...";
+            
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "apiKey", maskedKey,
+                "length", apiKey.length(),
+                "startsWithAIza", apiKey.startsWith("AIza"),
+                "fullTestUrl", "https://maps.googleapis.com/maps/api/place/textsearch/json?query=분당%20서울&language=ko&region=kr&key=" + apiKey
+            ));
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                "status", "error",
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    // 🆕 주소 검색 엔드포인트
     @GetMapping("/places/search")
     public ResponseEntity<?> searchPlaces(
             @RequestParam String keyword,
             @RequestParam(required = false, defaultValue = "서울") String location) {
         
         try {
-            String googleMapsApiKey = getGoogleMapsApiKey();
+            System.out.println("🔍 장소 검색 요청: " + keyword + " in " + location);
             
-            if (googleMapsApiKey == null) {
+            // ✅ MapService의 메서드 사용
+            String googleMapsApiKey = mapService.getGoogleMapsApiKeyForSearch();
+            
+            if (googleMapsApiKey == null || !googleMapsApiKey.startsWith("AIza")) {
                 return ResponseEntity.status(500).body(Map.of(
                     "success", false,
-                    "error", "API 키를 가져올 수 없습니다."
+                    "error", "유효하지 않은 API 키입니다."
                 ));
             }
 
@@ -95,12 +123,15 @@ public class MapController {
                 .queryParam("key", googleMapsApiKey)
                 .toUriString();
 
-            System.out.println("🔍 Google Places API 검색: " + keyword);
+            System.out.println("📡 Google Places API 호출: " + query);
 
             Map<String, Object> response = restTemplate.getForObject(url, Map.class);
 
             if (response == null || 
                 (!"OK".equals(response.get("status")) && !"ZERO_RESULTS".equals(response.get("status")))) {
+                
+                System.err.println("❌ Google API 상태: " + (response != null ? response.get("status") : "null"));
+                
                 return ResponseEntity.status(500).body(Map.of(
                     "success", false,
                     "error", "Google Places API 오류",
@@ -118,7 +149,17 @@ public class MapController {
                 .limit(10)
                 .map(place -> {
                     Map<String, Object> geometry = (Map<String, Object>) place.get("geometry");
+                    
+                    // null 체크 추가
+                    if (geometry == null) {
+                        return null;
+                    }
+                    
                     Map<String, Object> locationData = (Map<String, Object>) geometry.get("location");
+                    
+                    if (locationData == null) {
+                        return null;
+                    }
                     
                     Map<String, Object> result = new HashMap<>();
                     result.put("id", "google-" + place.get("place_id"));
@@ -127,7 +168,7 @@ public class MapController {
                     result.put("location", place.get("formatted_address"));
                     
                     Map<String, Double> coordinates = new HashMap<>();
-                    coordinates.put("lat", (Double) locationData.get("lat"));
+                    coordinates.put("lat", (Double) locationData.get("lat"));  
                     coordinates.put("lng", (Double) locationData.get("lng"));
                     result.put("coordinates", coordinates);
                     
@@ -139,9 +180,10 @@ public class MapController {
                     
                     return result;
                 })
+                .filter(place -> place != null) // null 제거
                 .collect(Collectors.toList());
 
-            System.out.println("✅ 검색 결과: " + places.size() + "개");
+            System.out.println("✅ 검색 완료: " + places.size() + "개 결과");
 
             return ResponseEntity.ok(Map.of(
                 "success", true,
@@ -157,25 +199,6 @@ public class MapController {
                 "error", "장소 검색 중 오류가 발생했습니다.",
                 "details", e.getMessage()
             ));
-        }
-    }
-
-    // Secret Manager에서 API 키 가져오기 (private 메서드)
-    private String getGoogleMapsApiKey() {
-        try {
-            SecretManagerServiceClient client = SecretManagerServiceClient.create();
-            SecretVersionName secretVersionName = SecretVersionName.of(
-                projectId, 
-                "GOOGLE_MAPS_API_KEY", 
-                "latest"
-            );
-            AccessSecretVersionResponse response = client.accessSecretVersion(secretVersionName);
-            String secretValue = response.getPayload().getData().toStringUtf8();
-            client.close();
-            return secretValue;
-        } catch (Exception e) {
-            System.err.println("❌ Secret Manager 접근 실패: " + e.getMessage());
-            return null;
         }
     }
 }

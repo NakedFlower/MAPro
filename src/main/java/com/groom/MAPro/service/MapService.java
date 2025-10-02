@@ -1,11 +1,12 @@
 package com.groom.MAPro.service;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import com.google.cloud.secretmanager.v1.AccessSecretVersionResponse;
 import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
 import com.google.cloud.secretmanager.v1.SecretVersionName;
 import com.groom.MAPro.dto.MapResponse;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 @Service
 public class MapService {
@@ -42,6 +43,18 @@ public class MapService {
             e.printStackTrace();
             return null;
         }
+    }
+
+    // ✅ 검색용 API 키 메서드
+    public String getGoogleMapsApiKeyForSearch() {
+        return getGoogleMapsApiKey();
+    }
+
+    // 🧪 테스트용 메서드
+    public String getApiKeyForTest() {
+        String apiKey = getGoogleMapsApiKey();
+        System.out.println("🔍 테스트용 API 키: " + apiKey);
+        return apiKey;
     }
 
     public MapResponse getInitialMapData() {
