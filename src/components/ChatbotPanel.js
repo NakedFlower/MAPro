@@ -143,7 +143,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap, messages, onUpdateMessages, 
     setInput("");
 
     try {
-      const response = await fetch('http://mapro.cloud/chat/', {
+      const response = await fetch('http://mapro.cloud/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userText })
@@ -195,7 +195,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap, messages, onUpdateMessages, 
   // 지역 선택
   const handleChooseLocation = async (selected) => {
     try {
-      const response = await fetch('http://mapro.cloud/chat/', {
+      const response = await fetch('http://mapro.cloud/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input || ' ', selected_location: selected, pending: pendingRef.current })
