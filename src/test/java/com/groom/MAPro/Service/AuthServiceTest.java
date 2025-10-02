@@ -4,7 +4,7 @@ import com.groom.MAPro.dto.AuthResponse;
 import com.groom.MAPro.dto.LoginRequest;
 import com.groom.MAPro.dto.SignUpRequest;
 import com.groom.MAPro.entity.User;
-import com.groom.MAPro.repository.UserRepository;
+import com.groom.MAPro.repository.jpa.UserRepository;
 import com.groom.MAPro.service.AuthService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
