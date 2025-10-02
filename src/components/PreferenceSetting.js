@@ -44,7 +44,7 @@ function PreferenceSettings() {
     
     setLoading(true);
     try {
-      const res = await axios.get("http://mapro.cloud:4000/api/user/pfr", {
+      const res = await axios.get("http://mapro.cloud/api/user/pfr", {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
       });
 
@@ -82,7 +82,7 @@ function PreferenceSettings() {
     
     setLoading(true);
     try {
-      const res = await axios.post("http://mapro.cloud:4000/api/user/pfr", null, {
+      const res = await axios.post("http://mapro.cloud/api/user/pfr", null, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
       });
 
@@ -122,7 +122,7 @@ function PreferenceSettings() {
     setSaving(true);
     try {
       const optionIds = Object.values(selected).flat().map(o => o.id);
-      await axios.post("http://mapro.cloud:4000/api/user/pfr/save", optionIds, {
+      await axios.post("http://mapro.cloud/api/user/pfr/save", optionIds, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
       });
       message.success("성향이 저장되었습니다!");

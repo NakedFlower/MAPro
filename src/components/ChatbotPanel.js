@@ -143,7 +143,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap, messages, onUpdateMessages, 
     setInput("");
 
     try {
-      const response = await fetch('http://mapro.cloud:8000/chat', {
+      const response = await fetch('http://mapro.cloud/chat/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userText })
@@ -195,7 +195,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap, messages, onUpdateMessages, 
   // 지역 선택
   const handleChooseLocation = async (selected) => {
     try {
-      const response = await fetch('http://mapro.cloud:8000/chat', {
+      const response = await fetch('http://mapro.cloud/chat/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input || ' ', selected_location: selected, pending: pendingRef.current })
@@ -284,7 +284,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap, messages, onUpdateMessages, 
 
     try {
       // 카테고리 정보 가져오기
-      const categoriesRes = await axios.get("http://mapro.cloud:4000/api/user/pfr", {
+      const categoriesRes = await axios.get("http://mapro.cloud/api/user/pfr", {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
       });
 
@@ -294,7 +294,7 @@ function ChatbotPanel({ onClose, onShowPlacesOnMap, messages, onUpdateMessages, 
       });
 
       // 사용자 성향 정보 가져오기
-      const preferencesRes = await axios.post("http://mapro.cloud:4000/api/user/pfr", null, {
+      const preferencesRes = await axios.post("http://mapro.cloud/api/user/pfr", null, {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
       });
 

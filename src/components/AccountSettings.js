@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import React, { useState, useEffect } from 'react';
-=======
 import React, { useState, useEffect, useCallback } from 'react';
->>>>>>> 0ad3a96bdd471804cbbea70fbae85fcb8d793685
 import {
   Layout,
   Tabs,
@@ -18,16 +14,11 @@ import {
   Spin,
   Alert,
   Divider,
-<<<<<<< HEAD
-  message
-} from 'antd';
-=======
   message,
   Timeline
 } from 'antd';
 import dayjs from "dayjs";
 
->>>>>>> 0ad3a96bdd471804cbbea70fbae85fcb8d793685
 import { UserOutlined, SafetyOutlined, BellOutlined, LogoutOutlined } from '@ant-design/icons';
 
 import { useAuth } from "../context/AuthContext";
@@ -40,16 +31,9 @@ const AccountSettings = () => {
 
   const [loading, setLoading] = useState(false);
 
-<<<<<<< HEAD
-  // formData: 상단 카드와 실제 저장용 데이터
-  const [formData, setFormData] = useState({
-    name: "",
-    username: "", //email
-=======
   const [formData, setFormData] = useState({
     name: "",
     username: "",
->>>>>>> 0ad3a96bdd471804cbbea70fbae85fcb8d793685
     phone: "",
     status: "",
     currentPassword: "",
@@ -59,10 +43,6 @@ const AccountSettings = () => {
 
   const [activeTab, setActiveTab] = useState("profile");
 
-<<<<<<< HEAD
-  // 유저 정보 초기화
-=======
->>>>>>> 0ad3a96bdd471804cbbea70fbae85fcb8d793685
   useEffect(() => {
     if (user) {
       setFormData({
@@ -79,10 +59,6 @@ const AccountSettings = () => {
 
   if (!user) return <div>Loading...</div>;
 
-<<<<<<< HEAD
-  // 비밀번호 변경
-=======
->>>>>>> 0ad3a96bdd471804cbbea70fbae85fcb8d793685
   const handlePasswordChange = () => {
     if (formData.newPassword !== formData.confirmPassword) {
       message.error('비밀번호가 일치하지 않습니다!');
@@ -92,40 +68,22 @@ const AccountSettings = () => {
     console.log('Password changed:', formData.newPassword);
   };
 
-<<<<<<< HEAD
-  // ProfileTab 수정: Input은 로컬 state로 관리
-=======
->>>>>>> 0ad3a96bdd471804cbbea70fbae85fcb8d793685
   const ProfileTab = () => {
     const [nameInput, setNameInput] = useState(formData.name);
     const [usernameInput, setUsernameInput] = useState(formData.username);
     const [phoneInput, setPhoneInput] = useState(formData.phone);
 
-<<<<<<< HEAD
-
     useEffect(() => {
       setNameInput(formData.name);
       setUsernameInput(formData.username);
-      // setPhoneInput(formData.phone);
-=======
-    useEffect(() => {
-      setNameInput(formData.name);
-      setUsernameInput(formData.username);
->>>>>>> 0ad3a96bdd471804cbbea70fbae85fcb8d793685
     }, [formData]);
 
     const handleProfileSave = async () => {
       try {
-<<<<<<< HEAD
-        setLoading(true); 
-
-        // 백엔드 API 호출 (예: PATCH /api/users/{id}/name)
-=======
         setLoading(true);
->>>>>>> 0ad3a96bdd471804cbbea70fbae85fcb8d793685
         const token = localStorage.getItem("token");
         const user = JSON.parse(localStorage.getItem("user"));
-        const res = await fetch(`http://mapro.cloud:4000/api/user/${user.userId}`, {
+        const res = await fetch(`http://mapro.cloud/api/user/${user.userId}`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -134,34 +92,20 @@ const AccountSettings = () => {
           body: JSON.stringify({
             name: nameInput,
             username: usernameInput,
-<<<<<<< HEAD
-            // phone: phoneInput
-=======
->>>>>>> 0ad3a96bdd471804cbbea70fbae85fcb8d793685
           }),
         });
 
         if (!res.ok) throw new Error("이름 수정 실패");
 
         const updatedUser = await res.json();
-<<<<<<< HEAD
-        updateUser(updatedUser);        // AuthContext에 반영
-
-        // 로컬 상태 업데이트
-=======
         updateUser(updatedUser);
->>>>>>> 0ad3a96bdd471804cbbea70fbae85fcb8d793685
         setFormData(prev => ({ ...prev, name: updatedUser.name }));
         message.success("이름이 수정되었습니다!");
       } catch (err) {
         console.error(err);
         message.error("이름 수정에 실패했습니다.");
       } finally {
-<<<<<<< HEAD
-        setLoading(false); 
-=======
         setLoading(false);
->>>>>>> 0ad3a96bdd471804cbbea70fbae85fcb8d793685
       }
     };
 
@@ -323,15 +267,6 @@ const AccountSettings = () => {
     </div>
   );
 
-<<<<<<< HEAD
-  const NotificationsTab = () => (
-    <div style={{ padding: '24px 0' }}>
-      <Card title="알림 설정">
-        <Text>알림 설정 내용이 여기에 표시됩니다.</Text>
-      </Card>
-    </div>
-  );
-=======
   // ----------------------- NotificationsTab 수정 -----------------------
   const NotificationsTab = () => {
     const [logs, setLogs] = useState([]);
@@ -345,7 +280,7 @@ const AccountSettings = () => {
         const token = localStorage.getItem("token");
         const user = JSON.parse(localStorage.getItem("user"));
 
-        const res = await fetch(`http://mapro.cloud:4000/api/user/logs/${user.userId}?page=${pageNumber}&size=10`, {
+        const res = await fetch(`http://mapro.cloud/api/user/logs/${user.userId}?page=${pageNumber}&size=10`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -407,7 +342,6 @@ const AccountSettings = () => {
     </div>
   );
   };
->>>>>>> 0ad3a96bdd471804cbbea70fbae85fcb8d793685
 
   const tabItems = [
     { key: 'profile', label: '프로필', content: <ProfileTab /> },

@@ -27,8 +27,8 @@ const fetchMapData = useCallback(async () => {
     
     console.log('🔍 지도 API 호출 시작...');
     
-    // Java 백엔드(4000 포트)에서 지도 HTML 받아오기
-    const response = await axios.get('http://mapro.cloud:4000/api/map/init', {
+    // Java 백엔드에서 지도 HTML 받아오기 (Nginx 프록시)
+    const response = await axios.get('http://mapro.cloud/api/map/init', {
       timeout: 15000,
       headers: {
         'Content-Type': 'application/json',
@@ -152,9 +152,9 @@ const fetchMapData = useCallback(async () => {
       setIsSearching(true);
       
       try {
-        // Node.js(5000) 대신 Node.js를 통해 Java(4000)로 프록시
+        // Review API를 통한 장소 검색 (Nginx 프록시)
         const response = await axios.get(
-          `http://mapro.cloud:5000/api/places/search?keyword=${encodeURIComponent(query)}&location=서울`
+          `http://mapro.cloud/review/api/places/search?keyword=${encodeURIComponent(query)}&location=서울`
         );
         
         if (response.data.success) {

@@ -1,11 +1,11 @@
-name: Build and Push Docker Image, Deploy to GCP VM
+name: Build and Push Frontend Image
 
 on:
   push:
     branches: [ "dev/FEmember" ]
 
 jobs:
-  build-and-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,18 +28,4 @@ jobs:
           IMAGE_NAME=asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-react-frontend:latest
           docker build -t $IMAGE_NAME .
           docker push $IMAGE_NAME
-
-      - name: Deploy to GCP VM
-        uses: appleboy/ssh-action@v0.1.5
-        with:
-          host: ${{ secrets.GCP_VM_IP }}
-          username: ${{ secrets.NF_GCP_VM_USER }}
-          key: ${{ secrets.NF_GCP_SSH_KEY }}
-          port: 22
-          script: |
-            IMAGE_NAME=asia-northeast3-docker.pkg.dev/custom-sun-466702-d5/docker-repo/mapro-react-frontend:latest
-            gcloud auth configure-docker asia-northeast3-docker.pkg.dev
-            docker pull $IMAGE_NAME
-            docker stop mapro-container-front || true
-            docker rm mapro-container-front || true
-            docker run -d --name mapro-container-front -p 3000:80 $IMAGE_NAME
+          echo "✅ Frontend image built and pushed successfully!"

@@ -20,7 +20,7 @@ export function AuthProvider({ children }) {
   // 토큰 유효성 검증 함수
   const validateToken = async (tokenToValidate) => {
     try {
-      const response = await fetch('http://mapro.cloud:4000/api/auth/validate', {
+      const response = await fetch('http://mapro.cloud/api/auth/validate', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${tokenToValidate}`,
